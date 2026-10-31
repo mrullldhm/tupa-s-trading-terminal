@@ -76,6 +76,18 @@ function base(el: HTMLElement, opts: { time: boolean; minutes?: boolean }): ICha
   });
 }
 
+// autoSize resizes the canvas but keeps the bar spacing, so a narrower chart (rotate, resize) would cut off the
+// right side. Refit on every width change, after autoSize has applied it.
+function keepFit(chart: IChartApi, el: HTMLElement) {
+  chart.timeScale().fitContent();
+  let width = el.clientWidth;
+  new ResizeObserver(() => {
+    if (el.clientWidth === width) return;
+    width = el.clientWidth;
+    requestAnimationFrame(() => chart.timeScale().fitContent());
+  }).observe(el);
+}
+
 const TONE: Record<Tone, string> = {
   ink: "rgba(249,249,249,0.85)",
   dim: "rgba(249,249,249,0.35)",
@@ -180,7 +192,7 @@ export function annotated(root: HTMLElement) {
     if (e.key === "ArrowLeft") show(at - 1);
   });
   show(0);
-  chart.timeScale().fitContent();
+  keepFit(chart, el);
 }
 
 type CurveSeries = { label: string; tone: "ink" | "dim" | "faint" | "long"; points: [string, number][] };
@@ -207,6 +219,6 @@ export function curves(root: HTMLElement) {
     first ??= line;
   }
   first?.createPriceLine({ price: 0, color: "rgba(255,255,255,0.28)", lineWidth: 1, lineStyle: LineStyle.Solid, axisLabelVisible: false, title: "" });
-  chart.timeScale().fitContent();
+  keepFit(chart, el);
 }
 
