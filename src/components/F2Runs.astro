@@ -6,20 +6,26 @@ import ScenarioTable from "./ScenarioTable.astro";
 import { strategyData, sessionLabel, SESSION_ORDER, MIN_ELIGIBLE_TRADES } from "../lib/data";
 import { F2_VERDICTS } from "../data/verdicts";
 import { usd, int, tone } from "../lib/format";
+import F3Pending from "./F3Pending.astro";
+import PeriodTables from "./PeriodTables.astro";
 import { plainSettings, samplerLabel } from "../lib/labels";
 
-interface Props { strategy: string }
-const { strategy } = Astro.props;
+// reservedLook: a filter check outside the protocol saw 2024+ data (fair_price_reversal, docs R6)
+interface Props { strategy: string; reservedLook?: boolean }
+const { strategy, reservedLook = false } = Astro.props;
 const data = strategyData(strategy);
 const f2 = data.features.f2;
-if (!f2) throw new Error(`F2Runs: no feature-2 data exported for "${strategy}"`);
-const verdicts = F2_VERDICTS[strategy];
-const missing = f2.runs.filter((r) => !verdicts?.[r.run_id]).map((r) => r.run_id);
+// No search yet (null or no runs) renders a pending state; a run without a written verdict still fails the build.
+const ready = !!f2 && f2.runs.length > 0;
+const verdicts = F2_VERDICTS[strategy] ?? {};
+const missing = (f2?.runs ?? []).filter((r) => !verdicts?.[r.run_id]).map((r) => r.run_id);
 if (missing.length) throw new Error(`F2Runs: no verdict written for ${missing.join(", ")} in src/data/verdicts.ts`);
-const runs = [...f2.runs].sort(
+const runs = [...(f2?.runs ?? [])].sort(
   (a, b) => SESSION_ORDER.indexOf(a.variant) - SESSION_ORDER.indexOf(b.variant) || a.space.localeCompare(b.space),
 );
 const candidates = runs.filter((r) => verdicts[r.run_id].verdict === "candidate");
+const stale = candidates.filter((r) => !r.periods_year).map((r) => r.run_id);
+if (stale.length) throw new Error(`F2Runs: ${stale.join(", ")} became a candidate after the last export; run npm run export`);
 const spaceLabel = { filters: "Filters only", full: "Settings + filters" } as const;
 const trialSizes = [...new Set(runs.map((r) => r.trials))].sort((a, b) => a - b).join(" or ");
 const trialsBySession = new Map<string, number>();
@@ -31,7 +37,7 @@ const f1GridText = f1.grid_size.map((n) => int(n)).join(" / ");
 function baselineBefore(variant: string, cutoff: string | null) {
   const base = f1.variants[variant];
   if (!base) throw new Error(`F2Runs: no F1 baseline for session "${variant}"`);
-  const curve = base.curve_month_end_closed_pnl["1"];
+  const curve = base.curve_month_end_closed_pnl["0"];
   return cutoff ? curve.filter(([m]) => m < cutoff.slice(0, 7)) : curve;
 }
 ---
@@ -58,7 +64,7 @@ function baselineBefore(variant: string, cutoff: string | null) {
       <tr>
         <th scope="col">Run</th>
         <th scope="col">Best setting found</th>
-        <th scope="col" class="num">Net at 1 tick</th>
+        <th scope="col" class="num">Net at 0 ticks</th>
         <th scope="col" class="num">Trades</th>
         <th scope="col">Verdict</th>
       </tr>
@@ -67,7 +73,7 @@ function baselineBefore(variant: string, cutoff: string | null) {
       {runs.map((r) => {
         const v = verdicts[r.run_id];
         const isCandidate = v.verdict === "candidate";
-        const s1 = r.scenarios["1"];
+        const s0 = r.scenarios["0"];
         return (
           <tr>
             <th scope="row">
@@ -75,8 +81,8 @@ function baselineBefore(variant: string, cutoff: string | null) {
               <span class="sub">{samplerLabel(r.sampler)} · {r.trials} tries</span>
             </th>
             <td class="setting"><ul>{plainSettings(r.winner).map((x) => <li>{x}</li>)}</ul></td>
-            <td class:list={["num", tone(s1.net_profit)]} data-label="Net at 1 tick:">{usd(s1.net_profit)}</td>
-            <td class="num" data-label="Trades:">{int(s1.total_closed_trades)}</td>
+            <td class:list={["num", tone(s0.net_profit)]} data-label="Net at 0 ticks:">{usd(s0.net_profit)}</td>
+            <td class="num" data-label="Trades:">{int(s0.total_closed_trades)}</td>
             <td class="verdict">
               {(
                 <>
@@ -101,17 +107,20 @@ net profit at 1 tick <em>plus</em> any open trade at the end; the tables below s
     <h3>{sessionLabel(r.variant)} candidate: {plainSettings(r.winner).join(", ")}</h3>
     <ScenarioTable scenarios={r.scenarios} objectiveNote caption={`F2 candidate, ${sessionLabel(r.variant)}`} />
     <CurveChart
-      title={`${sessionLabel(r.variant)} candidate vs. F1 baseline, 1 tick`}
-      caption={`Month-end cumulative closed-trade P&L at 1 tick. The candidate line covers the development interval only (before 2024). The baseline line is the F1 top setting over its full test period, cut to the same months for comparison.`}
+      title={`${sessionLabel(r.variant)} candidate vs. F1 baseline, 0 ticks`}
+      caption={`Month-end cumulative closed-trade P&L at 0 ticks (commission included). The candidate line covers the development interval only (before 2024). The baseline line is the F1 top setting over its full test period, cut to the same months for comparison.`}
       series={[
-        { label: "Candidate, 1 tick", tone: "long", points: r.curve_month_end_closed_pnl_1_tick },
+        { label: "Candidate, 0 ticks", tone: "long", points: r.curve_month_end_closed_pnl["0"] },
         {
-          label: "F1 baseline, 1 tick",
+          label: "F1 baseline, 0 ticks",
           tone: "faint",
           points: baselineBefore(r.variant, r.interval[1]),
         },
       ]}
     />
+    {r.periods_year && (
+      <PeriodTables strategy={strategy} dataKey={`f2-${r.run_id}`} year={r.periods_year} label={`F2 ${sessionLabel(r.variant)} candidate`} />
+    )}
   </section>
 ))}
 </>}

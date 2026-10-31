@@ -2,8 +2,9 @@
 import Tabs from "./Tabs.astro";
 import ScenarioTable from "./ScenarioTable.astro";
 import CurveChart from "./CurveChart.astro";
+import PeriodTables from "./PeriodTables.astro";
 import { strategyData, sessionLabel, SESSION_ORDER } from "../lib/data";
-import { usd, int, pct, num, tone, date } from "../lib/format";
+import { int, date } from "../lib/format";
 import { targetLabel } from "../lib/labels";
 
 interface Props { strategy: string; paramLabels?: Record<string, string> }
@@ -29,7 +30,7 @@ const plabel = (k: string) => paramLabels[k] ?? k;
         <p class="period muted">
           Tested {date(s0.period_start)} to {date(s0.period_end)}. In-sample: the settings were picked on this same data.
         </p>
-        <ScenarioTable scenarios={v.scenarios} caption={`Feature 1, ${sessionLabel(k)} session, top combination at 0, 1 and 2 ticks`} />
+        <ScenarioTable scenarios={v.scenarios} caption={`F1, ${sessionLabel(k)} session, top combination at 0, 1 and 2 ticks`} />
         <CurveChart
           title={`${sessionLabel(k)}: cumulative closed-trade P&L`}
           caption="Month-end values of closed-trade profit, one line per slippage scenario. Each scenario is its own test run. Swings inside a month and open trades are not shown, so read drawdown from the table, not from this chart."
@@ -39,19 +40,7 @@ const plabel = (k: string) => paramLabels[k] ?? k;
             { label: "2 ticks", tone: "faint", points: v.curve_month_end_closed_pnl["2"] },
           ]}
         />
-        <details class="years">
-          <summary>Year by year at 0 ticks</summary>
-          <div class="table-scroll">
-            <table class="data">
-              <thead><tr><th scope="col">Year</th><th scope="col" class="num">Trades</th><th scope="col" class="num">Net profit</th><th scope="col" class="num">% profitable</th><th scope="col" class="num">Profit factor</th></tr></thead>
-              <tbody>
-                {v.by_year_0_ticks.map((y) => (
-                  <tr><th scope="row" class="mono">{y.year}</th><td class="num">{int(y.trades)}</td><td class:list={["num", tone(y.net_profit)]}>{usd(y.net_profit)}</td><td class="num">{pct(y.percent_profitable)}</td><td class="num">{num(y.profit_factor, 3)}</td></tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </details>
+        <PeriodTables strategy={strategy} dataKey={`f1-${k}`} year={v.periods_year} label={`F1, ${sessionLabel(k)} session, top combination`} />
       </section>
     );
   })}
@@ -59,6 +48,7 @@ const plabel = (k: string) => paramLabels[k] ?? k;
 <style>
   .panel {
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* shrink back after a resize; charts set a pixel width */
     gap: 1.5rem;
   }
   .params {
@@ -70,19 +60,7 @@ const plabel = (k: string) => paramLabels[k] ?? k;
   }
   .period {
     margin-top: -1rem;
+    max-width: var(--measure);
     font-size: 0.875rem;
-  }
-  .years summary {
-    cursor: pointer;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    padding: 0.4rem 0;
-    color: var(--ink-2);
-  }
-  .years summary:hover {
-    color: var(--ink);
-  }
-  .years[open] summary {
-    margin-bottom: 0.8rem;
   }
 </style>

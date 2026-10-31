@@ -1,13 +1,99 @@
 ---
 title: Supertrend + Kalman trend
-summary: Supertrend and an ATR trail on 15-minute signals, with a Kalman trend filter.
+summary: Supertrend and an ATR trail on 15-minute signals, with a Kalman trend filter and a volatility filter.
 order: 2
-stage: planned
-verdict: Plan drafted. Not tested yet.
+dataKey: supertrend_kalman
+pine: strategies/supertrend_kalman.pine
+stage: tested
+verdict: No edge at 2 ticks in the F1 test. In New York a small RVI filter survives 2 ticks on pre-2024 data, still in-sample.
 features:
-  f1: not-started
-  f2: not-started
-  f3: not-started
+  f1: done
+  f2: done
+  f3: pending
+reviews:
+  - { id: R6, kind: plan, label: "Plan reviewed", date: 2026-10-31 }
+  - { id: R7, kind: code, label: "Code reviewed", date: 2026-10-31 }
+  - { id: R8, kind: replication, label: "Replicated: All hours F1 result, 0 and 1 tick", date: 2026-10-31 }
+  - { id: R9, kind: code, label: "F2 search plan and code reviewed", date: 2026-10-31 }
+  - { id: R10, kind: replication, label: "Replicated: NY F2 candidate, 0 and 1 tick", date: 2026-10-31 }
+  - { id: R11, kind: code, label: "F2 search audited: works the same for any strategy", date: 2026-10-31 }
 updated: 2026-10-31
 ---
-Plan only. Signals on 15-minute candles built from 1-minute bars, stop at the last swing, target 2R or 3R.
+import Callout from "../../components/Callout.astro";
+import F1Results from "../../components/F1Results.astro";
+import F2Runs from "../../components/F2Runs.astro";
+import F3Pending from "../../components/F3Pending.astro";
+
+## The idea
+
+A trend-following idea: Supertrend and an ATR trailing stop (the "UT Bot" line), read on **15-minute candles**
+built from the 1-minute data. A Kalman filter estimates the trend's slope, and a trade is only taken in the
+direction of that slope. A volatility filter avoids trades whose stop would be too wide. The stop goes at the last
+swing high or low, and the target is 2 or 3 times the risk.
+
+I left every design choice open, so each one became a setting to test: which signal starts a trade, which
+volatility filter, and how the trade exits.
+
+## The rules
+
+- **15-minute candles.** Built from the 1-minute bars. A candle's values are used only once it is complete: the
+  decision is made on the first 1-minute bar of the next candle, and the order fills one minute later.
+- **Entry signal** (a setting): Supertrend flips to the trade side; or price crosses the ATR trail while
+  Supertrend agrees; or both agree for the first time. In every case the Kalman slope must point the same way.
+- **Stop.** The last confirmed 15-minute swing low (for a long) or swing high (for a short).
+- **Target.** 2R or 3R, where R is the distance from the decision close to the stop.
+- **Volatility filter** (a setting): none; skip trades whose stop is wider than a multiple of ATR; skip when
+  short-term ATR is high against long-term ATR; or require RVI on the trade side.
+- **Exit** (a setting): fixed stop and target; the stop trails the ATR line; or close the trade when Supertrend
+  flips against it.
+- **Hours.** Four versions: all hours, or only inside the Asia, London or New York session (closed at the session
+  end).
+
+Same fixed properties as every test: $50,000, 1 contract, $2.01 commission per order, results at 0, 1 and 2 ticks
+of slippage. [How the tester works](/method/).
+
+## Test every setting (F1)
+
+1,728 combinations for each of the four versions (6,912 in all), on 16 years of 1-minute data. Below is the
+best one of each version, rerun at 1 and 2 ticks.
+
+<Callout tone="honest" title="The honest result">
+  <p>No version survives 2 ticks of slippage. All hours, London and New York stay above zero at 1 tick; Asia does
+  not. The all-hours winner would have lost more than the whole $50,000 account on the way (max drawdown 102%), and
+  its ten best trades made 79% of its profit.</p>
+</Callout>
+
+<F1Results strategy="supertrend_kalman" paramLabels={{ trigger: "entry", vol: "volatility filter", exit: "exit", rr: "target R", swing: "swing bars", trail_mult: "trail ATR ×", st_factor: "Supertrend factor", kalman_q: "Kalman q" }} />
+
+## Search for a better filter (F2)
+
+Before any search, I wrote down the rules a result must pass to count as a candidate. It had to make money at
+1 **and** 2 ticks, at least two thirds of its nearby settings had to make money too, and no single year could
+supply more than half of its profit. The main guess was the same as for Fair Price Reversal: trades with a small
+stop lose the most once slippage is added.
+
+The search used data before 2024 only and scored every setting on its profit at 1 tick.
+
+<F2Runs strategy="supertrend_kalman" />
+
+### What this means
+
+The stop-size guess was right in its strongest form. In the all-hours version, skipping every trade with a stop
+smaller than 100 ticks turned a loss at 2 ticks into a large profit. But more than half of that profit came from
+2022 alone, so the rule written before the search rejects it. A stop of 100 ticks mostly happens when oil is very
+volatile, so the filter is really a bet on volatile years.
+
+The guided search found an even bigger all-hours number: +$90,347 at 2 ticks. It is the clearest failure of
+all. 2022 alone made 93% of its profit, and half of the 14 years lost money. Six changed settings fitted one
+year of crude oil.
+
+New York is the only candidate, and it is a small one. The New York baseline already made money at 1 tick before
+2024. The filter only raises its own RVI threshold from 50 to 55. Codex rebuilt it independently and every trade
+matched. **None of this shows a tradable edge yet.**
+
+## Validate on unseen data (F3)
+
+<F3Pending>
+  The New York candidate will be tested walk-forward and on the reserved 2024+ data, with every try counted
+  against it. Results will appear here when that work exists.
+</F3Pending>

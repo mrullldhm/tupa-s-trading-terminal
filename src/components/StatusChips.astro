@@ -1,16 +1,15 @@
 ---
 import Badge from "./Badge.astro";
-type S = "done" | "in-progress" | "pending" | "not-started";
+import { STAGES, STAGE_KEYS, STAGE_STATE_WORD } from "../lib/stages";
+type S = keyof typeof STAGE_STATE_WORD;
 interface Props { features: { f1: S; f2: S; f3: S } }
 const { features } = Astro.props;
-const label = { f1: "Feature 1 test", f2: "Feature 2 search", f3: "Feature 3 validation" } as const;
-const word = { done: "done", "in-progress": "in progress", pending: "pending", "not-started": "not started" } as const;
 ---
-<ul class="chips" aria-label="Progress">
-  {(Object.keys(label) as (keyof typeof label)[]).map((k) => (
+<ul class="chips" aria-label="Test stages">
+  {STAGE_KEYS.map((k) => (
     <li>
       <Badge tone={features[k] === "done" ? "done" : "pending"} icon={features[k] === "done" ? "check" : "clock"}>
-        {label[k]}<span class="sr-only">: {word[features[k]]}</span>
+        <span class="tag">{STAGES[k].tag}</span> {STAGES[k].name}<span class="sr-only">: {STAGE_STATE_WORD[features[k]]}</span>
       </Badge>
     </li>
   ))}
@@ -23,5 +22,10 @@ const word = { done: "done", "in-progress": "in progress", pending: "pending", "
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  .tag {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    opacity: 0.75;
   }
 </style>

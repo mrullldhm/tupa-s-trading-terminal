@@ -1,6 +1,8 @@
 // Types and lookups for the JSON written by tools/export_web.py. The site displays these numbers; it never
 // recomputes them.
 import fpr from "../data/strategies/fair_price_reversal.json";
+import skm from "../data/strategies/supertrend_kalman.json";
+import { SCENARIO_KEYS, isPeriodTable, type PeriodTable } from "./periods";
 
 export type Scenario = {
   net_profit: number;
@@ -46,7 +48,7 @@ export type F1Variant = {
   grid_size: number;
   scenarios: Scenarios;
   curve_month_end_closed_pnl: Record<"0" | "1" | "2", Curve>;
-  by_year_0_ticks: { year: number; trades: number; net_profit: number; percent_profitable: number; profit_factor: number | null }[];
+  periods_year: PeriodTable;
 };
 
 export type F2Run = {
@@ -67,7 +69,8 @@ export type F2Run = {
   interval: [string | null, string | null];
   source_trial: number;
   scenarios: Scenarios;
-  curve_month_end_closed_pnl_1_tick: Curve;
+  curve_month_end_closed_pnl: Record<"0" | "1" | "2", Curve>;
+  periods_year: PeriodTable | null;
 };
 
 export type StrategyData = {
@@ -88,7 +91,7 @@ export type StrategyData = {
   sources: { path: string; sha256: string }[];
 };
 
-const EXPORT_VERSION = 1;
+export const EXPORT_VERSION = 2;
 export const MIN_ELIGIBLE_TRADES = 300; // docs/OPTIMIZE.md: a trial counts only with 300+ closed trades at 1 tick
 
 const all: Record<string, StrategyData> = {
@@ -106,7 +109,6 @@ export function strategyData(key: string): StrategyData {
 
 // Fail the build with a clear message on a malformed export, instead of a crash deep inside a component.
 // Unavailable features are null (f2, f3); a present feature must be complete.
-const SCENARIO_KEYS = ["0", "1", "2"] as const;
 function checkShape(key: string, d: StrategyData) {
   const bad = (msg: string) => {
     throw new Error(`${key}: malformed export, ${msg}; re-run npm run export`);
@@ -118,11 +120,12 @@ function checkShape(key: string, d: StrategyData) {
       if (!x.scenarios?.[k]) bad(`f1.${v} has no scenario "${k}"`);
       if (!Array.isArray(x.curve_month_end_closed_pnl?.[k])) bad(`f1.${v} has no curve for scenario "${k}"`);
     }
-    if (!Array.isArray(x.by_year_0_ticks)) bad(`f1.${v}.by_year_0_ticks is missing`);
+    if (!isPeriodTable(x.periods_year)) bad(`f1.${v}.periods_year is malformed`);
   }
   for (const r of d.features.f2?.runs ?? []) {
     for (const k of SCENARIO_KEYS) if (!r.scenarios?.[k]) bad(`f2 run ${r.run_id} has no scenario "${k}"`);
-    if (!Array.isArray(r.curve_month_end_closed_pnl_1_tick)) bad(`f2 run ${r.run_id} has no 1-tick curve`);
+    for (const k of SCENARIO_KEYS) if (!Array.isArray(r.curve_month_end_closed_pnl?.[k])) bad(`f2 run ${r.run_id} has no curve for "${k}"`);
+    if (r.periods_year !== null && !isPeriodTable(r.periods_year)) bad(`f2 run ${r.run_id}.periods_year is malformed`);
   }
 }
 

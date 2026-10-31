@@ -1,4 +1,5 @@
 ---
+import Crumbs from "../../../components/Crumbs.astro";
 import { getCollection } from "astro:content";
 import Doc from "../../../layouts/Doc.astro";
 import Badge from "../../../components/Badge.astro";
@@ -26,7 +27,7 @@ const toc = [
 ---
 <Doc title={`${entry.data.title}: evidence`} description={`Protocol, exposure history, every run and the reviews behind ${entry.data.title}.`} toc={toc}>
   <Fragment slot="head">
-    <p class="crumbs"><a href="/strategies/">Strategies</a> / <a href={`/strategies/${entry.id}/`}>{entry.data.title}</a> /</p>
+    <Crumbs items={[{ href: "/strategies/", label: "Strategies" }, { href: `/strategies/${entry.id}/`, label: entry.data.title }]} current="Evidence" />
     <h1>Evidence and run history</h1>
     <p class="lede">Everything behind the numbers on the strategy page: what was decided before testing, every
     search run with its verdict, what touched the reserved data, and who checked what.</p>
@@ -34,13 +35,13 @@ const toc = [
   <div class="prose wide">
     <h2 id="protocol">Protocol</h2>
     <ul>
-      <li><strong>Feature 1:</strong> {f1.grid_size.join(", ")} settings per session, each run over the full data
+      <li><strong>F1:</strong> {f1.grid_size.join(", ")} settings per session, each run over the full data
       ({date(Object.values(f1.variants)[0].scenarios["0"].period_start)} to {date(Object.values(f1.variants)[0].scenarios["0"].period_end)}).
       The winner is the highest net profit at 0 ticks, then rerun at 1 and 2 ticks.</li>
-      {f2 && <li><strong>Feature 2:</strong> development data only (before 1 Jan 2024). Hypotheses, objective and trial budget were
+      {f2 && <li><strong>F2:</strong> development data only (before 1 Jan 2024). Hypotheses, objective and trial budget were
       written down before the first run. Objective: net profit plus open P&amp;L at 1 tick, with at least {MIN_ELIGIBLE_TRADES}
       closed trades. {int(f2.total_trials)} search trials in total, {int(f2.total_engine_evaluations)} engine runs logged.</li>}
-      <li><strong>Feature 3:</strong> not built yet.</li>
+      <li><strong>F3:</strong> not built yet.</li>
     </ul>
 
     <h2 id="exposure">Exposure to reserved data</h2>
@@ -49,13 +50,13 @@ const toc = [
       {f2?.lineage.map((n) => <li>{n}</li>)}
       {f2?.manual_looks.map((m) => <li><span class="mono">{date(m.time_utc)}</span> · {m.evaluations} engine runs · {m.note}</li>)}
     </ul>
-    <p>So 2024+ is reserved, but it is not a clean out-of-sample test. Feature 3 has to count this.</p>
+    <p>So 2024+ is reserved, but it is not a clean out-of-sample test. F3 has to count this.</p>
 
     <h2 id="runs">Every run</h2>
     {f2 && (
       <div class="table-scroll">
         <table class="data">
-          <caption class="sr-only">All feature-2 runs</caption>
+          <caption class="sr-only">All F2 runs</caption>
           <thead>
             <tr><th scope="col">Run</th><th scope="col" class="num">Trials</th><th scope="col" class="num">Eligible</th><th scope="col" class="num">Engine runs</th><th scope="col" class="num">Net 0 / 1 / 2 ticks</th><th scope="col">Verdict</th></tr>
           </thead>
@@ -94,15 +95,6 @@ const toc = [
   </div>
 </Doc>
 <style>
-  .crumbs {
-    font-size: 0.875rem;
-    color: var(--ink-3);
-    margin-bottom: 1rem;
-  }
-  .crumbs a {
-    color: var(--ink-2);
-    text-decoration: none;
-  }
   .lede {
     margin-top: 1rem;
     max-width: 60ch;

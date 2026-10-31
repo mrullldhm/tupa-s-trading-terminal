@@ -25,22 +25,26 @@ const items = toc.filter((h) => h.depth === 2);
   </div>
 </Base>
 <script>
-  // Highlight the section in view.
-  const links = new Map([...document.querySelectorAll<HTMLAnchorElement>(".toc a")].map((a) => [a.hash.slice(1), a]));
-  const io = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) {
-        if (!e.isIntersecting) continue;
-        links.forEach((a) => a.removeAttribute("aria-current"));
-        links.get(e.target.id)?.setAttribute("aria-current", "true");
-      }
-    },
-    { rootMargin: "-20% 0px -70% 0px" },
-  );
-  links.forEach((_, id) => {
-    const el = document.getElementById(id);
-    if (el) io.observe(el);
-  });
+  // Highlight the section being read: the last heading above 30% of the viewport. Reads only, once per frame.
+  const links = [...document.querySelectorAll<HTMLAnchorElement>(".toc a")];
+  const targets = links.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))));
+  let current = -1;
+  let queued = false;
+  function update() {
+    queued = false;
+    const line = innerHeight * 0.3;
+    let at = -1;
+    targets.forEach((el, i) => {
+      if (el && el.getBoundingClientRect().top <= line) at = i;
+    });
+    if (at === current) return;
+    current = at;
+    links.forEach((a, i) => (i === at ? a.setAttribute("aria-current", "location") : a.removeAttribute("aria-current")));
+  }
+  if (links.length) {
+    addEventListener("scroll", () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
+    update();
+  }
 </script>
 <style>
   .doc {
@@ -88,7 +92,7 @@ const items = toc.filter((h) => h.depth === 2);
   .toc a:hover {
     color: var(--ink);
   }
-  .toc a[aria-current="true"] {
+  .toc a[aria-current="location"] {
     color: var(--ink);
     border-left-color: var(--ink);
   }

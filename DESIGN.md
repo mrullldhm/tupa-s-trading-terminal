@@ -111,7 +111,7 @@ spacing:
   lg: "2rem"
   xl: "4rem"
   wrap: "1180px"
-  measure: "68ch"
+  measure: "50ch"
 components:
   button-primary:
     backgroundColor: "#f4f4f4"
@@ -165,7 +165,7 @@ components:
 
 A research journal that behaves like a quiet instrument panel. The grammar is borrowed from graphite.com: a near-black ground, off-white ink that steps down through alpha instead of through new greys, 1px low-alpha hairlines, product shown inside a bezelled frame, glowing white line art, and a light primary button with a faint iridescent rim. The first screen leads with "jump to a strategy": headline and two actions on the left, a glowing candle sculpture on the right, and the strategy terminal rising from the fold tilted, then straightening as you scroll.
 
-The system is night mode only (`color-scheme: dark`, theme-color `#070707`). There is no light theme and none is planned. Density is calm: wide gaps, long measures capped at 68ch, data in tables and mono. Trust is part of the look. Labels such as in-sample, best of N, slippage scenario and "Illustrative prices" are components, not footnotes.
+The system is night mode only (`color-scheme: dark`, theme-color `#070707`). There is no light theme and none is planned. Density is calm: wide gaps, long measures capped at about 73 characters (`--measure: 50ch`), data in tables and mono. Trust is part of the look. Labels such as in-sample, best of N, slippage scenario and "Illustrative prices" are components, not footnotes.
 
 **Key Characteristics:**
 - Monochrome world; the only hues are desaturated long (mint), short (rose) and amber (caution).
@@ -211,7 +211,7 @@ A graphite scale of five grounds, one ink with two alpha steps, three hairline s
 - **Display** (500, clamp(2.5rem, 1.6rem + 3.6vw, 3.75rem), 1.12, -0.03em): h1 on the home page only, capped near 15ch.
 - **Headline** (500, 2.25rem, 1.12, -0.022em): h2 section titles.
 - **Title** (500, 1.5rem, -0.015em): h3. Prose h2 uses this size.
-- **Body** (400, 1rem / 1.6; prose 1.0625rem at ink-2): max line 68ch (`--measure`).
+- **Body** (400, 1rem / 1.6; prose 1.0625rem at ink-2): max line `--measure` = 50ch, which is about 73 real characters in Geist (its "0", the `ch` unit, is wider than average text; 68ch measured 88 to 90).
 - **Label** (500, 0.6875 to 0.8125rem): badges, sidebar group heads, table headers, in ink-3, sentence case.
 - **Data** (Geist Mono, tabular numerals, 0.9rem in tables): numbers, ids, chart axes (11px), `code`.
 
@@ -251,19 +251,19 @@ Soft-square. Badges 6px, buttons 9px, wells/callouts/tables 10px (`--radius`), l
 - **Quiet:** Panel 2 with inset ring; hover Panel 3. Both press down 1px on `:active`.
 
 ### Badge and status chips
-Compact 24px chip, 0.75rem, optional 13px icon. Tones: info (Panel 2), done (ink with 20% ring, check), pending (transparent, hatched, dashed look, clock), rejected (short on short-dim, x), warn (amber on amber-dim, flask). StatusChips renders F1 / F2 / F3 as done or pending with a screen-reader state word.
+Compact 24px chip, 0.75rem, optional 13px icon. Tones: info (Panel 2), done (ink with 20% ring, check), pending (transparent, hatched, dashed look, clock), rejected (short on short-dim, x), warn (amber on amber-dim, flask). StatusChips renders each stage as tag + plain name ("F1 Test every setting") as done or pending, with a screen-reader state word ("not started", never the raw key). Stage tags and names live in `src/lib/stages.ts` only; readers never see "Feature 1/2/3".
 
 ### Callout
-Panel surface, 10px, ring only (no left stripe). Tones: note, honest (Panel 2, stronger ring, for in-sample / best of N statements), warn (amber tint and ring, flask icon, amber title). Max 68ch.
+Panel surface, 10px, ring only (no left stripe). Tones: note, honest (Panel 2, stronger ring, for in-sample / best of N statements), warn (amber tint and ring, flask icon, amber title). Max `--measure`.
 
 ### Frame (bezel)
 Outer 10px padded shell with 20px radius and a faint top-down white gradient, inner screen in Raise with 12px radius. Wraps every product-like thing: terminal, charts.
 
 ### Strategy index terminal (signature)
-Grid of a 200px Panel sidebar (Show filter with counts, Market line) and a main area with a titlebar and one row per strategy: name and summary, F1/F2/F3 chips, verdict, arrow. Rows separated by hairlines, hover to Panel 2, arrow slides 3px. Planned rows are non-links with a Planned badge. Filters toggle `hidden` with `aria-pressed`.
+Grid of a 200px Panel sidebar (Show filter with counts, Market line) and a main area with a titlebar and one row per strategy: name and summary, F1/F2/F3 chips, verdict, arrow. The titlebar legend ("F1 every setting · F2 narrow search · F3 validation") shows at every width. Rows separated by hairlines, hover to Panel 2, arrow slides 3px. Planned rows are non-links with a Planned badge. Filters toggle `hidden` with `aria-pressed`; below 900px the sidebar becomes a horizontal filter strip (never removed), and a filter with no rows shows "Nothing in this group yet" with a reset.
 
 ### Pipeline stack line
-The research path as a vertical line of circular glowing nodes joined by a 1px gradient rule; the unbuilt stage (Feature 3) has a hatched hollow node, a dashed connector and a "Not built yet" tag.
+The research path as a vertical line of circular glowing nodes joined by a 1px gradient rule; the unbuilt stage (F3) has a hatched hollow node, a dashed connector and a "Not built yet" tag.
 
 ### Review trail
 Same node-and-line vocabulary at smaller scale: Review or Replication badge, mono id, date, then the label.
@@ -272,13 +272,28 @@ Same node-and-line vocabulary at smaller scale: Review or Replication badge, mon
 Segmented strip in Panel with ring; selected tab Panel 3 with ring and top highlight; arrow, Home and End keys; panels server-rendered and toggled via `hidden`.
 
 ### Tables (ScenarioTable, F1/F2 results, `table.data`)
-In a `.table-scroll` well (Raise, 1px line, 10px). 0.9rem, header row Panel with ink-3 labels, 1px row rules, numeric columns right aligned in tabular mono. Slippage scenarios are separate rows or columns labelled 0, 1, 2 ticks.
+In a `.table-scroll` well (Raise, 1px line, 10px). 0.9rem, header row Panel with ink-3 labels, 1px row rules, numeric columns right aligned in tabular mono. Slippage scenarios are separate rows or columns labelled 0, 1, 2 ticks. Below 640px ScenarioTable shows short values for the eye but keeps the full values in the accessibility tree (visually hidden, never `display: none`), and keeps every row hint and the drawdown % (as a second line): honesty labels are never dropped on mobile.
+
+### Period tables (F1 sessions, F2 candidates)
+`PeriodTables`: one "Year by year" disclosure with net profit at 0, 1 and 2 ticks side by side (whole dollars, sign
+and colour, a dash for "no trade closed"), capped at 640px so the eye does not travel. Inside it, "Show month by
+month" appears; opening it reveals "Show week by week", then "Show day by day". Closing a level closes everything
+under it. Month, week and day rows are fetched on first open (`/data/<strategy>/<key>/<grain>.json`), checked
+against the page's export version, then cached; the toggle reads "Loading…" while busy and a failed load says why
+and offers "Try … again". Fetched levels sit in 440px scroll wells with sticky headers and a row count. Without
+JavaScript only the year table shows.
+
+### At a glance (strategy page head)
+Compact `table.data` under the verdict: F1 best net profit per session at 0, 1 and 2 ticks, with an amber In-sample badge and a "Best of N settings" badge, plus links to the F1 and F2 sections and to How to read. It exists so the 1-tick result is on the first screen next to the 0-tick one. Display only.
+
+### Breadcrumbs
+`Crumbs`: `nav` + `ol`, "/" separators drawn in CSS, the current page as the last, unlinked item with `aria-current="page"`.
 
 ### Charts (CurveChart, AnnotatedChart, CandleSculpture)
-TradingView Lightweight Charts on a transparent background inside a Frame. Axes mono 11px at 55% ink; grid 3.5% and 5% white; scale borders 8%; crosshair 25% white with Panel 3 labels. Candles are monochrome: up = hollow (#0c0c0d body, #f2f2f2 outline), down = grey (#8b8b91). Price lines use ink, dim, long (#8fd4c1) or short (#e7a39d) with labels; curves are ink 2px, dim and faint dashed, and long. Annotated chart steps through the idea with markers, a Step N of M count and dot nav. The hero sculpture is white line art with four fading echo layers and a caption saying it is illustrative.
+TradingView Lightweight Charts on a transparent background inside a Frame. Axes mono 11px at 55% ink; grid 3.5% and 5% white; scale borders 8%; crosshair 25% white with Panel 3 labels. Candles are monochrome: up = hollow (#0c0c0d body, #f2f2f2 outline), down = grey (#8b8b91). Price lines use ink, dim, long (#8fd4c1) or short (#e7a39d) with labels; curves are ink 2px, dim and faint dashed, and long. Annotated chart steps through the idea with markers, a Step N of M count and dot nav (26 x 40 hit areas, 40px prev/next; only the step text is a live region). Every CurveChart has a collapsed "Show the numbers" table of the exported month-end points as its text alternative. The chart library is fetched only when a chart nears the viewport (`charts.client.ts` boots, `charts.render.ts` draws); a failed load says so in place. Grids that hold a chart use `minmax(0, 1fr)`, never a bare `1fr` or an implicit column, or the canvas keeps its old width after a rotate. The hero sculpture is white line art with four fading echo layers and a caption saying it is illustrative.
 
 ### F3Pending and FixedRules
-F3Pending is a dashed-border, hatched block with a clock tile and "Not built yet". FixedRules is a spec strip of definition terms (capital, size, cost, slippage) separated by vertical hairlines, ink values over ink-3 terms.
+F3Pending is a dashed-border, hatched block with a clock tile and a heading, "Not built yet" by default (F2Runs reuses it as "Not run yet" when a strategy has no search). FixedRules is a spec strip of definition terms (capital, size, cost, slippage) separated by vertical hairlines, ink values over ink-3 terms.
 
 ### Honesty labels
 Part of the vocabulary: any chart with invented prices carries the amber flask label "Illustrative prices, not real market data"; every result carries in-sample, best of N where optimized, and its slippage scenario; owner rules that differ from TradingView are labelled as such.

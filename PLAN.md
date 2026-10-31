@@ -24,9 +24,10 @@ tvtester (Python, parent folder)        web/ (Astro)
 web/src/content/strategies/<s>.mdx  (hand-written prose, simple English)  ──────────► Cloudflare Pages
 web/src/data/illustrative/*.json    (synthetic candles, labelled)
 ```
-- **Display, never compute.** `export_web.py` copies numbers the tester already produced. The only transforms:
-  rename keys, round for display, downsample the equity curve (cum_profit per trade) to ≤ 600 points, and drop
-  columns we do not publish.
+- **Display, never compute.** `export_web.py` copies numbers the tester already produced, or gets them from the
+  tester's own functions (period tables: `tvtester.metrics.by_period`, owner decision 2026-10-31). The other
+  transforms: rename keys, round for display, downsample the equity curve to month ends, and drop columns we do
+  not publish. The site itself never computes a number.
 - **Prose never overwritten.** MDX is hand-written. Numbers enter MDX only through components that read the
   exported JSON (`<Result variant="ny" slippage={1} metric="net_profit" />`).
 - **Feature 3 slot.** Each strategy JSON has `features: { f1: {...}, f2: {...}, f3: null }`. The page renders a
@@ -38,6 +39,9 @@ web/src/data/illustrative/*.json    (synthetic candles, labelled)
 ### What gets published (field allowlist, see 8.2)
 - **Owner decision (2026-10-31): summaries only.** No per-trade rows public. Publish scenario metrics, run
   metadata and a downsampled cumulative closed-trade P&L curve only.
+- **Owner decision (2026-10-31, later): period tables down to one day.** Net profit per UTC exit year, month,
+  week and day at 0, 1 and 2 ticks, for F1 and F2 candidates. Accepted knowingly: most days hold one trade, so a
+  day row shows that trade's net profit and exit date. Still never: prices, entry/exit times, symbols, trade rows.
 - Never published: `entry_price`, `exit_price`, `raw_symbol`, any `*_pct` field derived from prices
   (`profit_pct`, `run_up_pct`, `drawdown_pct` reconstruct entry price), raw CSVs, report Markdown with prices.
 - The exporter uses an explicit allowlist per output file; anything not listed is dropped and logged.
@@ -47,7 +51,7 @@ web/src/data/illustrative/*.json    (synthetic candles, labelled)
 |---|---|
 | F1 scenario metrics (0/1/2 ticks, each its own trades, net, PF, DD...) | `results/<s>/<v>/summary.json` |
 | F1 winning parameters + grid size | `results/<s>/<v>/grid.csv` (top row by net at 0 ticks; row count = N) |
-| F1 by-year table | copied from the existing report table; never re-aggregated |
+| F1 and F2-candidate period tables (year embedded; month, week, day as `web/public/data/<s>/<key>/<grain>.json`) | `tvtester.metrics.by_period` on the trade lists; every grain must add up to the summary, and the 0-tick year table must equal the report table |
 | F2 runs (objective, sampler, seed, trials, verdict) | `results/<s>/ledger.jsonl` + `strategies/configs/*.json` |
 | F2 replay metrics | `results/<s>/replay/<run>/summary.json` |
 | Review evidence | `docs/REVIEWS.md` entries, by id (R3, R6...) |

@@ -42,7 +42,7 @@
   --radius: 10px;
   --radius-lg: 16px;
   --wrap: 1180px;
-  --measure: 68ch;
+  --measure: 50ch; /* ~73 real characters (measured) in Geist: its "0" (the ch unit) is wider than average text. */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -316,7 +316,7 @@ table.data td {
   vertical-align: top;
 }
 
-table.data tr:last-child td {
+table.data tbody tr:last-child > * {
   border-bottom: 0;
 }
 
@@ -356,4 +356,18 @@ table.data tbody th {
 
 [hidden] {
   display: none !important;
+}
+
+/* Chart failed to load (charts.client.ts): say so; the text and tables around every chart still carry the content. */
+[data-chart-state="error"] [data-canvas] {
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+[data-chart-state="error"] [data-canvas]::after {
+  content: "The chart could not load. The same information is in the text and tables next to it.";
+  max-width: 40ch;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--ink-3);
 }

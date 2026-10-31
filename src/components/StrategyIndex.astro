@@ -2,29 +2,29 @@
 import { getCollection } from "astro:content";
 import Badge from "./Badge.astro";
 import Icon from "./Icon.astro";
+import { STAGES, STAGE_KEYS, STAGE_STATE_WORD } from "../lib/stages";
 
 interface Props { interactiveHeading?: string }
 const { interactiveHeading = "Strategies" } = Astro.props;
 const all = (await getCollection("strategies")).sort((a, b) => a.data.order - b.data.order);
 const tested = all.filter((s) => s.data.stage === "tested").length;
 const planned = all.length - tested;
-const fname = { f1: "F1", f2: "F2", f3: "F3" } as const;
 ---
 <div class="terminal" data-strategy-index>
   <aside class="side">
     <p class="side-h" id="filter-h">Show</p>
-    <ul aria-labelledby="filter-h">
+    <ul class="filters" aria-labelledby="filter-h">
       <li><button type="button" data-filter="all" aria-pressed="true"><span>All strategies</span><span class="mono">{all.length}</span></button></li>
       <li><button type="button" data-filter="tested" aria-pressed="false"><span>Tested</span><span class="mono">{tested}</span></button></li>
       <li><button type="button" data-filter="planned" aria-pressed="false"><span>Planned</span><span class="mono">{planned}</span></button></li>
     </ul>
-    <p class="side-h">Market</p>
+    <p class="side-h market-h">Market</p>
     <p class="market">CL1! · 1 minute</p>
   </aside>
   <div class="main">
     <div class="titlebar">
       <h2 class="tb-h" id="strategies-index-h">{interactiveHeading}</h2>
-      <span class="legend mono">F1 test · F2 search · F3 validation</span>
+      <p class="legend">{STAGE_KEYS.map((k, i) => <>{i > 0 && " · "}<span class="mono">{STAGES[k].tag}</span> {STAGES[k].short}</>)}</p>
     </div>
     <ul class="rows">
       {all.map((s) => {
@@ -38,9 +38,9 @@ const fname = { f1: "F1", f2: "F2", f3: "F3" } as const;
                 <span class="summary">{s.data.summary}</span>
               </div>
               <div class="chips">
-                {(Object.keys(fname) as (keyof typeof fname)[]).map((k) => (
+                {STAGE_KEYS.map((k) => (
                   <Badge tone={s.data.features[k] === "done" ? "done" : "pending"} icon={s.data.features[k] === "done" ? "check" : "clock"}>
-                    {fname[k]}<span class="sr-only"> {s.data.features[k]}</span>
+                    {STAGES[k].tag}<span class="sr-only"> {STAGES[k].short}: {STAGE_STATE_WORD[s.data.features[k]]}</span>
                   </Badge>
                 ))}
               </div>
@@ -51,19 +51,25 @@ const fname = { f1: "F1", f2: "F2", f3: "F3" } as const;
         );
       })}
     </ul>
+    <p class="empty" data-empty hidden>Nothing in this group yet. <button type="button" data-filter-reset>Show all strategies</button></p>
   </div>
 </div>
 <script>
   for (const root of document.querySelectorAll<HTMLElement>("[data-strategy-index]")) {
     const buttons = [...root.querySelectorAll<HTMLButtonElement>("[data-filter]")];
     const rows = [...root.querySelectorAll<HTMLElement>("[data-stage]")];
-    buttons.forEach((b) =>
-      b.addEventListener("click", () => {
-        const f = b.dataset.filter;
-        buttons.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-        rows.forEach((r) => (r.hidden = f !== "all" && r.dataset.stage !== f));
-      }),
-    );
+    const empty = root.querySelector<HTMLElement>("[data-empty]");
+    const apply = (b: HTMLButtonElement) => {
+      const f = b.dataset.filter;
+      buttons.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      rows.forEach((r) => (r.hidden = f !== "all" && r.dataset.stage !== f));
+      if (empty) empty.hidden = rows.some((r) => !r.hidden);
+    };
+    buttons.forEach((b) => b.addEventListener("click", () => apply(b)));
+    root.querySelector("[data-filter-reset]")?.addEventListener("click", () => {
+      const all = buttons.find((b) => b.dataset.filter === "all");
+      if (all) { apply(all); all.focus(); }
+    });
   }
 </script>
 <style>
@@ -129,8 +135,29 @@ const fname = { f1: "F1", f2: "F2", f3: "F3" } as const;
     letter-spacing: 0;
   }
   .legend {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     color: var(--ink-3);
+    text-align: right;
+  }
+  .legend .mono {
+    color: var(--ink-2);
+  }
+  .empty {
+    padding: 1.5rem 1.25rem;
+    font-size: 0.875rem;
+    color: var(--ink-2);
+  }
+  .empty button {
+    margin-left: 0.4rem;
+    padding: 0;
+    border: 0;
+    font: inherit;
+    color: var(--ink);
+    background: none;
+    text-decoration: underline;
+    text-decoration-color: var(--line-3);
+    text-underline-offset: 0.22em;
+    cursor: pointer;
   }
   .rows {
     margin: 0;
@@ -163,10 +190,12 @@ const fname = { f1: "F1", f2: "F2", f3: "F3" } as const;
   }
   .title {
     font-weight: 500;
+    overflow-wrap: anywhere;
   }
   .summary {
     font-size: 0.8125rem;
     color: var(--ink-2);
+    overflow-wrap: anywhere;
   }
   .chips {
     display: flex;
@@ -183,10 +212,30 @@ const fname = { f1: "F1", f2: "F2", f3: "F3" } as const;
   }
   @media (max-width: 900px) {
     .terminal {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .side {
+      display: flex;
+      padding: 0.6rem 0.75rem;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .side-h,
+    .market-h,
+    .market {
       display: none;
+    }
+    .side .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin: 0;
+    }
+    .side button {
+      width: auto;
+      min-height: 36px;
+      align-items: center;
+      gap: 0.6rem;
     }
     .row {
       grid-template-columns: minmax(0, 1fr) auto;
@@ -200,8 +249,13 @@ const fname = { f1: "F1", f2: "F2", f3: "F3" } as const;
       grid-row: 1;
       grid-column: 2;
     }
+    .titlebar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
     .legend {
-      display: none;
+      text-align: left;
     }
   }
 </style>

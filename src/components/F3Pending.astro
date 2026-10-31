@@ -1,10 +1,12 @@
 ---
 import Icon from "./Icon.astro";
+interface Props { heading?: string }
+const { heading = "Not built yet" } = Astro.props;
 ---
 <div class="pending">
   <span class="ico"><Icon name="clock" size={18} /></span>
   <div>
-    <p class="h">Not built yet</p>
+    <p class="h">{heading}</p>
     <p class="b"><slot /></p>
   </div>
 </div>

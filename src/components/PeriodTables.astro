@@ -1,0 +1,302 @@
+---
+// Net profit by exit period at 0, 1 and 2 ticks, side by side. Year rows are in the page; month, week and day rows
+// are fetched only when their toggle is opened. Each level appears once the level above it is open.
+import { usd, tone } from "../lib/format";
+import { EXPORT_VERSION, strategyData } from "../lib/data";
+import { FETCHED_GRAINS, SCENARIO_KEYS, type PeriodTable } from "../lib/periods";
+
+interface Props { strategy: string; dataKey: string; year: PeriodTable; label: string }
+const { strategy, dataKey, year, label } = Astro.props;
+const LEVEL = {
+  month: { title: "Month by month", period: "Month" },
+  week: { title: "Week by week", period: "Week from (Mon)" },
+  day: { title: "Day by day", period: "Day" },
+} as const;
+const generated = strategyData(strategy).generated_utc;
+const id = (g: string) => `periods-${dataKey}-${g}`;
+const head = ["0 ticks", "1 tick", "2 ticks"];
+---
+<details class="periods" data-periods data-strategy={strategy} data-key={dataKey} data-version={EXPORT_VERSION} data-generated={generated}>
+  <summary>Year by year <span class="sum-note">net profit at 0, 1 and 2 ticks</span></summary>
+  <p class="note">Closed trades grouped by the UTC date each one closed. In-sample. A period with no closed trade is
+  left out; <span aria-hidden="true">–</span><span class="sr-only">a dash</span> means no trade closed in it at that
+  slippage.</p>
+  <div class="table-scroll">
+    <table class="data">
+      <caption class="sr-only">{label}: net profit by year at 0, 1 and 2 ticks</caption>
+      <thead><tr><th scope="col">Year</th>{head.map((h) => <th scope="col" class="num">{h}</th>)}</tr></thead>
+      <tbody>
+        {year.periods.map((p, i) => (
+          <tr>
+            <th scope="row" class="mono">{p}</th>
+            {SCENARIO_KEYS.map((k) => {
+              const v = year.net[k][i];
+              return <td class:list={["num", tone(v)]}>{v === null ? <span aria-label="no trades">–</span> : usd(v, { cents: false })}</td>;
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  {FETCHED_GRAINS.map((g) => (
+    <div class="level" data-level={g}>
+      <div class="bar">
+        <button type="button" class="toggle" data-toggle aria-expanded="false" aria-controls={id(g)} hidden>
+          <span data-label>Show {LEVEL[g].title.toLowerCase()}</span>
+        </button>
+        <p class="status" data-status role="status"></p>
+      </div>
+      <div class="body" id={id(g)} data-body hidden>
+        <p class="level-h">{LEVEL[g].title} <span class="count mono" data-count></span></p>
+        <div class="table-scroll tall">
+          <table class="data">
+            <caption class="sr-only">{label}: net profit {LEVEL[g].title.toLowerCase()} at 0, 1 and 2 ticks</caption>
+            <thead><tr><th scope="col">{LEVEL[g].period}</th>{head.map((h) => <th scope="col" class="num">{h}</th>)}</tr></thead>
+            <tbody data-rows></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  ))}
+</details>
+
+<script>
+  import { usd, tone } from "../lib/format";
+  import { FETCHED_GRAINS, SCENARIO_KEYS, isPeriodTable, periodFileUrl, type FetchedGrain, type PeriodTable } from "../lib/periods";
+
+  const TITLE: Record<FetchedGrain, string> = { month: "month by month", week: "week by week", day: "day by day" };
+  const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  async function loadTable(root: HTMLElement, grain: FetchedGrain): Promise<PeriodTable> {
+    const { strategy = "", key = "", version, generated } = root.dataset;
+    const res = await fetch(periodFileUrl(strategy, key, grain));
+    if (!res.ok) throw new Error(`the server answered ${res.status}`);
+    const doc: unknown = await res.json();
+    const meta = doc as { export_version?: unknown; generated_utc?: unknown; strategy?: unknown; key?: unknown; grain?: unknown };
+    if (!isPeriodTable(doc)) throw new Error("the file is not a period table");
+    if (String(meta.export_version) !== version || meta.generated_utc !== generated || meta.strategy !== strategy
+        || meta.key !== key || meta.grain !== grain) {
+      throw new Error("the results were updated since this page loaded; reload the page");
+    }
+    return doc;
+  }
+
+  function periodText(p: string, grain: FetchedGrain): string {
+    return grain === "day" ? `${p} ${WEEKDAY[new Date(`${p}T00:00:00Z`).getUTCDay()]}` : p;
+  }
+
+  function fillRows(tbody: HTMLElement, table: PeriodTable, grain: FetchedGrain) {
+    const frag = document.createDocumentFragment();
+    table.periods.forEach((p, i) => {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      th.scope = "row";
+      th.className = "mono";
+      th.textContent = periodText(p, grain);
+      tr.append(th);
+      for (const k of SCENARIO_KEYS) {
+        const v = table.net[k][i];
+        const td = document.createElement("td");
+        td.className = `num ${tone(v)}`.trim();
+        if (v === null) {
+          const dash = document.createElement("span");
+          dash.setAttribute("aria-label", "no trades");
+          dash.textContent = "–";
+          td.append(dash);
+        } else {
+          td.textContent = usd(v, { cents: false });
+        }
+        tr.append(td);
+      }
+      frag.append(tr);
+    });
+    tbody.replaceChildren(frag);
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-periods]")) {
+    const levels = FETCHED_GRAINS.map((grain) => {
+      const el = root.querySelector<HTMLElement>(`[data-level="${grain}"]`);
+      if (!el) throw new Error(`period tables: missing level ${grain}`);
+      const get = <T extends HTMLElement>(sel: string) => {
+        const found = el.querySelector<T>(sel);
+        if (!found) throw new Error(`period tables: ${grain} level is missing ${sel}`);
+        return found;
+      };
+      return {
+        grain,
+        button: get<HTMLButtonElement>("[data-toggle]"),
+        label: get<HTMLElement>("[data-label]"),
+        status: get<HTMLElement>("[data-status]"),
+        body: get<HTMLElement>("[data-body]"),
+        rows: get<HTMLElement>("[data-rows]"),
+        count: get<HTMLElement>("[data-count]"),
+        loaded: false,
+      };
+    });
+
+    const setOpen = (i: number, open: boolean) => {
+      const lv = levels[i];
+      lv.body.hidden = !open;
+      lv.button.setAttribute("aria-expanded", String(open));
+      lv.label.textContent = `${open ? "Hide" : "Show"} ${TITLE[lv.grain]}`;
+      const next = levels[i + 1];
+      if (next) {
+        if (!open) setOpen(i + 1, false);
+        next.button.hidden = !open;
+      }
+    };
+
+    levels.forEach((lv, i) => {
+      lv.button.addEventListener("click", async () => {
+        if (lv.button.getAttribute("aria-expanded") === "true") {
+          setOpen(i, false);
+          return;
+        }
+        if (!lv.loaded) {
+          lv.button.disabled = true;
+          lv.button.setAttribute("aria-busy", "true");
+          lv.label.textContent = `Loading ${TITLE[lv.grain]}…`;
+          lv.status.textContent = "";
+          try {
+            const table = await loadTable(root, lv.grain);
+            fillRows(lv.rows, table, lv.grain);
+            lv.count.textContent = `${table.periods.length.toLocaleString("en-US")} rows`;
+            lv.loaded = true;
+          } catch (err) {
+            lv.status.textContent = `Could not load ${TITLE[lv.grain]}: ${err instanceof Error ? err.message : String(err)}.`;
+            lv.label.textContent = `Try ${TITLE[lv.grain]} again`;
+            console.error(`period tables: ${lv.grain} failed`, err);
+            return;
+          } finally {
+            lv.button.disabled = false;
+            lv.button.removeAttribute("aria-busy");
+          }
+        }
+        // The level above may have been closed while this one loaded; keep the data, do not open it.
+        if (i > 0 && levels[i - 1].button.getAttribute("aria-expanded") !== "true") {
+          lv.label.textContent = `Show ${TITLE[lv.grain]}`;
+          return;
+        }
+        setOpen(i, true);
+      });
+    });
+    // Without JavaScript only the year table shows; the first toggle appears once the script runs.
+    levels[0].button.hidden = false;
+  }
+</script>
+
+<style>
+  .periods summary {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.6rem;
+    min-height: 40px;
+    padding: 0.6rem 0;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .periods summary:hover,
+  .periods[open] summary {
+    color: var(--ink);
+  }
+  .sum-note {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--ink-3);
+  }
+  .note {
+    max-width: var(--measure);
+    margin: 0.25rem 0 0.9rem;
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+  }
+  .level {
+    margin-top: 0.9rem;
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+  }
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 0.95rem;
+    border: 0;
+    border-radius: 9px;
+    font: 500 0.875rem/1 var(--font);
+    color: var(--ink);
+    background: var(--panel-2);
+    box-shadow: 0 0 0 1px var(--line-2) inset, 0 1px 0 rgb(255 255 255 / 0.05) inset;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .toggle:hover:not(:disabled) {
+    background: var(--panel-3);
+  }
+  .toggle[aria-expanded="true"] {
+    background: var(--panel-3);
+    box-shadow: 0 0 0 1px var(--line-3) inset;
+  }
+  .toggle:disabled {
+    cursor: progress;
+    color: var(--ink-2);
+  }
+  .toggle[hidden] {
+    display: none;
+  }
+  .status {
+    font-size: 0.8125rem;
+    color: var(--short);
+  }
+  .status:empty {
+    display: none;
+  }
+  .body {
+    margin-top: 0.75rem;
+  }
+  .level-h {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .count {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--ink-3);
+  }
+  .tall {
+    max-height: 440px;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .tall :global(thead th) {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .periods :global(table.data) {
+    min-width: 340px;
+  }
+  .periods .table-scroll {
+    max-width: 640px;
+  }
+  @media (max-width: 640px) {
+    .periods :global(th),
+    .periods :global(td) {
+      padding-inline: 0.55rem;
+    }
+    .periods :global(table.data) {
+      font-size: 0.8125rem;
+    }
+  }
+</style>

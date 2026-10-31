@@ -1,9 +1,11 @@
 ---
+import Crumbs from "../../../components/Crumbs.astro";
 import { getCollection, render } from "astro:content";
 import Doc from "../../../layouts/Doc.astro";
 import StatusChips from "../../../components/StatusChips.astro";
 import ReviewTrail from "../../../components/ReviewTrail.astro";
 import Icon from "../../../components/Icon.astro";
+import AtAGlance from "../../../components/AtAGlance.astro";
 import { repoFile } from "../../../lib/site";
 import { date } from "../../../lib/format";
 
@@ -16,10 +18,15 @@ const { Content, headings } = await render(entry);
 const d = entry.data;
 const pine = d.pine ? repoFile(d.pine) : null;
 const toc = [...headings, { depth: 2, slug: "reviews", text: "Reviews" }];
+// Stage sections are found by heading text, so both "F1 …" and older "Feature 1: …" headings link correctly.
+const stageHref = (n: 1 | 2) => {
+  const h = headings.find((x) => x.depth === 2 && new RegExp(`\\b(F${n}|Feature ${n})\\b`).test(x.text));
+  return h ? `#${h.slug}` : undefined;
+};
 ---
 <Doc title={d.title} description={`${d.title} on CL1! 1-minute: ${d.summary} ${d.verdict}`} toc={toc}>
   <Fragment slot="head">
-    <p class="crumbs"><a href="/strategies/">Strategies</a> <span aria-hidden="true">/</span></p>
+    <Crumbs items={[{ href: "/strategies/", label: "Strategies" }]} current={d.title} />
     <h1>{d.title}</h1>
     <p class="summary">{d.summary}</p>
     <div class="meta">
@@ -32,6 +39,7 @@ const toc = [...headings, { depth: 2, slug: "reviews", text: "Reviews" }];
         <span class="muted">Updated {date(d.updated)}</span>
       </p>
     </div>
+    {d.dataKey && <AtAGlance strategy={d.dataKey} f1Href={stageHref(1)} f2Href={stageHref(2)} />}
   </Fragment>
   <div class="prose wide">
     <Content />
@@ -43,18 +51,6 @@ const toc = [...headings, { depth: 2, slug: "reviews", text: "Reviews" }];
   </div>
 </Doc>
 <style>
-  .crumbs {
-    font-size: 0.875rem;
-    color: var(--ink-3);
-    margin-bottom: 1rem;
-  }
-  .crumbs a {
-    color: var(--ink-2);
-    text-decoration: none;
-  }
-  .crumbs a:hover {
-    color: var(--ink);
-  }
   .summary {
     margin-top: 1rem;
     font-size: 1.1875rem;

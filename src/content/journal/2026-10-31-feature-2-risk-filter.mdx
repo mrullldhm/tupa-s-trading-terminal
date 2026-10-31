@@ -1,15 +1,15 @@
 ---
-title: "Feature 2: a cost filter, not an edge (yet)"
+title: "F2 search: a cost filter, not an edge (yet)"
 date: 2026-10-31
 summary: Searching filters on pre-2024 data found that skipping small-stop trades helps in New York and London. Still in-sample.
 kind: result
 strategy: fair-price-reversal
 ---
-Feature 1 said the problem was costs. So before searching, I wrote down one main guess: trades with a small stop
+The F1 test (every setting) said the problem was costs. So before searching, I wrote down one main guess: trades with a small stop
 lose the most at 1 tick, because $20 of slippage is a big share of a small stop.
 
 The search used only data before 2024 and scored every setting on its profit **at 1 tick**. It tried 1,500
-settings across the three sessions. Six runs, every one listed on the strategy page with its verdict.
+settings across the three sessions. Six runs, every one listed on the [strategy page](/strategies/fair-price-reversal/#search-for-a-better-filter-f2) with its verdict.
 
 The guess held. In New York and London, the winner was the same simple rule: skip trades whose stop is smaller
 than about 30 ticks. Nearby values also worked. London went from −$13,754 to +$32,197 at 1 tick on the development
@@ -18,7 +18,7 @@ matched.
 
 Why it is not an edge yet:
 - It was picked on the same data it is reported on, from 1,500 tries.
-- The starting settings came from Feature 1, which saw all data up to 2026. An early check also touched 2024+.
+- The starting settings came from F1, which saw all data up to 2026. An early check also touched 2024+.
 - 58% of London's profit came from 2022, a very volatile year.
 
-Next is Feature 3: walk-forward testing and the reserved 2024+ data.
+Next is F3, validation on unseen data: walk-forward testing and the reserved 2024+ data.

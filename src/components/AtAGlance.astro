@@ -1,0 +1,102 @@
+---
+// Top-of-page summary: the F1 best net profit per session at each slippage scenario, so the 1-tick reality sits
+// next to the 0-tick number from the first screen. Displays exported numbers only.
+import Badge from "./Badge.astro";
+import { strategyData, sessionLabel, SESSION_ORDER } from "../lib/data";
+import { F2_VERDICTS } from "../data/verdicts";
+import { usd, int, tone } from "../lib/format";
+
+interface Props { strategy: string; f1Href?: string; f2Href?: string }
+const { strategy, f1Href, f2Href } = Astro.props;
+const { f1, f2 } = strategyData(strategy).features;
+const keys = SESSION_ORDER.filter((k) => k in f1.variants);
+const grids = [...new Set(keys.map((k) => f1.variants[k].grid_size))];
+const gridText = grids.length === 1 ? int(grids[0]) : grids.map(int).join(" / ");
+const verdicts = F2_VERDICTS[strategy] ?? {};
+const f2Runs = f2?.runs ?? [];
+const candidates = f2Runs.filter((r) => verdicts[r.run_id]?.verdict === "candidate").length;
+const ticks = [
+  { k: "0", label: "0 ticks" },
+  { k: "1", label: "1 tick" },
+  { k: "2", label: "2 ticks" },
+] as const;
+---
+{keys.length > 0 && (
+  <section class="glance" aria-labelledby="glance-h">
+    <div class="g-head">
+      <h2 id="glance-h">At a glance</h2>
+      <p class="labels">
+        <Badge tone="warn" icon="flask">In-sample</Badge>
+        <Badge>Best of {gridText} settings</Badge>
+      </p>
+    </div>
+    <div class="table-scroll">
+      <table class="data">
+        <caption class="sr-only">F1 best setting per session: net profit at 0, 1 and 2 ticks of slippage</caption>
+        <thead>
+          <tr>
+            <th scope="col">Net profit, F1 best</th>
+            {ticks.map((t) => <th scope="col" class="num">{t.label}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {keys.map((k) => (
+            <tr>
+              <th scope="row">{sessionLabel(k)}</th>
+              {ticks.map((t) => {
+                const v = f1.variants[k].scenarios[t.k].net_profit;
+                return <td class:list={["num", tone(v)]}>{usd(v, { cents: false })}</td>;
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="g-foot">
+      Picked at 0 ticks, then rerun with slippage.{f1Href && <> <a href={f1Href}>Full F1 results</a></>}
+      {f2Runs.length > 0 && <> · F2 search: {candidates} of {f2Runs.length} runs are candidates, still in-sample.
+      {f2Href && <> <a href={f2Href}>See every run</a></>}</>}
+      {" "}· <a href="/method/how-to-read/">How to read these numbers</a>
+    </p>
+  </section>
+)}
+<style>
+  .glance {
+    margin-top: 2.25rem;
+    max-width: 720px;
+  }
+  .g-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.75rem;
+  }
+  h2 {
+    font-size: 1rem;
+    letter-spacing: 0;
+  }
+  .labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .g-foot {
+    margin-top: 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+  }
+  .g-foot a {
+    color: var(--ink-2);
+  }
+  @media (max-width: 640px) {
+    .glance :global(table.data) {
+      font-size: 0.8125rem;
+    }
+    .glance :global(th),
+    .glance :global(td) {
+      padding-inline: 0.5rem;
+    }
+  }
+</style>

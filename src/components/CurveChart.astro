@@ -6,7 +6,11 @@ interface Props {
   title: string;
   caption: string;
 }
+import { usd } from "../lib/format";
 const { series, title, caption } = Astro.props;
+// Text alternative: the exported month-end points as a table, one column per series. No values are derived.
+const months = [...new Set(series.flatMap((s) => s.points.map(([m]) => m)))].sort();
+const byMonth = series.map((s) => new Map(s.points));
 ---
 <figure class="curve">
   <Frame>
@@ -21,6 +25,26 @@ const { series, title, caption } = Astro.props;
     </div>
   </Frame>
   <figcaption>{caption}</figcaption>
+  <details class="numbers">
+    <summary>Show the numbers <span class="muted">({months.length} months)</span></summary>
+    <div class="table-scroll">
+      <table class="data">
+        <caption class="sr-only">{title}, month-end values</caption>
+        <thead><tr><th scope="col">Month</th>{series.map((s) => <th scope="col" class="num">{s.label}</th>)}</tr></thead>
+        <tbody>
+          {months.map((m) => (
+            <tr>
+              <th scope="row" class="mono">{m}</th>
+              {byMonth.map((map) => {
+                const v = map.get(m);
+                return <td class="num">{v === undefined ? <span aria-label="no value">–</span> : usd(v, { cents: false })}</td>;
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </details>
 </figure>
 <script>
   import "../lib/charts.client";
@@ -71,8 +95,34 @@ const { series, title, caption } = Astro.props;
     border-top-color: var(--long);
   }
   .canvas {
+    min-width: 0;
+    overflow: hidden;
     height: 320px;
     padding: 0.5rem 0;
+  }
+  .numbers {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+  }
+  .numbers summary {
+    display: inline-flex;
+    gap: 0.35rem;
+    min-height: 40px;
+    align-items: center;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .numbers summary:hover {
+    color: var(--ink);
+  }
+  .numbers .table-scroll {
+    max-height: 420px;
+    overflow: auto;
+    margin-top: 0.5rem;
+  }
+  .numbers thead th {
+    position: sticky;
+    top: 0;
   }
   figcaption {
     margin-top: 0.7rem;

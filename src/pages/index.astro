@@ -8,10 +8,10 @@ import FixedRules from "../components/FixedRules.astro";
 import JournalList from "../components/JournalList.astro";
 import Icon from "../components/Icon.astro";
 ---
-<Base description="A public research journal of crude oil (CL1!) trading strategies, tested on 1-minute bars the way TradingView's Strategy Tester does, explained in plain English with honest labels.">
+<Base description="A public research journal of crude oil (CL1!) trading strategies, tested on 1-minute bars with fixed published costs, explained in plain English with honest labels.">
   <section class="hero wrap">
     <div class="copy">
-      <h1>Testing crude oil strategies the TradingView way, in plain English.</h1>
+      <h1>Testing crude oil strategies honestly, in plain English.</h1>
       <p class="lede">A public journal of every CL1! strategy I test on 1-minute bars: the idea, the rules, the
       results after costs, and what went wrong.</p>
       <div class="actions">
@@ -31,8 +31,8 @@ import Icon from "../components/Icon.astro";
         <StrategyIndex interactiveHeading="Strategies" />
       </Frame>
     </div>
-    <p class="index-note"><a href="/strategies/">All strategies</a> · F1, F2, F3 are the three test stages, explained
-    below.</p>
+    <p class="index-note"><a href="/strategies/">All strategies</a> · F1, F2 and F3 are the three test stages, shown
+    step by step below.</p>
   </section>
 
   <section class="how wrap" aria-labelledby="how-h">
@@ -188,7 +188,7 @@ import Icon from "../components/Icon.astro";
 
   @media (max-width: 900px) {
     .hero {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1.5rem;
     }
     .art {
@@ -196,7 +196,7 @@ import Icon from "../components/Icon.astro";
       padding: 0;
     }
     .how {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 2.5rem;
       margin-top: 6rem;
     }

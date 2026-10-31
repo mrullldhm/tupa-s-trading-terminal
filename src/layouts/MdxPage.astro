@@ -1,4 +1,5 @@
 ---
+import Crumbs from "../components/Crumbs.astro";
 import Doc from "./Doc.astro";
 interface Props {
   frontmatter: { title: string; description: string; lede?: string; crumbs?: { href: string; label: string }[] };
@@ -8,22 +9,13 @@ const { frontmatter: fm, headings } = Astro.props;
 ---
 <Doc title={fm.title} description={fm.description} toc={headings}>
   <Fragment slot="head">
-    {fm.crumbs && <p class="crumbs">{fm.crumbs.map((c) => <><a href={c.href}>{c.label}</a> / </>)}</p>}
+    {fm.crumbs && <Crumbs items={fm.crumbs} current={fm.title} />}
     <h1>{fm.title}</h1>
     {fm.lede && <p class="lede">{fm.lede}</p>}
   </Fragment>
   <div class="prose page-prose"><slot /></div>
 </Doc>
 <style>
-  .crumbs {
-    font-size: 0.875rem;
-    color: var(--ink-3);
-    margin-bottom: 1rem;
-  }
-  .crumbs a {
-    color: var(--ink-2);
-    text-decoration: none;
-  }
   .lede {
     margin-top: 1rem;
     max-width: 58ch;

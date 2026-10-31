@@ -1,8 +1,10 @@
 """Export tester results to JSON for the public site.
 
-Display, never compute: numbers are copied from the tester's own outputs. The only transforms are key renames,
-the field allowlist, and month-end sampling of cumulative closed-trade P&L (no per-trade rows leave the machine).
-Prices, price-based percentages and raw symbols are never exported (owner decision 2026-10-31, summaries only).
+Display, never compute: numbers are copied from the tester's own outputs, or produced by the tester's own functions
+(period tables come from tvtester.metrics.by_period). The other transforms are key renames, the field allowlist,
+and month-end sampling of cumulative closed-trade P&L. No trade rows leave the machine. Period tables go down to
+one day (owner decision 2026-10-31), so a day row can hold a single trade's net profit; prices, price-based
+percentages and raw symbols are never exported.
 
 Run from the repo root:  .venv/bin/python web/tools/export_web.py fair_price_reversal
 """
@@ -15,6 +17,7 @@ import importlib
 import json
 import math
 import re
+import shutil
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -25,7 +28,11 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 OUT = ROOT / "web" / "src" / "data" / "strategies"
-EXPORT_VERSION = 1
+# Month, week and day tables are static files the browser fetches on demand; year tables stay in the main JSON.
+PUBLIC_OUT = ROOT / "web" / "public" / "data"
+VERDICTS = ROOT / "web" / "src" / "data" / "verdicts.ts"
+EXPORT_VERSION = 2
+FETCHED_GRAINS = ("month", "week", "day")
 SCENARIOS = (0, 1, 2)
 
 # Per-scenario fields copied from summary.json. Dollar amounts and counts only, plus percentages of initial
@@ -42,10 +49,85 @@ ALL_FIELDS = (
     "long_trades", "short_trades",
 )
 SIDE_FIELDS = ("net_profit", "total_closed_trades", "percent_profitable", "profit_factor")
+# These percentages use initial capital, never an instrument price.
+ALLOWED_PCT_KEYS = {"max_equity_drawdown_pct", "max_equity_runup_pct", "net_profit_pct"}
+FORBIDDEN_KEYS = {"entry_price", "exit_price", "raw_symbol", "buy_hold_return"}
+EXIT_REASONS = {"limit", "stop", "close", "roll"}
+TEXT_FIELDS = {
+    "strategy", "generated_utc", "period_start", "period_end", "run_id", "variant", "space", "sampler",
+    "objective", "winner", "time_utc", "note", "path", "sha256", "key", "grain",
+}
 
 
 class ExportError(RuntimeError):
     pass
+
+
+def forbidden_key(key: str) -> bool:
+    return key in FORBIDDEN_KEYS or (key.endswith("_pct") and key not in ALLOWED_PCT_KEYS)
+
+
+def check_exit_reasons(value) -> None:
+    if (not isinstance(value, dict)
+            or any(k not in EXIT_REASONS or type(v) is not int for k, v in value.items())):
+        raise ExportError("exit_reasons must map limit/stop/close/roll to integer counts")
+
+
+def check_params(value) -> None:
+    if not isinstance(value, dict):
+        raise ExportError("params must be a flat str-to-scalar mapping")
+    for key, scalar in value.items():
+        if (not isinstance(key, str) or forbidden_key(key)
+                or type(scalar) not in (str, int, float, bool, type(None))
+                or (type(scalar) is float and not math.isfinite(scalar))):
+            raise ExportError(f"invalid params key or scalar: {key!r}")
+
+
+def check_filters(value) -> None:
+    if not isinstance(value, list):
+        raise ExportError("filters must be a list of [feature, operator, threshold]")
+    for entry in value:
+        if not isinstance(entry, list) or len(entry) != 3:
+            raise ExportError("each filter must be a list of exactly 3 values")
+        feature, operator, threshold = entry
+        # Includes the committed features and supertrend features without allowing arbitrary structures.
+        if (not isinstance(feature, str) or not re.fullmatch(r"[a-z_]+", feature)
+                or forbidden_key(feature) or not isinstance(operator, str) or operator not in {"min", "max"}
+                or type(threshold) not in (int, float) or not math.isfinite(threshold)):
+            raise ExportError("invalid filter feature, operator or numeric threshold")
+
+
+def check_publication(node, path: str = "$") -> None:
+    """Validate the complete publication before any output is created, at every nesting depth."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            label = f"{path}.{key}"
+            if isinstance(key, str):
+                if forbidden_key(key):
+                    raise ExportError(f"forbidden publication key: {label}")
+                if "MCL" in key.upper():
+                    raise ExportError(f"MCL in publication key: {label}")
+                if key == "exit_reasons":
+                    check_exit_reasons(value)
+                elif key == "params":
+                    check_params(value)
+                elif key == "filters":
+                    check_filters(value)
+                elif key == "interval":
+                    if (not isinstance(value, list) or len(value) != 2
+                            or any(v is not None and not isinstance(v, str) for v in value)):
+                        raise ExportError(f"{label} must be [start, end] strings or null")
+                elif key == "lineage":
+                    if not isinstance(value, list) or any(not isinstance(v, str) for v in value):
+                        raise ExportError(f"{label} must be a list of strings")
+                elif key in TEXT_FIELDS and not isinstance(value, str):
+                    raise ExportError(f"{label} must be str")
+            check_publication(value, label)
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            check_publication(value, f"{path}[{index}]")
+    elif isinstance(node, str) and "MCL" in node.upper():
+        raise ExportError(f"MCL in publication string: {path}")
 
 
 def sha256(path: Path) -> str:
@@ -92,6 +174,53 @@ def monthly_curve(tf: pd.DataFrame, start: str, end: str) -> list[list]:
     return [[str(month), round(float(value), 2)] for month, value in zip(months, series, strict=True)]
 
 
+def period_table(tfs: dict[int, pd.DataFrame], scen: dict[int, dict], grain: str, label: str) -> dict:
+    """Net profit per exit period for 0, 1 and 2 ticks, from tvtester.metrics.by_period. Each scenario's periods
+    must add up to its own summary (trade count and net profit), so nothing is lost or invented."""
+    from tvtester import metrics
+
+    nets: dict[int, dict[str, float]] = {}
+    for k in SCENARIOS:
+        table = metrics.by_period(tfs[k], grain)
+        if int(table["trades"].sum()) != scen[k]["total_closed_trades"]:
+            raise ExportError(f"{label} {grain} at {k} ticks: {int(table['trades'].sum())} trades, "
+                              f"summary says {scen[k]['total_closed_trades']}")
+        if abs(float(table["net_profit"].sum()) - scen[k]["net_profit"]) > 0.05:
+            raise ExportError(f"{label} {grain} at {k} ticks: periods sum to {table['net_profit'].sum():.2f}, "
+                              f"summary says {scen[k]['net_profit']:.2f}")
+        nets[k] = {str(p): round(float(v), 2) for p, v in zip(table["period"], table["net_profit"], strict=True)}
+    periods = sorted(set().union(*(n.keys() for n in nets.values())))
+    return {"periods": periods, "net": {str(k): [nets[k].get(p) for p in periods] for k in SCENARIOS}}
+
+
+def check_year_matches_report(tf0: pd.DataFrame, report_rows: list[dict], label: str) -> None:
+    """The 0-tick year table from by_period must equal the published report table at its printed precision."""
+    from tvtester import metrics
+
+    got = metrics.by_period(tf0, "year")
+    if len(got) != len(report_rows):
+        raise ExportError(f"{label}: {len(got)} years from trades, report has {len(report_rows)}")
+    for row, want in zip(got.itertuples(index=False), report_rows, strict=True):
+        pf = None if pd.isna(row.profit_factor) else round(float(row.profit_factor), 3)
+        same = (int(row.period) == want["year"] and int(row.trades) == want["trades"]
+                and round(float(row.net_profit), 2) == round(want["net_profit"], 2)
+                and round(float(row.percent_profitable), 2) == round(want["percent_profitable"], 2)
+                and pf == (None if want["profit_factor"] is None else round(want["profit_factor"], 3)))
+        if not same:
+            raise ExportError(f"{label}: year {want['year']} from trades does not match the report table")
+
+
+def read_candidates(text: str, strategy: str) -> dict[str, bool]:
+    """Run id -> is candidate, from the hand-written verdicts in web/src/data/verdicts.ts."""
+    block = re.search(rf"^  {re.escape(strategy)}: \{{\n(.*?)^  \}},?$", text, re.M | re.S)
+    if not block:
+        return {}
+    found = re.findall(r'^    (\w+): \{\s*\n\s*verdict: "(candidate|rejected)"', block.group(1), re.M)
+    if len(found) != len(re.findall(r"^    \w+: \{", block.group(1), re.M)):
+        raise ExportError(f"verdicts.ts: a {strategy} entry has no readable verdict")
+    return {run_id: verdict == "candidate" for run_id, verdict in found}
+
+
 def report_number(cell: str) -> float:
     text = cell.replace("USD", "").replace("%", "").replace(",", "").replace("\u2212", "-").strip()
     try:
@@ -132,6 +261,10 @@ class Exporter:
         self.results = ROOT / "results" / strategy
         self.docs = ROOT / "docs" / "strategies" / strategy
         self.sources: dict[str, str] = {}
+        # Fetched period files, keyed by "<f1|f2>-<variant or run id>/<grain>"; written by run() after every check.
+        self.period_files: dict[str, dict] = {}
+        # One id per export run, stamped on the main JSON and every fetched file, so a page never mixes runs.
+        self.generated_utc = datetime.now(UTC).replace(microsecond=0).isoformat()
 
     def read(self, path: Path) -> Path:
         if not path.exists():
@@ -147,16 +280,29 @@ class Exporter:
         out.update({f: clean(s["all"][f]) for f in ALL_FIELDS})
         out["long"] = {f: clean(s["long"][f]) for f in SIDE_FIELDS}
         out["short"] = {f: clean(s["short"][f]) for f in SIDE_FIELDS}
-        out["exit_reasons"] = s.get("exit_reasons", {})
+        reasons = s.get("exit_reasons", {})
+        check_exit_reasons(reasons)
+        out["exit_reasons"] = dict(reasons)
         return out
 
     def trades(self, path: Path) -> pd.DataFrame:
-        tf = pd.read_csv(self.read(path), usecols=["exit_time", "cum_profit", "raw_symbol"])
+        tf = pd.read_csv(self.read(path), usecols=["exit_time", "profit", "cum_profit", "raw_symbol"],
+                         parse_dates=["exit_time"])
         check_cl_only(tf["raw_symbol"], str(path.relative_to(ROOT)))
         return tf
 
     def by_year(self, variant: str) -> list[dict]:
         return parse_by_year(self.read(self.docs / "README.md").read_text(), variant)
+
+    def periods(self, key: str, tfs: dict[int, pd.DataFrame], scen: dict[int, dict]) -> dict:
+        """Year table for the main JSON; month, week and day tables queued as fetched files."""
+        for grain in FETCHED_GRAINS:
+            self.period_files[f"{key}/{grain}"] = {
+                "export_version": EXPORT_VERSION, "generated_utc": self.generated_utc, "strategy": self.strategy,
+                "key": key, "grain": grain,
+                **period_table(tfs, scen, grain, key),
+            }
+        return period_table(tfs, scen, "year", key)
 
     def feature1(self) -> dict:
         variants = {}
@@ -174,18 +320,19 @@ class Exporter:
                 raise ExportError(f"{v}: grid.csv lacks declared parameters {missing}")
             params = {c: clean(top[c].item() if hasattr(top[c], "item") else top[c]) for c in self.param_keys}
             grid_sizes.add(len(grid))
-            scen, curves = {}, {}
+            scen, curves, tfs = {}, {}, {}
             for k in SCENARIOS:
                 scen[k] = self.scenario(summary, k)
-                tf = self.trades(vdir / f"trades_slippage{k}.csv")
-                check_trades_match_summary(tf, scen[k], f"{v} at {k} ticks")
-                curves[k] = monthly_curve(tf, scen[k]["period_start"], scen[k]["period_end"])
+                tfs[k] = self.trades(vdir / f"trades_slippage{k}.csv")
+                check_trades_match_summary(tfs[k], scen[k], f"{v} at {k} ticks")
+                curves[k] = monthly_curve(tfs[k], scen[k]["period_start"], scen[k]["period_end"])
             by_year = self.by_year(v)
             closed = sum(r["net_profit"] for r in by_year)
             if abs(closed - net0) > 0.05:
                 raise ExportError(f"{v}: by-year sum {closed:.2f} != net profit {net0:.2f}")
+            check_year_matches_report(tfs[0], by_year, v)
             variants[v] = {"params": params, "grid_size": len(grid), "scenarios": scen,
-                           "curve_month_end_closed_pnl": curves, "by_year_0_ticks": by_year}
+                           "curve_month_end_closed_pnl": curves, "periods_year": self.periods(f"f1-{v}", tfs, scen)}
         if not variants:
             raise ExportError("no feature-1 variants found")
         return {"variants": variants, "grid_size": sorted(grid_sizes)}
@@ -200,6 +347,10 @@ class Exporter:
             if e["run_id"] in searches:
                 raise ExportError(f"ledger has two search entries for {e['run_id']}")
             searches[e["run_id"]] = e
+        candidates = read_candidates(self.read(VERDICTS).read_text(), self.strategy)
+        unjudged = sorted(set(searches) - set(candidates))
+        if unjudged:
+            raise ExportError(f"no verdict in web/src/data/verdicts.ts for {unjudged}; write it before exporting")
         runs = []
         for run_id, e in searches.items():
             cfg_path = ROOT / "strategies" / "configs" / f"{self.strategy}_{run_id}.json"
@@ -214,16 +365,20 @@ class Exporter:
                     raise ExportError(f"{run_id}: replay at {k} ticks does not match frozen config")
             if abs(scen[1]["net_profit"] + (scen[1]["open_pnl"] or 0.0) - exp["objective"]) > 0.01:
                 raise ExportError(f"{run_id}: replay objective net1 does not match frozen config")
-            tf = self.trades(self.results / "replay" / run_id / "trades_slippage1.csv")
-            check_trades_match_summary(tf, scen[1], f"{run_id} at 1 tick")
-            curve1 = monthly_curve(tf, scen[1]["period_start"], scen[1]["period_end"])
+            tfs, curves = {}, {}
+            for k in SCENARIOS:
+                tfs[k] = self.trades(self.results / "replay" / run_id / f"trades_slippage{k}.csv")
+                check_trades_match_summary(tfs[k], scen[k], f"{run_id} at {k} ticks")
+                curves[k] = monthly_curve(tfs[k], scen[k]["period_start"], scen[k]["period_end"])
+            # Period tables only for candidates: rejected runs are listed, not drilled into (and not published).
+            periods = self.periods(f"f2-{run_id}", tfs, scen) if candidates[run_id] else None
             runs.append({
                 "run_id": run_id, "variant": e["variant"], "space": e["space"], "sampler": e["sampler"],
                 "objective": e["objective"], "seed": e["seed"], "trials": e["trials"],
                 "duplicates": e["duplicates"], "eligible": e["eligible"], "evaluations": e["evaluations"],
                 "winner": e["winner"], "time_utc": e["time_utc"], "params": cfg["params"],
                 "filters": cfg["filters"], "interval": cfg["interval"], "source_trial": cfg["source"]["trial"],
-                "scenarios": scen, "curve_month_end_closed_pnl_1_tick": curve1,
+                "scenarios": scen, "curve_month_end_closed_pnl": curves, "periods_year": periods,
             })
         return {
             "runs": runs,
@@ -237,14 +392,48 @@ class Exporter:
     def run(self) -> Path:
         data = {
             "export_version": EXPORT_VERSION,
-            "generated_utc": datetime.now(UTC).replace(microsecond=0).isoformat(),
+            "generated_utc": self.generated_utc,
             "strategy": self.strategy,
             "features": {"f1": self.feature1(), "f2": self.feature2(), "f3": None},
         }
         data["sources"] = [{"path": p, "sha256": h} for p, h in sorted(self.sources.items())]
+        check_publication(data)
+        for doc in self.period_files.values():
+            check_publication(doc)
+        return self.publish(data)
+
+    def publish(self, data: dict) -> Path:
+        """Write everything to staging first, then swap it in. The old files stay until the swap succeeds."""
         OUT.mkdir(parents=True, exist_ok=True)
+        PUBLIC_OUT.mkdir(parents=True, exist_ok=True)
         out = OUT / f"{self.strategy}.json"
-        out.write_text(json.dumps(data, indent=1, allow_nan=False) + "\n")
+        out_tmp = OUT / f".{self.strategy}.json.tmp"
+        target = PUBLIC_OUT / self.strategy
+        staging = PUBLIC_OUT / f".{self.strategy}.staging"
+        backup = PUBLIC_OUT / f".{self.strategy}.previous"
+        for p in (staging, backup):
+            shutil.rmtree(p, ignore_errors=True)
+        staging.mkdir()
+        try:
+            for name, doc in self.period_files.items():
+                path = staging / f"{name}.json"
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps(doc, separators=(",", ":"), allow_nan=False) + "\n")
+            out_tmp.write_text(json.dumps(data, indent=1, allow_nan=False) + "\n")
+            if target.exists():
+                target.rename(backup)
+            try:
+                staging.rename(target)
+                out_tmp.replace(out)
+            except OSError:
+                shutil.rmtree(target, ignore_errors=True)
+                if backup.exists():
+                    backup.rename(target)
+                raise
+        finally:
+            shutil.rmtree(staging, ignore_errors=True)
+            out_tmp.unlink(missing_ok=True)
+        shutil.rmtree(backup, ignore_errors=True)
         return out
 
 

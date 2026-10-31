@@ -5,7 +5,7 @@ interface Props { scenarios: Scenarios; caption: string; objectiveNote?: boolean
 const { scenarios, caption, objectiveNote = false } = Astro.props;
 const ks = ["0", "1", "2"] as const;
 // `s` is the short form shown on narrow screens so all three scenarios fit side by side.
-type Cell = { v: string; s?: string; t?: string };
+type Cell = { v: string; s?: string; sub?: string; t?: string };
 const money = (v: number) => ({ v: usd(v), s: usd(v, { cents: false }), t: tone(v) });
 const rows: { label: string; hint?: string; get: (k: (typeof ks)[number]) => Cell }[] = [
   { label: "Net profit", hint: "closed trades, after $4.02 commission per round trip", get: (k) => money(scenarios[k].net_profit) },
@@ -19,6 +19,7 @@ const rows: { label: string; hint?: string; get: (k: (typeof ks)[number]) => Cel
     get: (k) => ({
       v: `${usd(scenarios[k].max_equity_drawdown, { sign: false })} · ${pct(scenarios[k].max_equity_drawdown_pct)}`,
       s: usd(scenarios[k].max_equity_drawdown, { sign: false, cents: false }),
+      sub: pct(scenarios[k].max_equity_drawdown_pct),
     }),
   },
   { label: "Commission paid", get: (k) => ({ v: usd(scenarios[k].commission_paid, { sign: false }), s: usd(scenarios[k].commission_paid, { sign: false, cents: false }) }) },
@@ -47,7 +48,7 @@ if (objectiveNote) {
             const c = r.get(k);
             return (
               <td class:list={["num", c.t]}>
-                {c.s ? <><span class="full">{c.v}</span><span class="short" aria-hidden="true">{c.s}</span></> : c.v}
+                {c.s ? <><span class="full">{c.v}</span><span class="short" aria-hidden="true">{c.s}{c.sub && <span class="sub">{c.sub}</span>}</span></> : c.v}
               </td>
             );
           })}
@@ -83,15 +84,28 @@ if (objectiveNote) {
       width: 34%;
       white-space: normal;
     }
-    .hint,
-    .long {
-      display: none;
-    }
+    /* Short forms are for the eye only; the full values stay in the accessibility tree. */
+    .long,
     .full {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .hint {
+      font-size: 0.6875rem;
+      line-height: 1.35;
+      margin-top: 0.15rem;
     }
     .short {
       display: inline;
+    }
+    .sub {
+      display: block;
+      font-size: 0.6875rem;
+      color: var(--ink-3);
     }
     tbody tr:first-child td {
       font-size: 0.85rem;

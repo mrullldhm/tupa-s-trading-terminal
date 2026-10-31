@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "export": "cd .. && .venv/bin/python web/tools/export_web.py fair_price_reversal",
+    "export": "cd .. && .venv/bin/python web/tools/export_web.py fair_price_reversal && .venv/bin/python web/tools/export_web.py supertrend_kalman",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
