@@ -25,28 +25,35 @@ const trialSizes = [...new Set(runs.map((r) => r.trials))].sort((a, b) => a - b)
 const trialsBySession = new Map<string, number>();
 runs.forEach((r) => trialsBySession.set(r.variant, (trialsBySession.get(r.variant) ?? 0) + r.trials));
 const perSessionValues = [...new Set(trialsBySession.values())];
-const perSessionText = perSessionValues.length === 1 ? `${int(perSessionValues[0])} per session` : "split unevenly across sessions";
+const perSessionText = perSessionValues.length === 1 ? `${int(perSessionValues[0])} per variant` : "split unevenly across variants";
 const f1 = data.features.f1;
 const f1GridText = f1.grid_size.map((n) => int(n)).join(" / ");
 function baselineBefore(variant: string, cutoff: string | null) {
   const base = f1.variants[variant];
-  if (!base) throw new Error(`F2Runs: no Feature 1 baseline for session "${variant}"`);
+  if (!base) throw new Error(`F2Runs: no F1 baseline for session "${variant}"`);
   const curve = base.curve_month_end_closed_pnl["1"];
   return cutoff ? curve.filter(([m]) => m < cutoff.slice(0, 7)) : curve;
 }
 ---
+{!ready && (
+  <F3Pending heading="Not run yet">
+    No F2 search has been run for this strategy. When one is, every run will be listed here with its verdict,
+    including the ones that fail.
+  </F3Pending>
+)}
+{ready && f2 && <>
 <Callout tone="warn" title="Read this before the numbers">
-  <p>Evaluated on data before 2024 only. But the starting settings were picked in Feature 1 using all data up to
-  2026, and an early filter check also saw 2024+ data. So 2024+ is reserved, but it is <strong>not</strong> a clean
-  out-of-sample test.</p>
+  <p>Evaluated on data before 2024 only. But the starting settings were picked in F1 using all data up to
+  2026{reservedLook && ", and an early filter check also saw 2024+ data"}. So 2024+ is reserved, but
+  it is <strong>not</strong> a clean out-of-sample test.</p>
   <p>Each result is the best of its run ({trialSizes} tries). Across all sessions the search tried{" "}
-  {int(f2.total_trials)} settings ({perSessionText}), on top of the {f1GridText}-setting Feature 1 grids. That
+  {int(f2.total_trials)} settings ({perSessionText}), on top of the {f1GridText}-setting F1 grids. That
   took{" "}{int(f2.total_engine_evaluations)} engine runs in total (each try runs at 0, 1 and 2 ticks, plus checks).</p>
 </Callout>
 
 <div class="table-scroll runs">
   <table class="data">
-    <caption class="sr-only">All {runs.length} Feature 2 search runs with their verdicts</caption>
+    <caption class="sr-only">All {runs.length} F2 search runs with their verdicts</caption>
     <thead>
       <tr>
         <th scope="col">Run</th>
@@ -92,14 +99,14 @@ net profit at 1 tick <em>plus</em> any open trade at the end; the tables below s
 {candidates.map((r) => (
   <section class="candidate">
     <h3>{sessionLabel(r.variant)} candidate: {plainSettings(r.winner).join(", ")}</h3>
-    <ScenarioTable scenarios={r.scenarios} objectiveNote caption={`Feature 2 candidate, ${sessionLabel(r.variant)}`} />
+    <ScenarioTable scenarios={r.scenarios} objectiveNote caption={`F2 candidate, ${sessionLabel(r.variant)}`} />
     <CurveChart
-      title={`${sessionLabel(r.variant)} candidate vs. Feature 1 baseline, 1 tick`}
-      caption={`Month-end cumulative closed-trade P&L at 1 tick. The candidate line covers the development interval only (before 2024). The baseline line is the Feature 1 top setting over its full test period, cut to the same months for comparison.`}
+      title={`${sessionLabel(r.variant)} candidate vs. F1 baseline, 1 tick`}
+      caption={`Month-end cumulative closed-trade P&L at 1 tick. The candidate line covers the development interval only (before 2024). The baseline line is the F1 top setting over its full test period, cut to the same months for comparison.`}
       series={[
         { label: "Candidate, 1 tick", tone: "long", points: r.curve_month_end_closed_pnl_1_tick },
         {
-          label: "Feature 1 baseline, 1 tick",
+          label: "F1 baseline, 1 tick",
           tone: "faint",
           points: baselineBefore(r.variant, r.interval[1]),
         },
@@ -107,6 +114,7 @@ net profit at 1 tick <em>plus</em> any open trade at the end; the tables below s
     />
   </section>
 ))}
+</>}
 <style>
   .runs .sub {
     display: block;
@@ -180,6 +188,7 @@ net profit at 1 tick <em>plus</em> any open trade at the end; the tables below s
   }
   .candidate {
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* shrink back after a resize; charts set a pixel width */
     gap: 1.25rem;
     margin-top: 1.5rem;
   }

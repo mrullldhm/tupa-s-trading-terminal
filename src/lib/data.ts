@@ -93,17 +93,41 @@ export const MIN_ELIGIBLE_TRADES = 300; // docs/OPTIMIZE.md: a trial counts only
 
 const all: Record<string, StrategyData> = {
   fair_price_reversal: fpr as unknown as StrategyData,
+  supertrend_kalman: skm as unknown as StrategyData,
 };
 
 export function strategyData(key: string): StrategyData {
   const d = all[key];
   if (!d) throw new Error(`no exported data for strategy "${key}"; run npm run export`);
   if (d.export_version !== EXPORT_VERSION) throw new Error(`${key}: export version ${d.export_version}, site expects ${EXPORT_VERSION}`);
+  checkShape(key, d);
   return d;
 }
 
-export const SESSION_LABEL: Record<string, string> = { asia: "Asia", london: "London", ny: "New York" };
-export const SESSION_ORDER = ["ny", "london", "asia"];
+// Fail the build with a clear message on a malformed export, instead of a crash deep inside a component.
+// Unavailable features are null (f2, f3); a present feature must be complete.
+const SCENARIO_KEYS = ["0", "1", "2"] as const;
+function checkShape(key: string, d: StrategyData) {
+  const bad = (msg: string) => {
+    throw new Error(`${key}: malformed export, ${msg}; re-run npm run export`);
+  };
+  const variants = Object.entries(d.features?.f1?.variants ?? {});
+  if (!variants.length) bad("features.f1.variants is empty");
+  for (const [v, x] of variants) {
+    for (const k of SCENARIO_KEYS) {
+      if (!x.scenarios?.[k]) bad(`f1.${v} has no scenario "${k}"`);
+      if (!Array.isArray(x.curve_month_end_closed_pnl?.[k])) bad(`f1.${v} has no curve for scenario "${k}"`);
+    }
+    if (!Array.isArray(x.by_year_0_ticks)) bad(`f1.${v}.by_year_0_ticks is missing`);
+  }
+  for (const r of d.features.f2?.runs ?? []) {
+    for (const k of SCENARIO_KEYS) if (!r.scenarios?.[k]) bad(`f2 run ${r.run_id} has no scenario "${k}"`);
+    if (!Array.isArray(r.curve_month_end_closed_pnl_1_tick)) bad(`f2 run ${r.run_id} has no 1-tick curve`);
+  }
+}
+
+export const SESSION_LABEL: Record<string, string> = { all: "All hours", asia: "Asia", london: "London", ny: "New York" };
+export const SESSION_ORDER = ["all", "ny", "london", "asia"];
 
 export function sessionLabel(key: string): string {
   const label = SESSION_LABEL[key];

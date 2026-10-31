@@ -15,9 +15,9 @@ features:
   f3: pending
 reviews:
   - { id: R2, kind: code, label: "Code reviewed", date: 2026-10-29 }
-  - { id: R3, kind: replication, label: "Replicated: NY Feature 1, 0 and 1 tick", date: 2026-10-29 }
-  - { id: R5, kind: code, label: "Feature 2 code reviewed", date: 2026-10-31 }
-  - { id: R6, kind: replication, label: "Replicated: NY Feature 2 candidate, 0 and 1 tick", date: 2026-10-31 }
+  - { id: R3, kind: replication, label: "Replicated: NY F1 result, 0 and 1 tick", date: 2026-10-29 }
+  - { id: R5, kind: code, label: "F2 search code reviewed", date: 2026-10-31 }
+  - { id: R6, kind: replication, label: "Replicated: NY F2 candidate, 0 and 1 tick", date: 2026-10-31 }
 updated: 2026-10-31
 ---
 import AnnotatedChart from "../../components/AnnotatedChart.astro";
@@ -74,16 +74,16 @@ then reports the one with the highest net profit at 0 ticks. Below is that winne
 
 <F1Results strategy="fair_price_reversal" paramLabels={{ window: "window (min)", atr_mult: "ATR multiple", swing: "swing bars", target: "target" }} />
 
-## Feature 2: search for a better filter
+## Search for a better filter (F2)
 
-Feature 1 showed the problem is costs. So Feature 2 asked a narrow question, written down **before** the search:
+F1 showed the problem is costs. So the F2 search asked a narrow question, written down **before** the search:
 do trades with a small stop lose the most once slippage is added? One tick on entry and one on exit is $20, which
 eats a large share of a small stop but a small share of a big one.
 
 The search only used data before 2024. It optimized net profit **at 1 tick**, so it could not reward edges smaller
 than slippage. Every run is listed below, including the ones that failed.
 
-<F2Runs strategy="fair_price_reversal" />
+<F2Runs strategy="fair_price_reversal" reservedLook />
 
 ### What this means
 
@@ -92,7 +92,7 @@ smaller than about 30 ticks. Its neighbours also work, so it is not a lucky spik
 the same data it was picked on, and most of London's profit came from one volatile year (2022). A stop size in
 ticks also changes meaning when the oil price changes. **None of this shows a tradable edge yet.**
 
-## Feature 3: validation
+## Validate on unseen data (F3)
 
 <F3Pending>
   The two candidates (New York and London risk filter) will be tested walk-forward and on the reserved 2024+
