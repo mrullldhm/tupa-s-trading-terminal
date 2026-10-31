@@ -86,12 +86,14 @@ export type StrategyData = {
       manual_looks: { time_utc: string; evaluations: number; note: string }[];
       lineage: string[];
     } | null;
-    f3: unknown | null;
+    f3: { runs: F3Run[]; total_engine_runs: number } | null;
+    f4: null;
+    f5: null;
   };
   sources: { path: string; sha256: string }[];
 };
 
-export const EXPORT_VERSION = 2;
+export const EXPORT_VERSION = 3;
 export const MIN_ELIGIBLE_TRADES = 300; // docs/OPTIMIZE.md: a trial counts only with 300+ closed trades at 1 tick
 
 const all: Record<string, StrategyData> = {
@@ -108,7 +110,7 @@ export function strategyData(key: string): StrategyData {
 }
 
 // Fail the build with a clear message on a malformed export, instead of a crash deep inside a component.
-// Unavailable features are null (f2, f3); a present feature must be complete.
+// Unavailable features are null (f2 to f5); a present feature must be complete.
 function checkShape(key: string, d: StrategyData) {
   const bad = (msg: string) => {
     throw new Error(`${key}: malformed export, ${msg}; re-run npm run export`);
@@ -127,7 +129,42 @@ function checkShape(key: string, d: StrategyData) {
     for (const k of SCENARIO_KEYS) if (!Array.isArray(r.curve_month_end_closed_pnl?.[k])) bad(`f2 run ${r.run_id} has no curve for "${k}"`);
     if (r.periods_year !== null && !isPeriodTable(r.periods_year)) bad(`f2 run ${r.run_id}.periods_year is malformed`);
   }
+  for (const r of d.features.f3?.runs ?? []) {
+    if (!r.verdict || !r.wfo_total || !Array.isArray(r.folds) || !r.folds.length) bad(`f3 run ${r.tag} is incomplete`);
+    if (r.verdict.advance !== (r.verdict.procedure && r.verdict.candidate)) bad(`f3 run ${r.tag}: advance must be procedure AND candidate`);
+  }
 }
+
+type Sc = { "0": number; "1": number; "2": number };
+type Dsr = { dsr: number | null; sr0: number; n: number };
+type Pbo = { pbo: number | null; p_oos_loss: number | null; median_logit: number | null; splits: number; skipped: number };
+/** One F3 validation run (docs/VALIDATE.md), as written by the tester. */
+export type F3Run = {
+  tag: string;
+  variant: string;
+  time_utc: string;
+  candidate_trial: number;
+  universe: number;
+  filters: [string, "min" | "max", number][];
+  source_search: string;
+  fold_years: number[];
+  rules: { min_positive_folds: number; pbo_max: number; dsr_min: number };
+  engine_runs: number;
+  verdict: {
+    procedure: boolean;
+    candidate: boolean;
+    advance: boolean;
+    procedure_checks: { wfo_net1: boolean; wfo_net2: boolean; folds: boolean; pbo: boolean };
+    candidate_checks: { dsr: boolean };
+  };
+  wfo_total: Sc;
+  wfo_trades1: number;
+  positive_folds: number;
+  folds: { year: number; trial: number | null; picked: string | null; train_obj: number | null; net0: number; net1: number; net2: number; trades1: number; cand1: number }[];
+  rolling_total: Sc;
+  pbo: { primary: Pbo; eligible_only: Pbo; ticks2: Pbo; identical_paths: number };
+  dsr: { sr: number | null; skew: number | null; kurt: number | null; days: number; primary: Dsr; variant_n: Dsr; strategy_n: Dsr; ticks2: Dsr; monthly: Dsr; psr0: number | null; boot90: [number, number] | null };
+};
 
 export const SESSION_LABEL: Record<string, string> = { all: "All hours", asia: "Asia", london: "London", ny: "New York" };
 export const SESSION_ORDER = ["all", "ny", "london", "asia"];

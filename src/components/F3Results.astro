@@ -1,0 +1,386 @@
+---
+// F3 (validation A) results, copied from the tester's validate output by the exporter. Display only.
+import Badge from "./Badge.astro";
+import Callout from "./Callout.astro";
+import Icon from "./Icon.astro";
+import Pending from "./Pending.astro";
+import { strategyData, sessionLabel, SESSION_ORDER, type F3Run } from "../lib/data";
+import { usd, int, num, tone } from "../lib/format";
+import { plainSettings } from "../lib/labels";
+
+interface Props { strategy: string }
+const { strategy } = Astro.props;
+const data = strategyData(strategy);
+const runs: F3Run[] = [...(data.features.f3?.runs ?? [])].sort(
+  (a, b) => SESSION_ORDER.indexOf(a.variant) - SESSION_ORDER.indexOf(b.variant),
+);
+
+const filterText = (r: F3Run) =>
+  r.filters.map(([f, op, t]) => plainSettings(`${f} ${op === "min" ? ">=" : "<="} ${t}`)[0]).join(", ");
+
+// Short dollar labels for the year strip only (the table below carries the exact figures).
+function short(v: number): string {
+  const a = Math.abs(v);
+  const s = a >= 1000 ? `${(a / 1000).toFixed(1)}k` : `${Math.round(a)}`;
+  return a < 0.5 ? "$0" : `${v > 0 ? "+" : "−"}$${s}`;
+}
+
+// Year strip geometry
+const W = 640, H = 200, PAD_X = 8, TOP = 26, BOTTOM = 30;
+function strip(r: F3Run) {
+  const vals = r.folds.map((f) => f.net1 ?? 0);
+  const max = Math.max(1, ...vals.map(Math.abs));
+  const plot = H - TOP - BOTTOM;
+  const zero = TOP + plot / 2;
+  const slot = (W - 2 * PAD_X) / r.folds.length;
+  const bw = Math.min(34, slot * 0.56);
+  return {
+    zero,
+    bars: r.folds.map((f, i) => {
+      const v = f.net1 ?? 0;
+      const h = (Math.abs(v) / max) * (plot / 2);
+      const cx = PAD_X + slot * (i + 0.5);
+      return {
+        year: f.year, v, cx, x: cx - bw / 2, w: bw, h: Math.max(h, v === 0 ? 0 : 1.5),
+        y: v >= 0 ? zero - h : zero, cash: f.trial === null,
+        labelY: v >= 0 ? zero - h - 7 : zero + h + 14,
+      };
+    }),
+  };
+}
+
+type Gate = { tone: "done" | "rejected"; icon: "check" | "x"; word: "Pass" | "Fail" };
+const gate = (ok: boolean): Gate => (ok ? { tone: "done", icon: "check", word: "Pass" } : { tone: "rejected", icon: "x", word: "Fail" });
+---
+{runs.length === 0 && (
+  <Pending>
+    F3 has not been run for this strategy. When it is, each candidate will be listed here with its result,
+    including the ones that fail.
+  </Pending>
+)}
+{runs.length > 0 && <>
+<Callout tone="honest" title="What F3 can and cannot show">
+  <p>F3 uses the same data as F2 (before 2024) and asks one thing: does the F2 result survive the way it was found?
+  It re-runs the F2 search year by year, checks how often a search winner falls apart on the other half of the
+  data, and asks whether the result beats the best of 200 lucky tries.</p>
+  <p>Passing would <strong>not</strong> prove an edge. The starting settings were picked on data up to 2026, so
+  these tests are not out-of-sample. The rules for passing were written down before the runs.</p>
+</Callout>
+
+{runs.map((r) => {
+  const pc = r.verdict.procedure_checks;
+  const st = strip(r);
+  const pbo = r.pbo.primary;
+  const d = r.dsr;
+  return (
+    <section class="cand" aria-labelledby={`f3-${r.tag}`}>
+      <div class="cand-head">
+        <h3 id={`f3-${r.tag}`}>{sessionLabel(r.variant)} candidate</h3>
+        <Badge tone={r.verdict.advance ? "done" : "rejected"} icon={r.verdict.advance ? "check" : "x"}>
+          {r.verdict.advance ? "Goes on to F4" : "Does not go on to F4"}
+        </Badge>
+      </div>
+      <p class="cand-sub">Filters: {filterText(r)}. Trial <span class="mono">#{r.candidate_trial}</span> of the
+      {" "}{r.universe}-try random search. {int(r.engine_runs)} engine runs, every one logged.</p>
+
+      <div class="table-scroll gates">
+        <table class="data">
+          <caption class="sr-only">F3 checks for the {sessionLabel(r.variant)} candidate</caption>
+          <thead>
+            <tr><th scope="col">Check</th><th scope="col" class="num">Result</th><th scope="col" class="num">Needs</th><th scope="col">Outcome</th></tr>
+          </thead>
+          <tbody>
+            <tr class="group"><th scope="rowgroup" colspan="4">Would the F2 search have worked if run blind, year by year?
+              <Badge tone={gate(r.verdict.procedure).tone} icon={gate(r.verdict.procedure).icon}>{r.verdict.procedure ? "Passes" : "Fails"}</Badge></th></tr>
+            <tr>
+              <th scope="row">Walk-forward profit, 1 tick<span class="sub">sum of the {r.folds.length} test years</span></th>
+              <td class:list={["num", tone(r.wfo_total["1"])]}>{usd(r.wfo_total["1"], { cents: false })}</td>
+              <td class="num">above $0</td>
+              <td><Badge tone={gate(pc.wfo_net1).tone} icon={gate(pc.wfo_net1).icon}>{gate(pc.wfo_net1).word}</Badge></td>
+            </tr>
+            <tr>
+              <th scope="row">Walk-forward profit, 2 ticks</th>
+              <td class:list={["num", tone(r.wfo_total["2"])]}>{usd(r.wfo_total["2"], { cents: false })}</td>
+              <td class="num">above $0</td>
+              <td><Badge tone={gate(pc.wfo_net2).tone} icon={gate(pc.wfo_net2).icon}>{gate(pc.wfo_net2).word}</Badge></td>
+            </tr>
+            <tr>
+              <th scope="row">Test years that made money, 1 tick</th>
+              <td class="num">{r.positive_folds} of {r.folds.length}</td>
+              <td class="num">{r.rules.min_positive_folds} or more</td>
+              <td><Badge tone={gate(pc.folds).tone} icon={gate(pc.folds).icon}>{gate(pc.folds).word}</Badge></td>
+            </tr>
+            <tr>
+              <th scope="row">Chance the search winner is overfit (PBO)<span class="sub">{int(pbo.splits)} ways to split the data in half</span></th>
+              <td class="num">{num(pbo.pbo, 2)}</td>
+              <td class="num">{num(r.rules.pbo_max, 2)} or less</td>
+              <td><Badge tone={gate(pc.pbo).tone} icon={gate(pc.pbo).icon}>{gate(pc.pbo).word}</Badge></td>
+            </tr>
+            <tr class="group"><th scope="rowgroup" colspan="4">Does this candidate beat the best of {r.universe} lucky tries?
+              <Badge tone={gate(r.verdict.candidate).tone} icon={gate(r.verdict.candidate).icon}>{r.verdict.candidate ? "Passes" : "Fails"}</Badge></th></tr>
+            <tr>
+              <th scope="row">Deflated Sharpe ratio (DSR), 1 tick<span class="sub">Sharpe {num(d.sr, 4)} a day vs a luck bar of {num(d.primary.sr0, 4)}</span></th>
+              <td class="num">{num(d.primary.dsr, 2)}</td>
+              <td class="num">{num(r.rules.dsr_min, 2)} or more</td>
+              <td><Badge tone={gate(r.verdict.candidate_checks.dsr).tone} icon={gate(r.verdict.candidate_checks.dsr).icon}>{gate(r.verdict.candidate_checks.dsr).word}</Badge></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <figure class="strip">
+        <figcaption>
+          <span class="cap-h">Walk-forward, year by year, 1 tick</span>
+          <span class="cap-b">Each January the search picks its best setting from the years before, then trades it
+          for that year, starting with no position. Exact figures, and 0 and 2 ticks, are in the table below.</span>
+        </figcaption>
+        <div class="strip-scroll">
+        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Walk-forward result per test year at 1 tick: ${r.folds.map((f) => `${f.year} ${usd(f.net1, { cents: false })}`).join(", ")}.`}>
+          <line class="zero" x1={PAD_X} x2={W - PAD_X} y1={st.zero} y2={st.zero} />
+          {st.bars.map((b) => (
+            <g>
+              {b.cash
+                ? <rect class="cash" x={b.x} y={st.zero - 6} width={b.w} height={12} rx="2" />
+                : <rect class:list={[b.v >= 0 ? "up" : "down"]} x={b.x} y={b.y} width={b.w} height={b.h} rx="2" />}
+              <text class="val" x={b.cx} y={b.cash ? st.zero - 12 : b.labelY} text-anchor="middle">{b.cash ? "cash" : short(b.v)}</text>
+              <text class="yr" x={b.cx} y={H - 8} text-anchor="middle">{b.year}</text>
+            </g>
+          ))}
+        </svg>
+        </div>
+      </figure>
+
+      <details class="more">
+        <summary>Year by year: what the search picked <Icon name="chevron-right" size={14} /></summary>
+        <div class="table-scroll">
+          <table class="data">
+            <caption class="sr-only">Walk-forward test years for the {sessionLabel(r.variant)} candidate</caption>
+            <thead>
+              <tr>
+                <th scope="col">Year</th>
+                <th scope="col">Setting the search picked</th>
+                <th scope="col" class="num">0 ticks</th>
+                <th scope="col" class="num">1 tick</th>
+                <th scope="col" class="num">2 ticks</th>
+                <th scope="col" class="num">Trades</th>
+                <th scope="col" class="num">Frozen candidate<span class="sub">1 tick, in-sample</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {r.folds.map((f) => (
+                <tr>
+                  <th scope="row" class="mono">{f.year}</th>
+                  <td class="pick">{f.trial === null ? "No setting had enough trades: no trading"
+                    : f.trial === r.candidate_trial ? <><span class="is-cand">The candidate</span></>
+                    : <>{plainSettings(f.picked ?? "").join(", ")}</>}</td>
+                  <td class:list={["num", tone(f.net0)]}>{usd(f.net0, { cents: false })}</td>
+                  <td class:list={["num", tone(f.net1)]}>{usd(f.net1, { cents: false })}</td>
+                  <td class:list={["num", tone(f.net2)]}>{usd(f.net2, { cents: false })}</td>
+                  <td class="num">{int(f.trades1)}</td>
+                  <td class:list={["num", "faint", tone(f.cand1)]}>{usd(f.cand1, { cents: false })}</td>
+                </tr>
+              ))}
+              <tr class="total">
+                <th scope="row">Total</th>
+                <td></td>
+                <td class:list={["num", tone(r.wfo_total["0"])]}>{usd(r.wfo_total["0"], { cents: false })}</td>
+                <td class:list={["num", tone(r.wfo_total["1"])]}>{usd(r.wfo_total["1"], { cents: false })}</td>
+                <td class:list={["num", tone(r.wfo_total["2"])]}>{usd(r.wfo_total["2"], { cents: false })}</td>
+                <td class="num">{int(r.wfo_trades1)}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">The last column is the frozen F2 candidate in the same year. It was picked using all of these
+        years, so it is shown for comparison only.</p>
+      </details>
+
+      <details class="more">
+        <summary>Extra checks (shown, but they cannot turn a fail into a pass) <Icon name="chevron-right" size={14} /></summary>
+        <div class="table-scroll extra">
+          <table class="data">
+            <caption class="sr-only">Sensitivity checks for the {sessionLabel(r.variant)} candidate</caption>
+            <thead><tr><th scope="col">Check</th><th scope="col" class="num">Value</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Walk-forward with only the last 4 years as training, 0 / 1 / 2 ticks</th>
+                <td class="num">{(["0", "1", "2"] as const).map((k, i) => <><span class={tone(r.rolling_total[k])}>{usd(r.rolling_total[k], { cents: false })}</span>{i < 2 && " / "}</>)}</td></tr>
+              <tr><th scope="row">PBO, counting only settings with enough trades</th><td class="num">{num(r.pbo.eligible_only.pbo, 2)}</td></tr>
+              <tr><th scope="row">PBO at 2 ticks</th><td class="num">{num(r.pbo.ticks2.pbo, 2)}</td></tr>
+              <tr><th scope="row">DSR at 2 ticks</th><td class="num">{num(d.ticks2.dsr, 2)}</td></tr>
+              <tr><th scope="row">DSR counting every setting this session ever tried ({int(d.variant_n.n)})<span class="sub">assumes their spread matches the 200</span></th><td class="num">{num(d.variant_n.dsr, 2)}</td></tr>
+              <tr><th scope="row">DSR counting every setting of the strategy ({int(d.strategy_n.n)})</th><td class="num">{num(d.strategy_n.dsr, 2)}</td></tr>
+              <tr><th scope="row">DSR on monthly instead of daily results</th><td class="num">{num(d.monthly.dsr, 2)}</td></tr>
+              <tr><th scope="row">Chance the Sharpe is above zero, with no luck adjustment</th><td class="num">{num(d.psr0, 2)}</td></tr>
+              <tr><th scope="row">Daily Sharpe, 90% range from resampling blocks of days</th><td class="num">{d.boot90 ? `${num(d.boot90[0], 4)} to ${num(d.boot90[1], 4)}` : "—"}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+  );
+})}
+</>}
+<style>
+  .cand {
+    margin-top: 3rem;
+  }
+  .cand-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .cand-head h3 {
+    font-size: var(--step-2);
+  }
+  .cand-sub {
+    margin-top: 0.5rem;
+    max-width: var(--measure);
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+  .gates {
+    margin-top: 1.25rem;
+  }
+  /* Below this width the wells scroll sideways instead of squeezing the row labels to one word a line. */
+  .gates table,
+  .extra table {
+    min-width: 38rem;
+  }
+  .gates tbody th[scope="row"],
+  .extra tbody th[scope="row"] {
+    min-width: 15rem;
+  }
+  .gates .group th {
+    padding-top: 1rem;
+    font-size: 0.875rem;
+    font-weight: 550;
+    color: var(--ink);
+    background: var(--panel);
+  }
+  .gates .group :global(.badge) {
+    margin-left: 0.6rem;
+    vertical-align: middle;
+  }
+  .sub {
+    display: block;
+    margin-top: 0.15rem;
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: var(--ink-3);
+  }
+  .strip {
+    margin: 2rem 0 0;
+    max-width: 680px;
+  }
+  figcaption {
+    display: grid;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .cap-h {
+    font-weight: 550;
+    color: var(--ink);
+    font-size: 0.9375rem;
+  }
+  .cap-b {
+    color: var(--ink-2);
+    font-size: 0.875rem;
+    max-width: var(--measure);
+  }
+  .strip-scroll {
+    overflow-x: auto;
+    border-radius: var(--radius);
+  }
+  .strip svg {
+    display: block;
+    width: 100%;
+    min-width: 560px;
+    height: auto;
+    padding: 0.75rem 0.5rem 0.25rem;
+    border-radius: var(--radius);
+    background: var(--bg-raise);
+    box-shadow: 0 0 0 1px var(--line) inset;
+  }
+  .zero {
+    stroke: var(--line-3);
+    stroke-width: 1;
+  }
+  .up {
+    fill: var(--long);
+  }
+  .down {
+    fill: var(--short);
+  }
+  .cash {
+    fill: none;
+    stroke: var(--line-3);
+    stroke-dasharray: 3 3;
+  }
+  .val {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--ink-2);
+  }
+  .yr {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--ink-3);
+  }
+  .more {
+    margin-top: 1rem;
+    max-width: 100%;
+  }
+  .more summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 44px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .more summary::-webkit-details-marker {
+    display: none;
+  }
+  .more summary :global(svg) {
+    transition: transform 0.2s var(--ease-out);
+  }
+  .more[open] summary :global(svg) {
+    transform: rotate(90deg);
+  }
+  .more summary:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  .pick {
+    min-width: 220px;
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+  .is-cand {
+    color: var(--ink);
+  }
+  .faint {
+    opacity: 0.7;
+  }
+  .total > * {
+    border-top: 1px solid var(--line-3);
+    font-weight: 550;
+  }
+  .note {
+    margin-top: 0.6rem;
+    max-width: var(--measure);
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .more summary :global(svg) {
+      transition: none;
+    }
+  }
+</style>

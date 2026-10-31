@@ -31,7 +31,7 @@ OUT = ROOT / "web" / "src" / "data" / "strategies"
 # Month, week and day tables are static files the browser fetches on demand; year tables stay in the main JSON.
 PUBLIC_OUT = ROOT / "web" / "public" / "data"
 VERDICTS = ROOT / "web" / "src" / "data" / "verdicts.ts"
-EXPORT_VERSION = 2
+EXPORT_VERSION = 3
 FETCHED_GRAINS = ("month", "week", "day")
 SCENARIOS = (0, 1, 2)
 
@@ -55,7 +55,7 @@ FORBIDDEN_KEYS = {"entry_price", "exit_price", "raw_symbol", "buy_hold_return"}
 EXIT_REASONS = {"limit", "stop", "close", "roll"}
 TEXT_FIELDS = {
     "strategy", "generated_utc", "period_start", "period_end", "run_id", "variant", "space", "sampler",
-    "objective", "winner", "time_utc", "note", "path", "sha256", "key", "grain",
+    "objective", "winner", "time_utc", "note", "path", "sha256", "key", "grain", "tag", "source_search",
 }
 
 
@@ -95,6 +95,17 @@ def check_filters(value) -> None:
                 or forbidden_key(feature) or not isinstance(operator, str) or operator not in {"min", "max"}
                 or type(threshold) not in (int, float) or not math.isfinite(threshold)):
             raise ExportError("invalid filter feature, operator or numeric threshold")
+
+
+def check_picked(label: str, param_keys) -> str:
+    """A walk-forward pick label ("feature >= 1.5, other <= 3") may only name filters or declared parameters."""
+    for part in label.split(","):
+        p = part.strip()
+        m = re.fullmatch(r"([a-z_]+) (>=|<=) (-?\d+(\.\d+)?)", p) or re.fullmatch(r"([a-z_]+)=([\w.:-]+)", p)
+        if not m or forbidden_key(m.group(1)) or ("=" in p and "<" not in p and ">" not in p
+                                                   and m.group(1) not in param_keys):
+            raise ExportError(f"unexpected walk-forward pick label: {label!r}")
+    return label
 
 
 def check_publication(node, path: str = "$") -> None:
@@ -383,18 +394,104 @@ class Exporter:
         return {
             "runs": runs,
             "total_trials": sum(r["trials"] for r in runs),
-            "total_engine_evaluations": sum(e.get("evaluations", 0) for e in ledger),
+            # F2 work only: F3 validation runs share the ledger and are counted under F3.
+            "total_engine_evaluations": sum(e.get("evaluations", 0) for e in ledger
+                                            if not e["kind"].startswith("validate")),
             "manual_looks": [{"time_utc": e["time_utc"], "evaluations": e["evaluations"], "note": e["note"]}
                              for e in ledger if e["kind"] == "manual"],
             "lineage": [e["note"] for e in ledger if e["kind"] == "lineage"],
         }
+
+    def feature3(self) -> dict | None:
+        """Feature 3 (validation A): copied from results/<s>/validate/<tag>/ (verdict, folds, PBO, DSR); the totals
+        are cross-checked against the fold table and the ledger, never recomputed for display."""
+        base = self.results / "validate"
+        tags = sorted(d.name for d in base.iterdir() if d.is_dir()) if base.exists() else []
+        if not tags:
+            return None
+        ledger_path = self.results / "ledger.jsonl"
+        ledger = [json.loads(x) for x in self.read(ledger_path).read_text().splitlines() if x.strip()]
+        runs = []
+        for tag in tags:
+            d = base / tag
+            verdict = json.loads(self.read(d / "verdict.json").read_text())
+            pbo = json.loads(self.read(d / "pbo.json").read_text())
+            dsr = json.loads(self.read(d / "dsr.json").read_text())
+            meta = json.loads(self.read(d / "run.json").read_text())
+            cfg = json.loads(self.read(ROOT / meta["config"]).read_text())
+            folds = pd.read_csv(self.read(d / "folds.csv"))
+            rolling = pd.read_csv(self.read(d / "folds_rolling.csv"))
+            done = [e for e in ledger if e["kind"] == "validate" and e.get("tag") == tag]
+            if len(done) != 1:
+                raise ExportError(f"{tag}: expected one finished validate event in the ledger, found {len(done)}")
+            spent = sum(e["evaluations"] for e in ledger
+                        if e["kind"] in ("validate_matrix", "validate_folds") and e.get("tag") == tag)
+            if spent != done[0]["engine_runs"]:
+                raise ExportError(f"{tag}: ledger engine runs {spent} != validate event {done[0]['engine_runs']}")
+            check_totals = importlib.import_module("tvtester.validate").fold_totals(folds)
+            for k in SCENARIOS:
+                if abs(check_totals[f"net{k}"] - verdict["wfo_total"][str(k)]) > 0.01:
+                    raise ExportError(f"{tag}: fold table does not add up to the walk-forward total at {k} ticks")
+            if check_totals["positive1"] != verdict["positive_folds"]:
+                raise ExportError(f"{tag}: positive folds do not match the fold table")
+            if verdict["advance"] != (verdict["procedure"] and verdict["candidate"]):
+                raise ExportError(f"{tag}: advance is not procedure AND candidate")
+
+            validate_mod = importlib.import_module("tvtester.validate")
+            totals = validate_mod.fold_totals(folds)
+            rolling_totals = validate_mod.fold_totals(rolling)
+            rules = {k: meta["rules"][k] for k in ("min_positive_folds", "pbo_max", "dsr_min")}
+            picked_labels = [None if pd.isna(x) else check_picked(str(x), self.param_keys) for x in folds["config"]]
+
+            def opt(v):
+                return None if v is None or (isinstance(v, float) and math.isnan(v)) else v
+
+            def pb(x):
+                return {f: clean(x[f]) for f in ("pbo", "p_oos_loss", "median_logit", "median_is", "median_oos",
+                                                  "splits", "skipped")}
+
+            def ds(x):
+                return {"dsr": clean(x["dsr"]), "sr0": clean(x["sr0"]), "n": x["n"]}
+
+            d1, d2 = dsr["ticks1"], dsr["ticks2"]
+            runs.append({
+                "tag": tag, "variant": cfg["variant"], "time_utc": done[0]["time_utc"],
+                "candidate_trial": meta["candidate_trial"], "universe": meta["universe"],
+                "params": {k: v for k, v in cfg["params"].items() if k in self.param_keys}, "filters": cfg["filters"],
+                "source_search": cfg["source"]["search"].split("/")[-1], "fold_years": meta["fold_years"],
+                "rules": rules, "engine_runs": spent,
+                "verdict": {"procedure": verdict["procedure"], "candidate": verdict["candidate"],
+                            "advance": verdict["advance"], "procedure_checks": verdict["procedure_checks"],
+                            "candidate_checks": verdict["candidate_checks"]},
+                "wfo_total": {str(k): clean(verdict["wfo_total"][str(k)]) for k in SCENARIOS},
+                "wfo_trades1": totals["trades1"],
+                "positive_folds": verdict["positive_folds"],
+                "folds": [{"year": int(r["year"]), "trial": None if pd.isna(r["trial"]) else int(r["trial"]),
+                           "picked": picked_labels[i],
+                           "train_obj": clean(opt(r["train_obj"])),
+                           **{f"net{k}": clean(float(r[f"net{k}"])) for k in SCENARIOS},
+                           "trades1": int(r["trades1"]), "cand1": clean(float(r["cand1"]))}
+                          for i, (_, r) in enumerate(folds.iterrows())],
+                "rolling_total": {str(k): clean(rolling_totals[f"net{k}"]) for k in SCENARIOS},
+                "pbo": {"primary": pb(pbo["primary"]), "eligible_only": pb(pbo["eligible_only"]),
+                        "ticks2": pb(pbo["ticks2"]), "identical_paths": pbo["identical_paths"]},
+                "dsr": {"sr": clean(d1["stats"]["sr"]), "skew": clean(d1["stats"]["skew"]),
+                        "kurt": clean(d1["stats"]["kurt"]), "days": d1["stats"]["t"],
+                        "primary": ds(d1["primary"]), "variant_n": ds(d1["variant_n"]),
+                        "strategy_n": ds(d1["strategy_n"]), "ticks2": ds(d2["primary"]),
+                        "monthly": ds(d1["monthly"]), "psr0": clean(d1["psr0"]["dsr"]),
+                        "boot90": [clean(x) for x in d1["boot90"]] if d1["boot90"] else None},
+            })
+        return {"runs": runs, "total_engine_runs": sum(e.get("evaluations", 0) for e in ledger
+                                                       if e["kind"].startswith("validate"))}
 
     def run(self) -> Path:
         data = {
             "export_version": EXPORT_VERSION,
             "generated_utc": self.generated_utc,
             "strategy": self.strategy,
-            "features": {"f1": self.feature1(), "f2": self.feature2(), "f3": None},
+            "features": {"f1": self.feature1(), "f2": self.feature2(), "f3": self.feature3(), "f4": None,
+                         "f5": None},
         }
         data["sources"] = [{"path": p, "sha256": h} for p, h in sorted(self.sources.items())]
         check_publication(data)

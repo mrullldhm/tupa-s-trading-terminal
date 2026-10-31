@@ -6,7 +6,7 @@ import ScenarioTable from "./ScenarioTable.astro";
 import { strategyData, sessionLabel, SESSION_ORDER, MIN_ELIGIBLE_TRADES } from "../lib/data";
 import { F2_VERDICTS } from "../data/verdicts";
 import { usd, int, tone } from "../lib/format";
-import F3Pending from "./F3Pending.astro";
+import Pending from "./Pending.astro";
 import PeriodTables from "./PeriodTables.astro";
 import { plainSettings, samplerLabel } from "../lib/labels";
 
@@ -42,10 +42,10 @@ function baselineBefore(variant: string, cutoff: string | null) {
 }
 ---
 {!ready && (
-  <F3Pending heading="Not run yet">
+  <Pending heading="Not run yet">
     No F2 search has been run for this strategy. When one is, every run will be listed here with its verdict,
     including the ones that fail.
-  </F3Pending>
+  </Pending>
 )}
 {ready && f2 && <>
 <Callout tone="warn" title="Read this before the numbers">

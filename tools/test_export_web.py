@@ -200,7 +200,15 @@ def test_real_export_publishes_only_allowed_fields(tmp_path, monkeypatch):
     grid_keys = set(importlib.import_module("strategies.fair_price_reversal").GRID)
     for variant in data["features"]["f1"]["variants"].values():
         assert set(variant["params"]) == grid_keys
-    assert data["features"]["f3"] is None
+    f3 = data["features"]["f3"]
+    assert f3 is None or {r["tag"] for r in f3["runs"]} <= {"ny_filters_random_net1_s1_n200",
+                                                          "london_filters_random_net1_s1_n200"}
+    for r in (f3 or {}).get("runs", []):
+        assert set(r["params"]) <= grid_keys
+        assert r["verdict"]["advance"] == (r["verdict"]["procedure"] and r["verdict"]["candidate"])
+        assert len(r["folds"]) == 10 and all(set(f) <= {"year", "trial", "picked", "train_obj", "net0", "net1",
+                                                         "net2", "trades1", "cand1"} for f in r["folds"])
+    assert data["features"]["f4"] is None and data["features"]["f5"] is None
 
 
 def period_frame(rows):
@@ -317,3 +325,14 @@ def test_failed_swap_keeps_the_previous_publication(tmp_path, monkeypatch):
     assert previous.read_text() == "old"
     assert (tmp_path / "fair_price_reversal.json").read_text() == "old main"
     assert sorted(p.name for p in (tmp_path / "public").iterdir()) == ["fair_price_reversal"]
+
+
+@pytest.mark.parametrize("label", ["raw_symbol=CLZ6", "entry_price >= 72.34", "risk_ticks >= 32; x", "profit_pct >= 1"])
+def test_walk_forward_pick_labels_reject_unlisted_fields(label):
+    with pytest.raises(ew.ExportError):
+        ew.check_picked(label, ("window", "swing"))
+
+
+def test_walk_forward_pick_labels_accept_filters_and_declared_params():
+    assert ew.check_picked("anchor_body_atr >= 0.3, risk_ticks <= 32", ()) == "anchor_body_atr >= 0.3, risk_ticks <= 32"
+    assert ew.check_picked("swing=3, risk_ticks >= 30", ("swing",)) == "swing=3, risk_ticks >= 30"

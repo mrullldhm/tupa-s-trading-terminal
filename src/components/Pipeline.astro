@@ -6,12 +6,16 @@ const stages = [
   { name: `${STAGES.f1.name} (${STAGES.f1.tag})`, text: "Run every combination of settings over 16 years of 1-minute data. Show the best one at 0, 1 and 2 ticks of slippage.", state: "done" },
   { name: `${STAGES.f2.name} (${STAGES.f2.tag})`, text: "Write the guess down first. Search only pre-2024 data, score at 1 tick, and log every try.", state: "done" },
   { name: "Independent review", text: "Codex reviews the code, then rebuilds headline results with its own engine. A result only counts when the trades match.", state: "done" },
-  { name: `${STAGES.f3.name} (${STAGES.f3.tag})`, text: "Walk-forward tests and the reserved 2024+ data, with the number of tries counted against the result.", state: "pending" },
+  { name: `${STAGES.f3.name} (${STAGES.f3.tag})`, text: "Re-run the search year by year on the same pre-2024 data, and ask whether the winner beats the best of its lucky tries. Rules for passing are written first.", state: "done" },
+  { name: `${STAGES.f4.name} (${STAGES.f4.tag})`, text: "Only for a result that passes F3: would it pass a Topstep 50K evaluation, with its loss limits and size caps, better than random entries would?", state: "pending" },
+  { name: `${STAGES.f5.name} (${STAGES.f5.tag})`, text: "One run of the frozen strategy and prop rules on the reserved 2024+ data. Used once, never tuned on.", state: "pending" },
 ];
+// A connector into a pending stage is dashed.
+const into = stages.map((s, i) => stages[i + 1]?.state === "pending");
 ---
 <ol class="stack">
-  {stages.map((s) => (
-    <li class={s.state}>
+  {stages.map((s, i) => (
+    <li class:list={[s.state, { "to-pending": into[i] }]}>
       <span class="node" aria-hidden="true"></span>
       <div>
         <h3>{s.name}{s.state === "pending" && <span class="tag">Not built yet</span>}</h3>
@@ -44,7 +48,7 @@ const stages = [
     width: 1px;
     background: linear-gradient(var(--line-3), rgb(255 255 255 / 0.4));
   }
-  li:nth-last-child(2)::before {
+  li.to-pending::before {
     background: repeating-linear-gradient(var(--line-3) 0 4px, transparent 4px 9px);
   }
   .node {

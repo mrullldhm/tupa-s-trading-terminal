@@ -1,6 +1,6 @@
 {
- "export_version": 2,
- "generated_utc": "2026-10-31T15:05:55+00:00",
+ "export_version": 3,
+ "generated_utc": "2026-10-31T16:35:05+00:00",
  "strategy": "fair_price_reversal",
  "features": {
   "f1": {
@@ -20905,7 +20905,504 @@
     "baselines are the feature-1 top combinations, picked from 192 grid combinations per variant on 2010-06-06 .. 2026-10-27 (includes the reserved interval)"
    ]
   },
-  "f3": null
+  "f3": {
+   "runs": [
+    {
+     "tag": "london_filters_random_net1_s1_n200",
+     "variant": "london",
+     "time_utc": "2026-10-31T16:18:47+00:00",
+     "candidate_trial": 89,
+     "universe": 200,
+     "params": {
+      "atr_mult": 2.0,
+      "swing": 3,
+      "target": "rr2",
+      "window": 120
+     },
+     "filters": [
+      [
+       "risk_ticks",
+       "min",
+       30.0
+      ]
+     ],
+     "source_search": "london_filters_random_net1_s1_n200",
+     "fold_years": [
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+     ],
+     "rules": {
+      "min_positive_folds": 7,
+      "pbo_max": 0.5,
+      "dsr_min": 0.95
+     },
+     "engine_runs": 660,
+     "verdict": {
+      "procedure": false,
+      "candidate": false,
+      "advance": false,
+      "procedure_checks": {
+       "wfo_net1": false,
+       "wfo_net2": false,
+       "folds": false,
+       "pbo": true
+      },
+      "candidate_checks": {
+       "dsr": false
+      }
+     },
+     "wfo_total": {
+      "0": 692.6,
+      "1": -4335.34,
+      "2": -11691.32
+     },
+     "wfo_trades1": 367,
+     "positive_folds": 4,
+     "folds": [
+      {
+       "year": 2014,
+       "trial": 89,
+       "picked": "risk_ticks >= 30",
+       "train_obj": 11725.94,
+       "net0": -598.24,
+       "net1": -818.24,
+       "net2": -1038.24,
+       "trades1": 12,
+       "cand1": -818.24
+      },
+      {
+       "year": 2015,
+       "trial": 89,
+       "picked": "risk_ticks >= 30",
+       "train_obj": 10907.7,
+       "net0": -854.32,
+       "net1": -1134.32,
+       "net2": -1414.32,
+       "trades1": 16,
+       "cand1": -1134.32
+      },
+      {
+       "year": 2016,
+       "trial": 89,
+       "picked": "risk_ticks >= 30",
+       "train_obj": 9773.38,
+       "net0": -292.16,
+       "net1": -432.16,
+       "net2": -572.16,
+       "trades1": 8,
+       "cand1": -432.16
+      },
+      {
+       "year": 2017,
+       "trial": 36,
+       "picked": "range_ratio >= 1.3",
+       "train_obj": 9062.54,
+       "net0": 1387.14,
+       "net1": 827.14,
+       "net2": -282.86,
+       "trades1": 43,
+       "cand1": -328.04
+      },
+      {
+       "year": 2018,
+       "trial": 36,
+       "picked": "range_ratio >= 1.3",
+       "train_obj": 9889.68,
+       "net0": -1903.06,
+       "net1": -2783.06,
+       "net2": -3663.06,
+       "trades1": 53,
+       "cand1": 3057.84
+      },
+      {
+       "year": 2019,
+       "trial": 36,
+       "picked": "range_ratio >= 1.3",
+       "train_obj": 7106.62,
+       "net0": 2333.32,
+       "net1": 1933.32,
+       "net2": 987.34,
+       "trades1": 34,
+       "cand1": 73.92
+      },
+      {
+       "year": 2020,
+       "trial": 36,
+       "picked": "range_ratio >= 1.3",
+       "train_obj": 9039.94,
+       "net0": -1126.98,
+       "net1": -1992.96,
+       "net2": -2692.96,
+       "trades1": 48,
+       "cand1": -3782.56
+      },
+      {
+       "year": 2021,
+       "trial": 36,
+       "picked": "range_ratio >= 1.3",
+       "train_obj": 7046.98,
+       "net0": 259.0,
+       "net1": 57.04,
+       "net2": -642.96,
+       "trades1": 48,
+       "cand1": 2605.48
+      },
+      {
+       "year": 2022,
+       "trial": 130,
+       "picked": "anchor_body_atr >= 0.5, minutes_from_open >= 35, range_ratio >= 0.8",
+       "train_obj": 11550.82,
+       "net0": -1745.12,
+       "net1": -2565.12,
+       "net2": -3385.12,
+       "trades1": 56,
+       "cand1": 18656.4
+      },
+      {
+       "year": 2023,
+       "trial": 89,
+       "picked": "risk_ticks >= 30",
+       "train_obj": 29624.26,
+       "net0": 3233.02,
+       "net1": 2573.02,
+       "net2": 1013.02,
+       "trades1": 49,
+       "cand1": 2573.02
+      }
+     ],
+     "rolling_total": {
+      "0": -3520.54,
+      "1": -12198.48,
+      "2": -24768.48
+     },
+     "pbo": {
+      "primary": {
+       "pbo": 0.1896,
+       "p_oos_loss": 0.1984,
+       "median_logit": 3.3219,
+       "median_is": 16189.87,
+       "median_oos": 7064.69,
+       "splits": 12870,
+       "skipped": 0
+      },
+      "eligible_only": {
+       "pbo": 0.2021,
+       "p_oos_loss": 0.1984,
+       "median_logit": 3.3322,
+       "median_is": 16189.87,
+       "median_oos": 7064.69,
+       "splits": 12870,
+       "skipped": 0
+      },
+      "ticks2": {
+       "pbo": 0.1912,
+       "p_oos_loss": 0.3508,
+       "median_logit": 2.5921,
+       "median_is": 11820.47,
+       "median_oos": 3105.11,
+       "splits": 12870,
+       "skipped": 0
+      },
+      "identical_paths": 14
+     },
+     "dsr": {
+      "sr": 0.0392,
+      "skew": 4.0638,
+      "kurt": 41.2881,
+      "days": 4209,
+      "primary": {
+       "dsr": 0.0918,
+       "sr0": 0.0581,
+       "n": 200
+      },
+      "variant_n": {
+       "dsr": 0.0288,
+       "sr0": 0.0662,
+       "n": 698
+      },
+      "strategy_n": {
+       "dsr": 0.0097,
+       "sr0": 0.0725,
+       "n": 2011
+      },
+      "ticks2": {
+       "dsr": 0.0,
+       "sr0": 0.093,
+       "n": 200
+      },
+      "monthly": {
+       "dsr": 0.0116,
+       "sr0": 0.28,
+       "n": 200
+      },
+      "psr0": 0.997,
+      "boot90": [
+       0.0095,
+       0.0661
+      ]
+     }
+    },
+    {
+     "tag": "ny_filters_random_net1_s1_n200",
+     "variant": "ny",
+     "time_utc": "2026-10-31T16:15:12+00:00",
+     "candidate_trial": 85,
+     "universe": 200,
+     "params": {
+      "atr_mult": 0.5,
+      "swing": 3,
+      "target": "rr2",
+      "window": 120
+     },
+     "filters": [
+      [
+       "anchor_body_atr",
+       "min",
+       0.3
+      ],
+      [
+       "risk_ticks",
+       "min",
+       32.0
+      ]
+     ],
+     "source_search": "ny_filters_random_net1_s1_n200",
+     "fold_years": [
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+     ],
+     "rules": {
+      "min_positive_folds": 7,
+      "pbo_max": 0.5,
+      "dsr_min": 0.95
+     },
+     "engine_runs": 660,
+     "verdict": {
+      "procedure": false,
+      "candidate": false,
+      "advance": false,
+      "procedure_checks": {
+       "wfo_net1": true,
+       "wfo_net2": true,
+       "folds": false,
+       "pbo": true
+      },
+      "candidate_checks": {
+       "dsr": false
+      }
+     },
+     "wfo_total": {
+      "0": 35025.8,
+      "1": 22839.82,
+      "2": 9739.82
+     },
+     "wfo_trades1": 709,
+     "positive_folds": 6,
+     "folds": [
+      {
+       "year": 2014,
+       "trial": 85,
+       "picked": "anchor_body_atr >= 0.3, risk_ticks >= 32",
+       "train_obj": 16408.78,
+       "net0": -5376.88,
+       "net1": -6096.88,
+       "net2": -6816.88,
+       "trades1": 44,
+       "cand1": -6096.88
+      },
+      {
+       "year": 2015,
+       "trial": 154,
+       "picked": "range_ratio <= 1, risk_ticks <= 44",
+       "train_obj": 14026.18,
+       "net0": 2491.42,
+       "net1": 751.42,
+       "net2": -1968.58,
+       "trades1": 129,
+       "cand1": 2216.54
+      },
+      {
+       "year": 2016,
+       "trial": 154,
+       "picked": "range_ratio <= 1, risk_ticks <= 44",
+       "train_obj": 14777.6,
+       "net0": 375.64,
+       "net1": -2454.36,
+       "net2": -4964.36,
+       "trades1": 118,
+       "cand1": 6129.4
+      },
+      {
+       "year": 2017,
+       "trial": 85,
+       "picked": "anchor_body_atr >= 0.3, risk_ticks >= 32",
+       "train_obj": 18657.84,
+       "net0": 471.86,
+       "net1": 351.86,
+       "net2": 231.86,
+       "trades1": 7,
+       "cand1": 351.86
+      },
+      {
+       "year": 2018,
+       "trial": 85,
+       "picked": "anchor_body_atr >= 0.3, risk_ticks >= 32",
+       "train_obj": 19009.7,
+       "net0": -1812.86,
+       "net1": -2472.86,
+       "net2": -3132.86,
+       "trades1": 43,
+       "cand1": -2472.86
+      },
+      {
+       "year": 2019,
+       "trial": 85,
+       "picked": "anchor_body_atr >= 0.3, risk_ticks >= 32",
+       "train_obj": 16536.84,
+       "net0": -4552.76,
+       "net1": -5212.76,
+       "net2": -5872.76,
+       "trades1": 38,
+       "cand1": -5212.76
+      },
+      {
+       "year": 2020,
+       "trial": 85,
+       "picked": "anchor_body_atr >= 0.3, risk_ticks >= 32",
+       "train_obj": 11324.08,
+       "net0": 3609.3,
+       "net1": 3453.32,
+       "net2": 2953.32,
+       "trades1": 34,
+       "cand1": 3453.32
+      },
+      {
+       "year": 2021,
+       "trial": 85,
+       "picked": "anchor_body_atr >= 0.3, risk_ticks >= 32",
+       "train_obj": 14777.4,
+       "net0": 7702.72,
+       "net1": 6802.72,
+       "net2": 5202.72,
+       "trades1": 64,
+       "cand1": 6802.72
+      },
+      {
+       "year": 2022,
+       "trial": 85,
+       "picked": "anchor_body_atr >= 0.3, risk_ticks >= 32",
+       "train_obj": 21580.12,
+       "net0": 12433.38,
+       "net1": 9703.38,
+       "net2": 7683.38,
+       "trades1": 131,
+       "cand1": 9703.38
+      },
+      {
+       "year": 2023,
+       "trial": 85,
+       "picked": "anchor_body_atr >= 0.3, risk_ticks >= 32",
+       "train_obj": 31283.5,
+       "net0": 19683.98,
+       "net1": 18013.98,
+       "net2": 16423.98,
+       "trades1": 101,
+       "cand1": 18013.98
+      }
+     ],
+     "rolling_total": {
+      "0": 10814.88,
+      "1": -731.1,
+      "2": -10901.1
+     },
+     "pbo": {
+      "primary": {
+       "pbo": 0.1844,
+       "p_oos_loss": 0.1866,
+       "median_logit": 4.1897,
+       "median_is": 25589.02,
+       "median_oos": 15633.76,
+       "splits": 12870,
+       "skipped": 0
+      },
+      "eligible_only": {
+       "pbo": 0.1863,
+       "p_oos_loss": 0.1866,
+       "median_logit": 3.6463,
+       "median_is": 25589.02,
+       "median_oos": 15633.76,
+       "splits": 12870,
+       "skipped": 0
+      },
+      "ticks2": {
+       "pbo": 0.2223,
+       "p_oos_loss": 0.2912,
+       "median_logit": 3.8969,
+       "median_is": 18086.53,
+       "median_oos": 8223.96,
+       "splits": 12870,
+       "skipped": 0
+      },
+      "identical_paths": 11
+     },
+     "dsr": {
+      "sr": 0.0356,
+      "skew": 2.4331,
+      "kurt": 17.8756,
+      "days": 4209,
+      "primary": {
+       "dsr": 0.4316,
+       "sr0": 0.0382,
+       "n": 200
+      },
+      "variant_n": {
+       "dsr": 0.2977,
+       "sr0": 0.0435,
+       "n": 693
+      },
+      "strategy_n": {
+       "dsr": 0.2087,
+       "sr0": 0.0476,
+       "n": 2011
+      },
+      "ticks2": {
+       "dsr": 0.0581,
+       "sr0": 0.0484,
+       "n": 200
+      },
+      "monthly": {
+       "dsr": 0.5209,
+       "sr0": 0.1907,
+       "n": 200
+      },
+      "psr0": 0.9921,
+      "boot90": [
+       0.0152,
+       0.0581
+      ]
+     }
+    }
+   ],
+   "total_engine_runs": 1320
+  },
+  "f4": null,
+  "f5": null
  },
  "sources": [
   {
@@ -20934,7 +21431,7 @@
   },
   {
    "path": "results/fair_price_reversal/ledger.jsonl",
-   "sha256": "c0d7c8df16f0828395a0922ce716a08babb94c81f1e38d0f7d8349dc3d087945"
+   "sha256": "e34789adc906137d2d2b36ea41fa3bec0fbe5cec06a7c16eceb178733e223596"
   },
   {
    "path": "results/fair_price_reversal/london/grid.csv",
@@ -21071,6 +21568,54 @@
   {
    "path": "results/fair_price_reversal/replay/ny_full_tpe_net1_s1_n300/trades_slippage2.csv",
    "sha256": "a5720f14c9cd88932dc0b0b638facc78f5ca453b75c35da5d0f9f1239ca8f5f3"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/london_filters_random_net1_s1_n200/dsr.json",
+   "sha256": "9bb743b2d75de70ecea0a376f7947964ecf8d39c9661ce11d6abb2ed04a84010"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/london_filters_random_net1_s1_n200/folds.csv",
+   "sha256": "378e24d19e8fb079b59e6e17c90de3d592c07d108e76293e017684119c89eab1"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/london_filters_random_net1_s1_n200/folds_rolling.csv",
+   "sha256": "61e51f0a4564f0da9bba2920e6866adc06096a501e46b869ec09d096210f0517"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/london_filters_random_net1_s1_n200/pbo.json",
+   "sha256": "a09e41bd09be630e904621759683ec30113e54f4bb7522f54954aefeb2ae5fd7"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/london_filters_random_net1_s1_n200/run.json",
+   "sha256": "ec5944e0c6586ab956f7b3810564711582f2de602b253b9a1d6e0ba5873780ab"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/london_filters_random_net1_s1_n200/verdict.json",
+   "sha256": "b23b90f929dc5c4bd17a063c6e1b54a804f02a6a906b32f81df350f774943a3f"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/ny_filters_random_net1_s1_n200/dsr.json",
+   "sha256": "b81009e6cc9188cc1660b6dd06980b616f6d2ab06c6ad39204cd00ec37cead09"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/ny_filters_random_net1_s1_n200/folds.csv",
+   "sha256": "9691102f2a66b5afa51fd99c87e30b67494e863adb09f8602fcfc6e0d5e47262"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/ny_filters_random_net1_s1_n200/folds_rolling.csv",
+   "sha256": "2cd3d721006361b75e135f36a83bb299514e605e2560cb01ad97505e98dfc928"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/ny_filters_random_net1_s1_n200/pbo.json",
+   "sha256": "8340a82dd8faad8b65e3aab60a0ece7b5bb7cc0098d93cd2d6fdbf287912d305"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/ny_filters_random_net1_s1_n200/run.json",
+   "sha256": "b0ec2f1883aabef435ec930c8daf2a19b08c5d867de77fec1cb5c897479c6013"
+  },
+  {
+   "path": "results/fair_price_reversal/validate/ny_filters_random_net1_s1_n200/verdict.json",
+   "sha256": "feaf2e7db5c84378557b1ae8be7074902924e3431d78619851bcc597d97e285c"
   },
   {
    "path": "strategies/configs/fair_price_reversal_asia_filters_random_net1_s1_n200.json",

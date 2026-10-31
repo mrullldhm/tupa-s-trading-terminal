@@ -38,8 +38,10 @@ published costs, separate slippage scenarios, an independent review and replicat
 - The site only displays numbers. It never recomputes metrics, so it cannot drift from `docs/ENGINE.md`.
 - Explanatory prose is written by hand (MDX) and kept separate from generated numbers, so rerunning a test never
   overwrites the explanation.
-- Features: Feature 1 (TradingView-style test of a strategy) and Feature 2 (optimization, development interval only)
-  exist. Feature 3 is not built yet; the site must have a place for it that updates once it exists.
+- Features (roadmap renumbered by the owner 2026-11-01): F1 (TradingView-style test), F2 (optimization), F3 (stress
+  test of the F2 search: walk-forward re-selection, PBO, deflated Sharpe; development interval only) exist. F4
+  (Topstep 50K prop challenge) and F5 (the one check on reserved 2024+ data) are not built; the site keeps a
+  pending slot for each that updates once it exists.
 
 ## Capabilities and Constraints
 

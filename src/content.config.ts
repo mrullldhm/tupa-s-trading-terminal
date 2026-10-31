@@ -15,7 +15,7 @@ const strategies = defineCollection({
     pine: z.string().optional(),
     stage: z.enum(["tested", "planned"]),
     verdict: z.string(),
-    features: z.object({ f1: status, f2: status, f3: status }),
+    features: z.object({ f1: status, f2: status, f3: status, f4: status.default("not-started"), f5: status.default("not-started") }),
     reviews: z
       .array(z.object({ id: z.string(), kind: z.enum(["code", "replication", "plan"]), label: z.string(), date: z.coerce.date() }))
       .default([]),

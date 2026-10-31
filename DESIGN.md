@@ -260,10 +260,10 @@ Panel surface, 10px, ring only (no left stripe). Tones: note, honest (Panel 2, s
 Outer 10px padded shell with 20px radius and a faint top-down white gradient, inner screen in Raise with 12px radius. Wraps every product-like thing: terminal, charts.
 
 ### Strategy index terminal (signature)
-Grid of a 200px Panel sidebar (Show filter with counts, Market line) and a main area with a titlebar and one row per strategy: name and summary, F1/F2/F3 chips, verdict, arrow. The titlebar legend ("F1 every setting · F2 narrow search · F3 validation") shows at every width. Rows separated by hairlines, hover to Panel 2, arrow slides 3px. Planned rows are non-links with a Planned badge. Filters toggle `hidden` with `aria-pressed`; below 900px the sidebar becomes a horizontal filter strip (never removed), and a filter with no rows shows "Nothing in this group yet" with a reset.
+Grid of a 200px Panel sidebar (Show filter with counts, Market line) and a main area with a titlebar and one row per strategy: name and summary, F1 to F5 chips (wrapping), verdict, arrow. The titlebar legend ("F1 every setting · F2 narrow search · F3 stress test · F4 prop challenge · F5 final check") shows at every width. A tick means the stage ran, never that it passed. Rows separated by hairlines, hover to Panel 2, arrow slides 3px. Planned rows are non-links with a Planned badge. Filters toggle `hidden` with `aria-pressed`; below 900px the sidebar becomes a horizontal filter strip (never removed), and a filter with no rows shows "Nothing in this group yet" with a reset.
 
 ### Pipeline stack line
-The research path as a vertical line of circular glowing nodes joined by a 1px gradient rule; the unbuilt stage (F3) has a hatched hollow node, a dashed connector and a "Not built yet" tag.
+The research path as a vertical line of circular glowing nodes joined by a 1px gradient rule; each unbuilt stage (F4, F5) has a hatched hollow node, a dashed connector into it and a "Not built yet" tag.
 
 ### Review trail
 Same node-and-line vocabulary at smaller scale: Review or Replication badge, mono id, date, then the label.
@@ -285,6 +285,14 @@ JavaScript only the year table shows.
 
 ### At a glance (strategy page head)
 Compact `table.data` under the verdict: F1 best net profit per session at 0, 1 and 2 ticks, with an amber In-sample badge and a "Best of N settings" badge, plus links to the F1 and F2 sections and to How to read. It exists so the 1-tick result is on the first screen next to the 0-tick one. Display only.
+
+### F3 results (stress the search)
+`F3Results`, one block per candidate: heading plus a pass/fail badge ("Does not go on to F4"), a check table in two
+row groups (the search procedure, the candidate's luck check) with result, need and a Pass/Fail badge per row, an
+SVG year strip (1 tick, mint up / rose down, signed short labels, dashed outline for a cash year, inside a 560px
+minimum scroll well on phones), then two disclosures: the year table (picked setting, 0/1/2 ticks, the frozen
+candidate in a faint in-sample column) and the sensitivities, titled as unable to turn a fail into a pass. Check
+tables keep a 38rem minimum and scroll sideways rather than squeeze labels.
 
 ### Breadcrumbs
 `Crumbs`: `nav` + `ol`, "/" separators drawn in CSS, the current page as the last, unlinked item with `aria-current="page"`.

@@ -16,6 +16,7 @@ const { entry, key } = Astro.props;
 const data = strategyData(key);
 const f1 = data.features.f1;
 const f2 = data.features.f2;
+const f3 = data.features.f3;
 const verdicts = F2_VERDICTS[key] ?? {};
 const toc = [
   { depth: 2, slug: "protocol", text: "Protocol" },
@@ -41,7 +42,11 @@ const toc = [
       {f2 && <li><strong>F2:</strong> development data only (before 1 Jan 2024). Hypotheses, objective and trial budget were
       written down before the first run. Objective: net profit plus open P&amp;L at 1 tick, with at least {MIN_ELIGIBLE_TRADES}
       closed trades. {int(f2.total_trials)} search trials in total, {int(f2.total_engine_evaluations)} engine runs logged.</li>}
-      <li><strong>F3:</strong> not built yet.</li>
+      {f3 ? <li><strong>F3:</strong> development data only (before 1 Jan 2024), with the pass rules written
+      before the runs. {f3.runs.length} candidate{f3.runs.length === 1 ? "" : "s"}, {int(f3.total_engine_runs)} engine runs logged.
+      {f3.runs.map((r) => <span class="f3run">{sessionLabel(r.variant)}: {r.verdict.advance ? "goes on to F4" : `does not go on (search check ${r.verdict.procedure ? "passed" : "failed"}, luck check ${r.verdict.candidate ? "passed" : "failed"})`}.</span>)}</li>
+      : <li><strong>F3:</strong> not run yet.</li>}
+      <li><strong>F4</strong> (prop challenge) and <strong>F5</strong> (final check on reserved data): not built yet.</li>
     </ul>
 
     <h2 id="exposure">Exposure to reserved data</h2>
@@ -50,7 +55,7 @@ const toc = [
       {f2?.lineage.map((n) => <li>{n}</li>)}
       {f2?.manual_looks.map((m) => <li><span class="mono">{date(m.time_utc)}</span> · {m.evaluations} engine runs · {m.note}</li>)}
     </ul>
-    <p>So 2024+ is reserved, but it is not a clean out-of-sample test. F3 has to count this.</p>
+    <p>So 2024+ is reserved, but it is not a clean out-of-sample test. F3 never reads it; F5 will, once, and has to count this.</p>
 
     <h2 id="runs">Every run</h2>
     {f2 && (
@@ -114,6 +119,10 @@ const toc = [
   }
   .wide > :global(h2:first-child) {
     margin-top: 0;
+  }
+  .f3run {
+    display: block;
+    margin-top: 0.25rem;
   }
   .run {
     font-size: 0.8125rem;

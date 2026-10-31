@@ -1,0 +1,30 @@
+---
+title: "F3 stress test: none of the three candidates goes on"
+date: 2026-11-01
+summary: Re-running each F2 search year by year, and asking whether its winner beats the best of 200 lucky tries. Every candidate failed the luck check.
+kind: result
+---
+F2 left three candidates: a minimum-stop filter for Fair Price Reversal in New York and in London, and a small
+RVI filter for Supertrend + Kalman in New York. All three were picked on data before 2024. F3 asks whether they
+survive the way they were found, still without touching 2024+.
+
+Three checks, with the rules for passing written down before any run and reviewed by Codex:
+
+- **Walk-forward.** Each January from 2014 to 2023, re-run the F2 search using only the years before it, trade its
+  pick for that year, then add the years up. The total has to make money at 1 and at 2 ticks of slippage, and at
+  least 7 of the 10 years have to make money at 1 tick.
+- **PBO.** Split the data into two halves 12,870 ways. How often does the best setting of one half land in the
+  bottom half of the other? At most half the time.
+- **Deflated Sharpe ratio.** The best of 200 random tries looks good even if none of them has an edge. The
+  candidate's Sharpe ratio has to clear that luck bar with 95% confidence.
+
+**None of the three cleared the luck bar.** The New York Fair Price Reversal filter made money walk-forward, but
+in only 6 of 10 years, and 2023 carried most of it. London's search lost money. The Supertrend New York candidate
+passed the walk-forward and PBO checks, with exactly the 7 profitable years at 1 tick the rule needs, but its Sharpe ratio sits below what the
+luckiest of 200 tries reaches.
+
+Codex recomputed every yearly pick, the PBO and the deflated Sharpe from the saved results with its own code,
+and re-ran one test year (Supertrend, 2015) with its own engine. Everything it checked matched.
+
+So F4, the Topstep 50K prop challenge, has nothing to test yet. That is the point of putting F3 first: a prop
+layer cannot create an edge, it can only shape risk around one. The next idea starts again at F1.

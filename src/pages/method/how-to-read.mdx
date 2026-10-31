@@ -15,7 +15,13 @@ strategy passed it.
   is shown, then rerun at 1 and 2 ticks of slippage.
 - **F2, narrow search.** A guess is written down first, then searched on data before 2024 only, scored at 1 tick.
   Every run is logged, including the failures.
-- **F3, validate on unseen data.** Walk-forward tests and the reserved 2024+ data. Not built yet.
+- **F3, stress the search.** Still on data before 2024. Re-run the F2 search each January using only the years
+  before it, trade its pick for that year, and add up the years (walk-forward). Then check how often a search
+  winner falls apart on the other half of the data (PBO), and whether the result beats the best of all the tries
+  by luck (deflated Sharpe ratio, DSR). A result goes on only if it passes rules written down before the run.
+- **F4, prop challenge.** Planned. Would the result pass a Topstep 50K evaluation, and is that better than random
+  entries under the same rules?
+- **F5, final check on reserved data.** Planned. One run on 2024+ data, used once.
 
 ## In-sample
 
@@ -76,8 +82,10 @@ Sharpe ratios you see elsewhere.
 
 ## Replicated
 
-A replication badge means Codex rebuilt that exact result with its own engine and every trade matched. It covers
-only the sessions, features and slippage levels named on the badge. It is not a TradingView export.
+A replication badge means Codex rebuilt the result named on the badge with its own code. For F1 and F2 that is
+its own engine, and every trade matched. For F3 it is the yearly picks and scores recomputed from the saved
+results, plus the test years named on the badge re-run with its own engine. A badge covers only what it names.
+It is not a TradingView export.
 
 ## Not financial advice
 

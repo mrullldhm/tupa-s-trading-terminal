@@ -1,6 +1,6 @@
 {
- "export_version": 2,
- "generated_utc": "2026-10-31T15:06:03+00:00",
+ "export_version": 3,
+ "generated_utc": "2026-10-31T16:35:11+00:00",
  "strategy": "supertrend_kalman",
  "features": {
   "f1": {
@@ -27846,7 +27846,260 @@
     "baselines are the feature-1 top combinations, picked from 1,728 grid combinations per variant (6,912 in all) on 2010-06-06 .. 2026-10-27 (includes the reserved interval)"
    ]
   },
-  "f3": null
+  "f3": {
+   "runs": [
+    {
+     "tag": "ny_filters_random_net1_s1_n200",
+     "variant": "ny",
+     "time_utc": "2026-10-31T16:21:37+00:00",
+     "candidate_trial": 33,
+     "universe": 200,
+     "params": {
+      "exit": "flip",
+      "kalman_q": 0.0001,
+      "rr": 3,
+      "st_factor": 2,
+      "swing": 5,
+      "trail_mult": 1,
+      "trigger": "both",
+      "vol": "rvi"
+     },
+     "filters": [
+      [
+       "rvi_side",
+       "min",
+       55.0
+      ]
+     ],
+     "source_search": "ny_filters_random_net1_s1_n200",
+     "fold_years": [
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+     ],
+     "rules": {
+      "min_positive_folds": 7,
+      "pbo_max": 0.5,
+      "dsr_min": 0.95
+     },
+     "engine_runs": 660,
+     "verdict": {
+      "procedure": true,
+      "candidate": false,
+      "advance": false,
+      "procedure_checks": {
+       "wfo_net1": true,
+       "wfo_net2": true,
+       "folds": true,
+       "pbo": true
+      },
+      "candidate_checks": {
+       "dsr": false
+      }
+     },
+     "wfo_total": {
+      "0": 58245.16,
+      "1": 32245.16,
+      "2": 6035.16
+     },
+     "wfo_trades1": 1342,
+     "positive_folds": 7,
+     "folds": [
+      {
+       "year": 2014,
+       "trial": 53,
+       "picked": "atr_ratio <= 1.8, hours_since_open >= 15, risk_atr <= 2.5",
+       "train_obj": 5660.62,
+       "net0": 669.2,
+       "net1": -70.8,
+       "net2": -810.8,
+       "trades1": 40,
+       "cand1": 13568.86
+      },
+      {
+       "year": 2015,
+       "trial": 33,
+       "picked": "rvi_side >= 55",
+       "train_obj": 18027.56,
+       "net0": 10878.66,
+       "net1": 7658.66,
+       "net2": 4438.66,
+       "trades1": 167,
+       "cand1": 7658.66
+      },
+      {
+       "year": 2016,
+       "trial": 33,
+       "picked": "rvi_side >= 55",
+       "train_obj": 25686.22,
+       "net0": 6832.68,
+       "net1": 3612.68,
+       "net2": 392.68,
+       "trades1": 166,
+       "cand1": 3612.68
+      },
+      {
+       "year": 2017,
+       "trial": 33,
+       "picked": "rvi_side >= 55",
+       "train_obj": 29298.9,
+       "net0": 4845.04,
+       "net1": 2025.04,
+       "net2": -1064.96,
+       "trades1": 148,
+       "cand1": 2025.04
+      },
+      {
+       "year": 2018,
+       "trial": 33,
+       "picked": "rvi_side >= 55",
+       "train_obj": 31323.94,
+       "net0": -533.5,
+       "net1": -3933.5,
+       "net2": -7333.5,
+       "trades1": 175,
+       "cand1": -3933.5
+      },
+      {
+       "year": 2019,
+       "trial": 33,
+       "picked": "rvi_side >= 55",
+       "train_obj": 27390.44,
+       "net0": 2246.6,
+       "net1": -1173.4,
+       "net2": -4533.4,
+       "trades1": 170,
+       "cand1": -1173.4
+      },
+      {
+       "year": 2020,
+       "trial": 33,
+       "picked": "rvi_side >= 55",
+       "train_obj": 26217.04,
+       "net0": 4158.46,
+       "net1": 678.46,
+       "net2": -2801.54,
+       "trades1": 177,
+       "cand1": 678.46
+      },
+      {
+       "year": 2021,
+       "trial": 59,
+       "picked": "er <= 0.2, risk_atr <= 4.25, risk_ticks <= 115, rvi_side >= 45",
+       "train_obj": 29580.22,
+       "net0": 11636.44,
+       "net1": 10176.44,
+       "net2": 8716.44,
+       "trades1": 78,
+       "cand1": 7118.76
+      },
+      {
+       "year": 2022,
+       "trial": 59,
+       "picked": "er <= 0.2, risk_atr <= 4.25, risk_ticks <= 115, rvi_side >= 45",
+       "train_obj": 39756.66,
+       "net0": 6991.36,
+       "net1": 6431.36,
+       "net2": 5871.36,
+       "trades1": 32,
+       "cand1": 19602.58
+      },
+      {
+       "year": 2023,
+       "trial": 33,
+       "picked": "rvi_side >= 55",
+       "train_obj": 53616.84,
+       "net0": 10520.22,
+       "net1": 6840.22,
+       "net2": 3160.22,
+       "trades1": 189,
+       "cand1": 6840.22
+      }
+     ],
+     "rolling_total": {
+      "0": 80974.5,
+      "1": 56314.5,
+      "2": 31714.5
+     },
+     "pbo": {
+      "primary": {
+       "pbo": 0.1754,
+       "p_oos_loss": 0.1723,
+       "median_logit": 1.424,
+       "median_is": 39235.41,
+       "median_oos": 15214.61,
+       "splits": 12870,
+       "skipped": 0
+      },
+      "eligible_only": {
+       "pbo": 0.4247,
+       "p_oos_loss": 0.1723,
+       "median_logit": 0.1691,
+       "median_is": 39235.41,
+       "median_oos": 15214.61,
+       "splits": 12870,
+       "skipped": 0
+      },
+      "ticks2": {
+       "pbo": 0.4533,
+       "p_oos_loss": 0.4539,
+       "median_logit": 0.7383,
+       "median_is": 26148.1,
+       "median_oos": 1876.16,
+       "splits": 12870,
+       "skipped": 0
+      },
+      "identical_paths": 77
+     },
+     "dsr": {
+      "sr": 0.0269,
+      "skew": 1.6087,
+      "kurt": 13.2429,
+      "days": 4209,
+      "primary": {
+       "dsr": 0.1797,
+       "sr0": 0.0408,
+       "n": 200
+      },
+      "variant_n": {
+       "dsr": 0.054,
+       "sr0": 0.0512,
+       "n": 2202
+      },
+      "strategy_n": {
+       "dsr": 0.0251,
+       "sr0": 0.0565,
+       "n": 8928
+      },
+      "ticks2": {
+       "dsr": 0.0295,
+       "sr0": 0.0363,
+       "n": 200
+      },
+      "monthly": {
+       "dsr": 0.2473,
+       "sr0": 0.212,
+       "n": 200
+      },
+      "psr0": 0.9629,
+      "boot90": [
+       0.0041,
+       0.0489
+      ]
+     }
+    }
+   ],
+   "total_engine_runs": 660
+  },
+  "f4": null,
+  "f5": null
  },
  "sources": [
   {
@@ -27895,7 +28148,7 @@
   },
   {
    "path": "results/supertrend_kalman/ledger.jsonl",
-   "sha256": "0f232f2ba5418d7c17f093d40327560cb38110c27fc1c65ce1065e12a46f79e9"
+   "sha256": "d9591be639564896a8f989ec5879d158587d175a525740a3ebdb3fc3536129f9"
   },
   {
    "path": "results/supertrend_kalman/london/grid.csv",
@@ -28064,6 +28317,30 @@
   {
    "path": "results/supertrend_kalman/replay/ny_full_tpe_net1_s1_n300/trades_slippage2.csv",
    "sha256": "5b1cf17b730cf78cea1abc4d4baa077f410a1ab520e6cf31975a4e32dbc2a232"
+  },
+  {
+   "path": "results/supertrend_kalman/validate/ny_filters_random_net1_s1_n200/dsr.json",
+   "sha256": "a44b893bd34a4dab81d6cc505915eb87493bcb6444762b7f7a24268c1664f51e"
+  },
+  {
+   "path": "results/supertrend_kalman/validate/ny_filters_random_net1_s1_n200/folds.csv",
+   "sha256": "610a5cb9818ce39620ddc698c86256c7916e6c1771d48cbb63368f3d34b01d5a"
+  },
+  {
+   "path": "results/supertrend_kalman/validate/ny_filters_random_net1_s1_n200/folds_rolling.csv",
+   "sha256": "74e28495120c6d0c2605f1e719b290a63ff73a6adf763e8ef04a1a62a137cb3a"
+  },
+  {
+   "path": "results/supertrend_kalman/validate/ny_filters_random_net1_s1_n200/pbo.json",
+   "sha256": "ebe4198ef16b6205e73428ed4a0102cbba2823f19ef33377e338f45080a95341"
+  },
+  {
+   "path": "results/supertrend_kalman/validate/ny_filters_random_net1_s1_n200/run.json",
+   "sha256": "f060aafe620c591ed46428da2596098b88914196a64f010a8dd4deddaa4e153f"
+  },
+  {
+   "path": "results/supertrend_kalman/validate/ny_filters_random_net1_s1_n200/verdict.json",
+   "sha256": "06fb6e061c803db59739ee0bdcd67603e76a438df3bac2f292bf9afbdab12e90"
   },
   {
    "path": "strategies/configs/supertrend_kalman_all_filters_random_net1_s1_n200.json",

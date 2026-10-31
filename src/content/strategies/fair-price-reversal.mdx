@@ -8,24 +8,29 @@ source:
   url: https://www.luxalgo.com/library/indicator/9-29-et-fair-price-reversal/
 pine: strategies/fair_price_reversal.pine
 stage: tested
-verdict: No edge at 1 tick of slippage. A risk filter shows promise in NY and London, still in-sample.
+verdict: No edge at 1 tick of slippage. The NY and London risk filters failed the F3 stress test, so neither goes further.
 features:
   f1: done
   f2: done
-  f3: pending
+  f3: done
+  f4: not-started
+  f5: not-started
 reviews:
   - { id: R2, kind: code, label: "Code reviewed", date: 2026-10-29 }
   - { id: R3, kind: replication, label: "Replicated: NY F1 result, 0 and 1 tick", date: 2026-10-29 }
   - { id: R5, kind: code, label: "F2 search code reviewed", date: 2026-10-31 }
   - { id: R6, kind: replication, label: "Replicated: NY F2 candidate, 0 and 1 tick", date: 2026-10-31 }
-updated: 2026-10-31
+  - { id: R12, kind: plan, label: "F3 plan, rules and code reviewed", date: 2026-11-01 }
+  - { id: R13, kind: replication, label: "Replicated: every F3 pick, PBO and DSR", date: 2026-11-01 }
+updated: 2026-11-01
 ---
 import AnnotatedChart from "../../components/AnnotatedChart.astro";
 import { story } from "../../lib/illustrative/fair-price-reversal";
 import Callout from "../../components/Callout.astro";
 import F1Results from "../../components/F1Results.astro";
 import F2Runs from "../../components/F2Runs.astro";
-import F3Pending from "../../components/F3Pending.astro";
+import F3Results from "../../components/F3Results.astro";
+import Pending from "../../components/Pending.astro";
 import SessionTable from "../../components/SessionTable.astro";
 
 ## The idea
@@ -93,9 +98,34 @@ smaller than about 30 ticks. Its neighbours also work, so it is not a lucky spik
 the same data it was picked on, and most of London's profit came from one volatile year (2022). A stop size in
 ticks also changes meaning when the oil price changes. **None of this shows a tradable edge yet.**
 
-## Validate on unseen data (F3)
+## Stress the search (F3)
 
-<F3Pending>
-  The two candidates (New York and London risk filter) will be tested walk-forward and on the reserved 2024+
-  data, with the number of tries counted against them. Results will appear here when that work exists.
-</F3Pending>
+F3 takes both risk-filter candidates and asks whether they survive the way they were found. The rules for
+passing were written down before the runs. Codex independently recomputed every yearly pick and the two main
+scores (PBO and DSR) from the saved results.
+
+<F3Results strategy="fair_price_reversal" />
+
+### What this means
+
+Neither candidate goes on. In New York the year-by-year search kept picking the candidate itself, and it made
+money overall, but only 6 of 10 test years were positive and one year (2023) carried most of it. London's
+search switched settings and lost. For both, the result is no better than what the best of 200 tries would show
+by luck. The stop-size effect is real, but here it behaves like a bet on volatile years, not a stable edge.
+
+## Prop challenge (F4)
+
+<Pending>
+  F4 asks whether a result would pass a Topstep 50K evaluation: a $3,000 target before a $2,000 trailing loss
+  limit, flat by 3:10 PM Chicago time, at most 3 CL contracts. It only runs on a result that passes F3, and it
+  will be compared with random entries under the same rules, because a fixed target and floor can be passed by
+  luck. Nothing here has reached it yet.
+</Pending>
+
+## Final check on reserved data (F5)
+
+<Pending>
+  One run of the frozen strategy and prop rules on the 2024+ data, used once and never tuned on. That data is
+  "reserved", not clean: F1 already picked its starting settings with it.
+</Pending>
+

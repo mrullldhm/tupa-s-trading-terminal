@@ -5,11 +5,13 @@ order: 2
 dataKey: supertrend_kalman
 pine: strategies/supertrend_kalman.pine
 stage: tested
-verdict: No edge at 2 ticks in the F1 test. In New York a small RVI filter survives 2 ticks on pre-2024 data, still in-sample.
+verdict: No edge at 2 ticks in the F1 test. The New York RVI candidate passed the year-by-year search check but failed the luck check in F3.
 features:
   f1: done
   f2: done
-  f3: pending
+  f3: done
+  f4: not-started
+  f5: not-started
 reviews:
   - { id: R6, kind: plan, label: "Plan reviewed", date: 2026-10-31 }
   - { id: R7, kind: code, label: "Code reviewed", date: 2026-10-31 }
@@ -17,14 +19,17 @@ reviews:
   - { id: R9, kind: code, label: "F2 search plan and code reviewed", date: 2026-10-31 }
   - { id: R10, kind: replication, label: "Replicated: NY F2 candidate, 0 and 1 tick", date: 2026-10-31 }
   - { id: R11, kind: code, label: "F2 search audited: works the same for any strategy", date: 2026-10-31 }
-updated: 2026-10-31
+  - { id: R12, kind: plan, label: "F3 plan, rules and code reviewed", date: 2026-11-01 }
+  - { id: R13, kind: replication, label: "Replicated: every F3 pick, PBO and DSR; one 2015 test year rerun", date: 2026-11-01 }
+updated: 2026-11-01
 ---
 import AnnotatedChart from "../../components/AnnotatedChart.astro";
 import { story } from "../../lib/illustrative/supertrend-kalman";
 import Callout from "../../components/Callout.astro";
 import F1Results from "../../components/F1Results.astro";
 import F2Runs from "../../components/F2Runs.astro";
-import F3Pending from "../../components/F3Pending.astro";
+import F3Results from "../../components/F3Results.astro";
+import Pending from "../../components/Pending.astro";
 
 ## The idea
 
@@ -95,9 +100,34 @@ New York is the only candidate, and it is a small one. The New York baseline alr
 2024. The filter only raises its own RVI threshold from 50 to 55. Codex rebuilt it independently and every trade
 matched. **None of this shows a tradable edge yet.**
 
-## Validate on unseen data (F3)
+## Stress the search (F3)
 
-<F3Pending>
-  The New York candidate will be tested walk-forward and on the reserved 2024+ data, with every try counted
-  against it. Results will appear here when that work exists.
-</F3Pending>
+F3 takes the New York candidate and asks whether it survives the way it was found. The rules for passing were
+written down before the run. Codex independently recomputed every yearly pick and the two main scores (PBO and
+DSR) from the saved results, and re-ran the 2015 test year with its own engine: same profit, same trades.
+
+<F3Results strategy="supertrend_kalman" />
+
+### What this means
+
+This one came closest. Run blind each January, the search picked the candidate in 7 of the 10 test years and made
+money at 1 and 2 ticks, with exactly the 7 profitable years (at 1 tick) the rule needs. But its Sharpe ratio is below what the luckiest of 200 tries would
+reach, so it fails the second check, and both must pass. The New York baseline carries the result; the RVI filter
+adds little. It does not go on to F4.
+
+## Prop challenge (F4)
+
+<Pending>
+  F4 asks whether a result would pass a Topstep 50K evaluation: a $3,000 target before a $2,000 trailing loss
+  limit, flat by 3:10 PM Chicago time, at most 3 CL contracts. It only runs on a result that passes F3, and it
+  will be compared with random entries under the same rules, because a fixed target and floor can be passed by
+  luck. Nothing here has reached it yet.
+</Pending>
+
+## Final check on reserved data (F5)
+
+<Pending>
+  One run of the frozen strategy and prop rules on the 2024+ data, used once and never tuned on. That data is
+  "reserved", not clean: F1 already picked its starting settings with it.
+</Pending>
+
