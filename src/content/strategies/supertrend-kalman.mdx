@@ -19,6 +19,8 @@ reviews:
   - { id: R11, kind: code, label: "F2 search audited: works the same for any strategy", date: 2026-10-31 }
 updated: 2026-10-31
 ---
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/supertrend-kalman";
 import Callout from "../../components/Callout.astro";
 import F1Results from "../../components/F1Results.astro";
 import F2Runs from "../../components/F2Runs.astro";
@@ -32,7 +34,9 @@ direction of that slope. A volatility filter avoids trades whose stop would be t
 swing high or low, and the target is 2 or 3 times the risk.
 
 I left every design choice open, so each one became a setting to test: which signal starts a trade, which
-volatility filter, and how the trade exits.
+volatility filter, and how the trade exits. Click through the steps below to see one trade from start to finish.
+
+<AnnotatedChart story={story} />
 
 ## The rules
 

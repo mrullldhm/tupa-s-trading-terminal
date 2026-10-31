@@ -21,6 +21,7 @@ reviews:
 updated: 2026-10-31
 ---
 import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/fair-price-reversal";
 import Callout from "../../components/Callout.astro";
 import F1Results from "../../components/F1Results.astro";
 import F2Runs from "../../components/F2Runs.astro";
@@ -36,7 +37,7 @@ move runs out of steam, price often snaps back toward it.
 The original was made for Nasdaq futures. Here the same idea runs on **CL1!**, front-month crude oil, at each of the
 three CL session opens instead of 9:30 ET. Click through the steps below to see one trade from start to finish.
 
-<AnnotatedChart />
+<AnnotatedChart story={story} />
 
 ## The rules
 

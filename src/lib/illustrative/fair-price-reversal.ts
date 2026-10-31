@@ -2,15 +2,7 @@
 // The story is checked below at build time, so a tweak that breaks the rules fails the build instead of teaching
 // a wrong picture.
 
-export type Candle = { time: number; open: number; high: number; low: number; close: number };
-
-export type Step = {
-  title: string;
-  text: string;
-  until: number; // candles shown: indexes 0 .. until - 1
-  markers: { index: number; position: "aboveBar" | "belowBar"; shape: "arrowUp" | "arrowDown" | "circle"; text: string }[];
-  lines: { price: number; label: string; tone: "ink" | "dim" | "long" | "short" }[];
-};
+import type { Candle, Step, Story } from "./types.ts";
 
 const TICK = 0.01;
 const r = (p: number) => Number((Math.round(p / TICK) * TICK).toFixed(2));
@@ -203,3 +195,11 @@ function check() {
   if (c[IDX.exit].high < LEVELS.target) fail("target not reached");
 }
 check();
+
+export const story: Story = {
+  label: "Step-by-step example of one Fair Price Reversal trade",
+  symbol: "CL1! · 1m · example",
+  summary: "Candlestick chart of an illustrative long setup: anchor candle, move down, swing high, signal, entry, target.",
+  candles,
+  steps,
+};

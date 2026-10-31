@@ -13,7 +13,7 @@ import {
   type ISeriesApi,
   type UTCTimestamp,
 } from "lightweight-charts";
-import type { Candle, Step } from "./illustrative";
+import type { Candle, Overlay, Step, Tone } from "./illustrative/types";
 
 function required<T extends Element>(root: ParentNode, selector: string): T {
   const el = root.querySelector<T>(selector);
@@ -76,7 +76,7 @@ function base(el: HTMLElement, opts: { time: boolean; minutes?: boolean }): ICha
   });
 }
 
-const TONE: Record<Step["lines"][number]["tone"], string> = {
+const TONE: Record<Tone, string> = {
   ink: "rgba(249,249,249,0.85)",
   dim: "rgba(249,249,249,0.35)",
   long: "#8fd4c1",
@@ -86,8 +86,22 @@ const TONE: Record<Step["lines"][number]["tone"], string> = {
 export function annotated(root: HTMLElement) {
   const candles = jsonData<Candle[]>(root, "candles");
   const steps = jsonData<Step[]>(root, "steps");
+  const overlays = jsonData<Overlay[]>(root, "overlays");
   const el = required<HTMLElement>(root, "[data-canvas]");
   const chart = base(el, { time: true, minutes: true });
+  // Indicator lines are added first so the candles draw on top of them.
+  const lineSeries = overlays.map((o) =>
+    chart.addSeries(LineSeries, {
+      color: TONE[o.tone],
+      lineWidth: o.tone === "long" || o.tone === "short" ? 2 : 1,
+      lineStyle: LineStyle.Solid,
+      lastValueVisible: false,
+      priceLineVisible: false,
+      crosshairMarkerVisible: false,
+      autoscaleInfoProvider: () => null, // the candles alone set the price range, so it never jumps between steps
+      priceFormat: { type: "price", precision: 2, minMove: 0.01 },
+    }),
+  );
   const series = chart.addSeries(CandlestickSeries, {
     upColor: "#0c0c0d",
     downColor: "#8b8b91",
@@ -120,6 +134,16 @@ export function annotated(root: HTMLElement) {
           : { ...c, time: c.time as UTCTimestamp, color: "rgba(0,0,0,0)", borderColor: "rgba(255,255,255,0.025)", wickColor: "rgba(0,0,0,0)" },
       ),
     );
+    overlays.forEach((o, k) => {
+      const on = s.overlays?.includes(o.key) ?? false;
+      lineSeries[k].setData(
+        candles.map((c, j) => {
+          const v = o.values[j];
+          const time = c.time as UTCTimestamp;
+          return on && j < s.until && v !== null ? { time, value: v } : { time };
+        }),
+      );
+    });
     markers.setMarkers(
       s.markers.map((mk) => ({
         time: candles[mk.index].time as UTCTimestamp,
