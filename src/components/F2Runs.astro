@@ -1,0 +1,192 @@
+---
+import Badge from "./Badge.astro";
+import Callout from "./Callout.astro";
+import CurveChart from "./CurveChart.astro";
+import ScenarioTable from "./ScenarioTable.astro";
+import { strategyData, sessionLabel, SESSION_ORDER, MIN_ELIGIBLE_TRADES } from "../lib/data";
+import { F2_VERDICTS } from "../data/verdicts";
+import { usd, int, tone } from "../lib/format";
+import { plainSettings, samplerLabel } from "../lib/labels";
+
+interface Props { strategy: string }
+const { strategy } = Astro.props;
+const data = strategyData(strategy);
+const f2 = data.features.f2;
+if (!f2) throw new Error(`F2Runs: no feature-2 data exported for "${strategy}"`);
+const verdicts = F2_VERDICTS[strategy];
+const missing = f2.runs.filter((r) => !verdicts?.[r.run_id]).map((r) => r.run_id);
+if (missing.length) throw new Error(`F2Runs: no verdict written for ${missing.join(", ")} in src/data/verdicts.ts`);
+const runs = [...f2.runs].sort(
+  (a, b) => SESSION_ORDER.indexOf(a.variant) - SESSION_ORDER.indexOf(b.variant) || a.space.localeCompare(b.space),
+);
+const candidates = runs.filter((r) => verdicts[r.run_id].verdict === "candidate");
+const spaceLabel = { filters: "Filters only", full: "Settings + filters" } as const;
+const trialSizes = [...new Set(runs.map((r) => r.trials))].sort((a, b) => a - b).join(" or ");
+const trialsBySession = new Map<string, number>();
+runs.forEach((r) => trialsBySession.set(r.variant, (trialsBySession.get(r.variant) ?? 0) + r.trials));
+const perSessionValues = [...new Set(trialsBySession.values())];
+const perSessionText = perSessionValues.length === 1 ? `${int(perSessionValues[0])} per session` : "split unevenly across sessions";
+const f1 = data.features.f1;
+const f1GridText = f1.grid_size.map((n) => int(n)).join(" / ");
+function baselineBefore(variant: string, cutoff: string | null) {
+  const base = f1.variants[variant];
+  if (!base) throw new Error(`F2Runs: no Feature 1 baseline for session "${variant}"`);
+  const curve = base.curve_month_end_closed_pnl["1"];
+  return cutoff ? curve.filter(([m]) => m < cutoff.slice(0, 7)) : curve;
+}
+---
+<Callout tone="warn" title="Read this before the numbers">
+  <p>Evaluated on data before 2024 only. But the starting settings were picked in Feature 1 using all data up to
+  2026, and an early filter check also saw 2024+ data. So 2024+ is reserved, but it is <strong>not</strong> a clean
+  out-of-sample test.</p>
+  <p>Each result is the best of its run ({trialSizes} tries). Across all sessions the search tried{" "}
+  {int(f2.total_trials)} settings ({perSessionText}), on top of the {f1GridText}-setting Feature 1 grids. That
+  took{" "}{int(f2.total_engine_evaluations)} engine runs in total (each try runs at 0, 1 and 2 ticks, plus checks).</p>
+</Callout>
+
+<div class="table-scroll runs">
+  <table class="data">
+    <caption class="sr-only">All {runs.length} Feature 2 search runs with their verdicts</caption>
+    <thead>
+      <tr>
+        <th scope="col">Run</th>
+        <th scope="col">Best setting found</th>
+        <th scope="col" class="num">Net at 1 tick</th>
+        <th scope="col" class="num">Trades</th>
+        <th scope="col">Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      {runs.map((r) => {
+        const v = verdicts[r.run_id];
+        const isCandidate = v.verdict === "candidate";
+        const s1 = r.scenarios["1"];
+        return (
+          <tr>
+            <th scope="row">
+              {sessionLabel(r.variant)} · {spaceLabel[r.space as keyof typeof spaceLabel] ?? r.space}
+              <span class="sub">{samplerLabel(r.sampler)} · {r.trials} tries</span>
+            </th>
+            <td class="setting"><ul>{plainSettings(r.winner).map((x) => <li>{x}</li>)}</ul></td>
+            <td class:list={["num", tone(s1.net_profit)]} data-label="Net at 1 tick:">{usd(s1.net_profit)}</td>
+            <td class="num" data-label="Trades:">{int(s1.total_closed_trades)}</td>
+            <td class="verdict">
+              {(
+                <>
+                  <Badge tone={isCandidate ? "done" : "rejected"} icon={isCandidate ? "check" : "x"}>
+                    {isCandidate ? "Candidate" : "Rejected"}
+                  </Badge>
+                  <p>{v.reason}</p>
+                </>
+              )}
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>
+<p class="rule muted">A setting only counts if it has at least {MIN_ELIGIBLE_TRADES} closed trades at 1 tick. The search objective is
+net profit at 1 tick <em>plus</em> any open trade at the end; the tables below show both.</p>
+
+{candidates.map((r) => (
+  <section class="candidate">
+    <h3>{sessionLabel(r.variant)} candidate: {plainSettings(r.winner).join(", ")}</h3>
+    <ScenarioTable scenarios={r.scenarios} objectiveNote caption={`Feature 2 candidate, ${sessionLabel(r.variant)}`} />
+    <CurveChart
+      title={`${sessionLabel(r.variant)} candidate vs. Feature 1 baseline, 1 tick`}
+      caption={`Month-end cumulative closed-trade P&L at 1 tick. The candidate line covers the development interval only (before 2024). The baseline line is the Feature 1 top setting over its full test period, cut to the same months for comparison.`}
+      series={[
+        { label: "Candidate, 1 tick", tone: "long", points: r.curve_month_end_closed_pnl_1_tick },
+        {
+          label: "Feature 1 baseline, 1 tick",
+          tone: "faint",
+          points: baselineBefore(r.variant, r.interval[1]),
+        },
+      ]}
+    />
+  </section>
+))}
+<style>
+  .runs .sub {
+    display: block;
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: var(--ink-3);
+    margin-top: 0.2rem;
+  }
+  .runs :global(th[scope="row"]) {
+    min-width: 170px;
+  }
+  .setting ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.875rem;
+    color: var(--ink);
+    min-width: 180px;
+    max-width: 260px;
+  }
+  .setting li + li {
+    margin-top: 0.2rem;
+  }
+  .verdict {
+    min-width: 240px;
+  }
+  /* Narrow screens: each run becomes a stacked block instead of a 5-column table. */
+  @media (max-width: 760px) {
+    .runs :global(thead) {
+      display: none;
+    }
+    .runs :global(table),
+    .runs :global(tbody),
+    .runs :global(tr),
+    .runs :global(th),
+    .runs :global(td) {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      text-align: left;
+    }
+    .runs :global(tr) {
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .runs :global(td),
+    .runs :global(th) {
+      border: 0;
+      padding: 0.3rem 0.95rem;
+    }
+    .runs :global(table.data td.num) {
+      text-align: left;
+    }
+    .runs :global(td.num)::before {
+      content: attr(data-label) " ";
+      font-family: var(--font);
+      color: var(--ink-3);
+    }
+    .setting ul {
+      max-width: none;
+    }
+  }
+  .verdict p {
+    margin-top: 0.45rem;
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+  }
+  .rule {
+    font-size: 0.875rem;
+    max-width: var(--measure);
+  }
+  .candidate {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .candidate h3 {
+    font-size: var(--step-1);
+  }
+  .candidate h3 code {
+    font-size: 0.85em;
+  }
+</style>

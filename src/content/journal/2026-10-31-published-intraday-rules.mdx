@@ -1,0 +1,28 @@
+---
+title: "Published intraday crude oil rules: nothing convincing after costs"
+date: 2026-10-31
+summary: A sweep of research papers on intraday crude oil trading, screened on CL futures with real costs. No rule passed with confidence; two weak leads remain.
+kind: dead-end
+---
+Before inventing more strategies, Codex and I went through published research for intraday rules on crude oil.
+Then we ran a quick screen of every explicit rule on CL 1-minute data from 2010 to 2026, with $4.02 commission and
+1 and 2 tick slippage. This was a rough screen, not a full TradingView-style test.
+
+What we found:
+- **Intraday momentum** papers mostly test the USO oil ETF, with no costs. On CL futures the same rules were flat
+  or negative.
+- **The last-half-hour rule** from a well-known futures paper made +$13,615 on CL before slippage, but lost money
+  from 2018 on, and was −$63,725 at 1 tick. The paper itself reports CL alone as not significant.
+- **Opening range breakout** on 5-minute ranges looked best before slippage. It was still slightly positive at
+  1 tick (+$4,754) but lost $79,506 at 2 ticks, and it only worked from 2018 on. A 2026 pre-registered study
+  (225 cells, 25 of them on CL) reached a similar conclusion.
+- **Trading in the direction of price jumps**: the best of 27 settings made money at 0 ticks over 33,000 trades,
+  about $12 per trade. At 1 tick it lost more than $270,000.
+
+No rule was profitable after costs with real statistical confidence (a t-statistic above 2). Two weak leads are
+left: the 5-minute opening range breakout, and a variant of an oil-inventory-day rule that made +$12,221 at 1 tick
+but with a t-statistic of only 1.04. Both are in-sample screens, not results.
+
+The lesson is the same as Fair Price Reversal: many intraday edges on CL are about the size of one tick of
+slippage or smaller.
+Any new idea now gets a 1-tick check first.

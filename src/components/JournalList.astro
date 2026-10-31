@@ -1,0 +1,78 @@
+---
+import { getCollection } from "astro:content";
+import { date } from "../lib/format";
+interface Props { limit?: number }
+const { limit } = Astro.props;
+const entries = (await getCollection("journal")).sort((a, b) => b.data.date.getTime() - a.data.date.getTime() || b.id.localeCompare(a.id));
+const shown = limit ? entries.slice(0, limit) : entries;
+const kind = { milestone: "Milestone", result: "Result", "dead-end": "Dead end", review: "Review" } as const;
+---
+<ol class="jl">
+  {shown.map((e) => (
+    <li>
+      <a href={`/journal/${e.id}/`}>
+        <time class="mono" datetime={e.data.date.toISOString()}>{date(e.data.date)}</time>
+        <span class:list={["kind", e.data.kind]}>{kind[e.data.kind]}</span>
+        <span class="t">{e.data.title}</span>
+        <span class="s">{e.data.summary}</span>
+      </a>
+    </li>
+  ))}
+</ol>
+<style>
+  .jl {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+  li {
+    border-bottom: 1px solid var(--line);
+  }
+  a {
+    display: grid;
+    grid-template-columns: 120px 96px minmax(0, 1fr);
+    gap: 0.25rem 1.25rem;
+    padding: 1.15rem 0.25rem;
+    text-decoration: none;
+    transition: background-color 0.2s;
+  }
+  a:hover {
+    background: var(--bg-raise);
+  }
+  a:hover .t {
+    text-decoration: underline;
+    text-decoration-color: var(--line-3);
+  }
+  time {
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+    padding-top: 0.15rem;
+  }
+  .kind {
+    font-size: 0.75rem;
+    color: var(--ink-2);
+    padding-top: 0.2rem;
+  }
+  .kind.dead-end {
+    color: var(--short);
+  }
+  .t {
+    font-weight: 500;
+    font-size: 1.0625rem;
+  }
+  .s {
+    grid-column: 3;
+    font-size: 0.9rem;
+    color: var(--ink-2);
+  }
+  @media (max-width: 720px) {
+    a {
+      grid-template-columns: auto 1fr;
+    }
+    .t,
+    .s {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

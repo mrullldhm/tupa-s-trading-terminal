@@ -1,0 +1,23 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+---
+<Base title="Page not found" description="This page does not exist.">
+  <section class="wrap nf">
+    <p class="mono code">404</p>
+    <h1>This page does not exist.</h1>
+    <p class="muted">The link may be old, or the strategy may have moved.</p>
+    <a class="btn btn-quiet" href="/strategies/">Go to strategies <Icon name="arrow-right" /></a>
+  </section>
+</Base>
+<style>
+  .nf {
+    display: grid;
+    justify-items: start;
+    gap: 1rem;
+    padding: 6rem 0;
+  }
+  .code {
+    color: var(--ink-3);
+  }
+</style>

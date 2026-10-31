@@ -1,0 +1,100 @@
+---
+title: Fair Price Reversal
+summary: LuxAlgo's 9:29 ET idea, moved to the three CL session opens.
+order: 1
+dataKey: fair_price_reversal
+source:
+  label: LuxAlgo, 9:29 ET Fair Price Reversal (Pine v6, MPL-2.0)
+  url: https://www.luxalgo.com/library/indicator/9-29-et-fair-price-reversal/
+pine: strategies/fair_price_reversal.pine
+stage: tested
+verdict: No edge at 1 tick of slippage. A risk filter shows promise in NY and London, still in-sample.
+features:
+  f1: done
+  f2: done
+  f3: pending
+reviews:
+  - { id: R2, kind: code, label: "Code reviewed", date: 2026-10-29 }
+  - { id: R3, kind: replication, label: "Replicated: NY Feature 1, 0 and 1 tick", date: 2026-10-29 }
+  - { id: R5, kind: code, label: "Feature 2 code reviewed", date: 2026-10-31 }
+  - { id: R6, kind: replication, label: "Replicated: NY Feature 2 candidate, 0 and 1 tick", date: 2026-10-31 }
+updated: 2026-10-31
+---
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import Callout from "../../components/Callout.astro";
+import F1Results from "../../components/F1Results.astro";
+import F2Runs from "../../components/F2Runs.astro";
+import F3Pending from "../../components/F3Pending.astro";
+import SessionTable from "../../components/SessionTable.astro";
+
+## The idea
+
+The original indicator by LuxAlgo watches one candle: the last 1-minute candle before the US stock market opens at
+9:30 ET. Its body is treated as a **fair price**. When the open pushes price far away from that level and then the
+move runs out of steam, price often snaps back toward it.
+
+The original was made for Nasdaq futures. Here the same idea runs on **CL1!**, front-month crude oil, at each of the
+three CL session opens instead of 9:30 ET. Click through the steps below to see one trade from start to finish.
+
+<AnnotatedChart />
+
+## The rules
+
+The signal is the indicator's own logic, unchanged. The trade rules are mine, because the indicator only draws
+signals and never trades.
+
+- **Fair price.** The body (open to close) of the candle just before the session opens.
+- **Setup window.** Starts at the session open. Price must move beyond the body by at least a set multiple of
+  ATR(14). ATR is a measure of normal candle size.
+- **Long signal.** After a move down, a lower swing high forms. A candle then closes above that swing high while
+  still below the body. Shorts are the mirror image. At most one long and one short per session per day.
+- **Entry.** A market order at the next candle's open, only when no trade is open.
+- **Stop.** The most extreme price of the move away, fixed when the signal fires.
+- **Target.** One of four choices, tested as a setting: the near body edge, the far body edge, 1R or 2R. R is
+  the distance from the signal close to the stop.
+- **Session end.** Any open trade is closed at the flat time: the close order is sent on the candle before, so it
+  fills at the flat minute's open (or the next open if that candle is missing).
+
+<SessionTable />
+
+Every test uses the same fixed properties: $50,000 starting capital, 1 contract, $2.01 commission per order
+($4.02 for a round trip). Results are shown at 0 ticks of slippage and again at 1 and 2 ticks. One tick on CL is
+$10 per contract. [How the tester works](/method/) explains every fill rule.
+
+## Feature 1: test every setting
+
+Feature 1 runs every combination of four settings (192 in total) for each session over 16 years of 1-minute data,
+then reports the one with the highest net profit at 0 ticks. Below is that winner, rerun at 1 and 2 ticks.
+
+<Callout tone="honest" title="The honest result">
+  <p>The best of 192 settings made money at 0 ticks in every session. Add just 1 tick of slippage and every session
+  loses money. The edge is a few dollars per trade, smaller than the cost of one tick on the entry and one on the
+  exit.</p>
+</Callout>
+
+<F1Results strategy="fair_price_reversal" paramLabels={{ window: "window (min)", atr_mult: "ATR multiple", swing: "swing bars", target: "target" }} />
+
+## Feature 2: search for a better filter
+
+Feature 1 showed the problem is costs. So Feature 2 asked a narrow question, written down **before** the search:
+do trades with a small stop lose the most once slippage is added? One tick on entry and one on exit is $20, which
+eats a large share of a small stop but a small share of a big one.
+
+The search only used data before 2024. It optimized net profit **at 1 tick**, so it could not reward edges smaller
+than slippage. Every run is listed below, including the ones that failed.
+
+<F2Runs strategy="fair_price_reversal" />
+
+### What this means
+
+The filter that won in New York and London is the one the hypothesis predicted: skip trades whose stop is
+smaller than about 30 ticks. Its neighbours also work, so it is not a lucky spike. But it has only been tested on
+the same data it was picked on, and most of London's profit came from one volatile year (2022). A stop size in
+ticks also changes meaning when the oil price changes. **None of this shows a tradable edge yet.**
+
+## Feature 3: validation
+
+<F3Pending>
+  The two candidates (New York and London risk filter) will be tested walk-forward and on the reserved 2024+
+  data, with the number of tries counted against them. Results will appear here when that work exists.
+</F3Pending>

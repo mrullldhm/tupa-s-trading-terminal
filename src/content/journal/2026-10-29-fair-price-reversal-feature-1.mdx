@@ -1,0 +1,20 @@
+---
+title: "Fair Price Reversal: profitable until one tick of slippage"
+date: 2026-10-29
+summary: The best of 192 settings made money in every session at 0 ticks, and lost money in every session at 1 tick.
+kind: result
+strategy: fair-price-reversal
+---
+The first strategy through the tester is LuxAlgo's 9:29 ET Fair Price Reversal, moved to the three CL session
+opens. I tested 192 settings per session over 16 years of 1-minute data.
+
+At 0 ticks of slippage, the best setting made money everywhere: about +$42,500 in New York, +$34,600 in London and
++$1,200 in Asia. That looks fine until you remember those are the best of 192 tries on the same data.
+
+Then one tick of slippage: New York −$20,100, London −$33,300, Asia −$5,700. The strategy makes only a few dollars
+per trade, and one tick on entry plus one on exit costs $20.
+
+Codex then wrote its own engine, without using any of my code, and rebuilt the New York result. Every trade
+matched to the cent: 3,710 trades at 0 ticks and 3,704 at 1 tick.
+
+Verdict: no tradable edge as tested. [Full results](/strategies/fair-price-reversal/).

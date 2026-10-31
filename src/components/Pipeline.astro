@@ -1,0 +1,84 @@
+---
+// The research path drawn as a stack (Graphite's stacked-PR line): one node per stage, the unbuilt stage dashed.
+const stages = [
+  { name: "Write it twice", text: "Each strategy is written in Python for the tester and in Pine for TradingView, so any trade can be checked on a real chart.", state: "done" },
+  { name: "Feature 1: test every setting", text: "Run every combination of settings over 16 years of 1-minute data. Show the best one at 0, 1 and 2 ticks of slippage.", state: "done" },
+  { name: "Feature 2: a narrow search", text: "Write the guess down first. Search only pre-2024 data, score at 1 tick, and log every try.", state: "done" },
+  { name: "Independent review", text: "Codex reviews the code, then rebuilds headline results with its own engine. A result only counts when the trades match.", state: "done" },
+  { name: "Feature 3: validation", text: "Walk-forward tests and the reserved 2024+ data, with the number of tries counted against the result.", state: "pending" },
+];
+---
+<ol class="stack">
+  {stages.map((s) => (
+    <li class={s.state}>
+      <span class="node" aria-hidden="true"></span>
+      <div>
+        <h3>{s.name}{s.state === "pending" && <span class="tag">Not built yet</span>}</h3>
+        <p>{s.text}</p>
+      </div>
+    </li>
+  ))}
+</ol>
+<style>
+  .stack {
+    position: relative;
+    display: grid;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+  li:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 8.5px;
+    top: 22px;
+    height: calc(100% + 2rem - 18px);
+    width: 1px;
+    background: linear-gradient(var(--line-3), rgb(255 255 255 / 0.4));
+  }
+  li:nth-last-child(2)::before {
+    background: repeating-linear-gradient(var(--line-3) 0 4px, transparent 4px 9px);
+  }
+  .node {
+    margin-top: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: 0 0 0 2px var(--ink) inset, 0 0 14px rgb(255 255 255 / 0.45);
+  }
+  .pending .node {
+    box-shadow: 0 0 0 1.5px var(--line-3) inset;
+    background: repeating-linear-gradient(135deg, transparent 0 3px, rgb(255 255 255 / 0.12) 3px 4px);
+  }
+  h3 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: var(--step-1);
+  }
+  .pending h3 {
+    color: var(--ink-2);
+  }
+  .tag {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    color: var(--ink-3);
+    box-shadow: 0 0 0 1px var(--line-2) inset;
+  }
+  p {
+    margin-top: 0.35rem;
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+</style>

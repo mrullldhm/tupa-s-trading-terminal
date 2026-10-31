@@ -1,0 +1,63 @@
+---
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props {
+  title?: string;
+  description: string;
+}
+const { title, description } = Astro.props;
+const full = title ? `${title} · Tupa's Trading Terminal` : "Tupa's Trading Terminal: CL1! strategy research journal";
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{full}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#070707" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={full} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="Tupa's Trading Terminal" />
+    <meta name="twitter:card" content="summary" />
+  </head>
+  <body>
+    <Fragment set:html={`<!--
+THESIS: A CL1! research journal whose first job is "jump to a strategy". Refuses the blog index and the signal-seller hero.
+OWN-WORLD: graphite.com grammar. Near-black #070707, off-white ink with alpha-stepped secondary text, 1px low-alpha rules, framed panels with an inner bezel, glowing white line art, light primary button with a faint iridescent rim. Geist + Geist Mono for data. Long/short desaturated, always with sign.
+STORY: Traders see what is tested, open a strategy, learn the idea from an illustrative chart, read rules and costs, then honest results with labels (in-sample, best of N, slippage).
+FIRST VIEWPORT: Headline + plain sub left, two actions; glowing illustrative candle sculpture right; the tilted strategy terminal rising from the fold, straightening on scroll.
+FORM: Tilted Terminal, grounded list position 7, seed key d14c2125.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->`} />
+    <a class="skip" href="#main">Skip to content</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <style>
+      .skip {
+        position: absolute;
+        left: 1rem;
+        top: -3rem;
+        z-index: 100;
+        padding: 0.6rem 0.9rem;
+        background: var(--ink);
+        color: var(--bg);
+        border-radius: 8px;
+        text-decoration: none;
+      }
+      .skip:focus {
+        top: 1rem;
+      }
+    </style>
+  </body>
+</html>

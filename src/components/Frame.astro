@@ -1,0 +1,25 @@
+---
+// Graphite's product frame: an outer bezel around an inner screen.
+interface Props { class?: string; label?: string }
+const { class: cls, label } = Astro.props;
+---
+<div class:list={["frame", cls]} role={label ? "group" : undefined} aria-label={label}>
+  <div class="screen"><slot /></div>
+</div>
+<style>
+  .frame {
+    padding: 10px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.015));
+    box-shadow:
+      0 0 0 1px var(--line-2) inset,
+      0 30px 80px -30px rgb(0 0 0 / 0.9),
+      0 0 60px -30px rgb(255 255 255 / 0.12);
+  }
+  .screen {
+    border-radius: 12px;
+    background: var(--bg-raise);
+    box-shadow: 0 0 0 1px var(--line) inset;
+    overflow: hidden;
+  }
+</style>

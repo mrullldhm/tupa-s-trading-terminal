@@ -1,0 +1,112 @@
+---
+import Base from "./Base.astro";
+interface Props {
+  title: string;
+  description: string;
+  toc?: { depth: number; slug: string; text: string }[];
+}
+const { title, description, toc = [] } = Astro.props;
+const items = toc.filter((h) => h.depth === 2);
+---
+<Base title={title} description={description}>
+  <div class="wrap doc">
+    <header class="doc-head"><slot name="head" /></header>
+    {items.length > 0 && (
+      <nav class="toc" aria-label="On this page">
+        <p class="toc-h">On this page</p>
+        <ol>
+          {items.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+        </ol>
+      </nav>
+    )}
+    <article class="body">
+      <slot />
+    </article>
+  </div>
+</Base>
+<script>
+  // Highlight the section in view.
+  const links = new Map([...document.querySelectorAll<HTMLAnchorElement>(".toc a")].map((a) => [a.hash.slice(1), a]));
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        links.forEach((a) => a.removeAttribute("aria-current"));
+        links.get(e.target.id)?.setAttribute("aria-current", "true");
+      }
+    },
+    { rootMargin: "-20% 0px -70% 0px" },
+  );
+  links.forEach((_, id) => {
+    const el = document.getElementById(id);
+    if (el) io.observe(el);
+  });
+</script>
+<style>
+  .doc {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    grid-template-areas:
+      "head head"
+      "toc body";
+    gap: 0 4rem;
+    padding-top: 3.5rem;
+  }
+  .doc-head {
+    grid-area: head;
+    padding-bottom: 3rem;
+    margin-bottom: 3rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .toc {
+    grid-area: toc;
+    position: sticky;
+    top: 100px;
+    align-self: start;
+    font-size: 0.875rem;
+  }
+  .toc-h {
+    color: var(--ink-3);
+    font-size: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-left: 1px solid var(--line);
+  }
+  .toc a {
+    display: block;
+    padding: 0.35rem 0 0.35rem 0.9rem;
+    margin-left: -1px;
+    border-left: 1px solid transparent;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .toc a:hover {
+    color: var(--ink);
+  }
+  .toc a[aria-current="true"] {
+    color: var(--ink);
+    border-left-color: var(--ink);
+  }
+  .body {
+    grid-area: body;
+    min-width: 0;
+  }
+  .doc:not(:has(.toc)) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "body";
+  }
+  @media (max-width: 980px) {
+    .doc {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "head" "body";
+    }
+    .toc {
+      display: none;
+    }
+  }
+</style>

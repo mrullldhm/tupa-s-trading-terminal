@@ -1,0 +1,83 @@
+---
+import Frame from "./Frame.astro";
+type Tone = "ink" | "dim" | "faint" | "long";
+interface Props {
+  series: { label: string; tone: Tone; points: [string, number][] }[];
+  title: string;
+  caption: string;
+}
+const { series, title, caption } = Astro.props;
+---
+<figure class="curve">
+  <Frame>
+    <div class="head">
+      <p class="title">{title}</p>
+      <ul class="legend">
+        {series.map((s) => <li class={s.tone}><span class="sw"></span>{s.label}</li>)}
+      </ul>
+    </div>
+    <div data-chart="curves" data-series={JSON.stringify(series)}>
+      <div class="canvas" data-canvas role="img" aria-label={`${title}. ${caption}`}></div>
+    </div>
+  </Frame>
+  <figcaption>{caption}</figcaption>
+</figure>
+<script>
+  import "../lib/charts.client";
+</script>
+<style>
+  .curve {
+    margin: 0;
+  }
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .title {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+  }
+  .legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .sw {
+    width: 18px;
+    height: 0;
+    border-top: 2px solid #f9f9f9;
+  }
+  .dim .sw {
+    border-top: 2px solid rgb(249 249 249 / 0.5);
+  }
+  .faint .sw {
+    border-top: 2px dashed rgb(249 249 249 / 0.32);
+  }
+  .long .sw {
+    border-top-color: var(--long);
+  }
+  .canvas {
+    height: 320px;
+    padding: 0.5rem 0;
+  }
+  figcaption {
+    margin-top: 0.7rem;
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+    max-width: var(--measure);
+  }
+</style>

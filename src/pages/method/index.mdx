@@ -1,0 +1,66 @@
+---
+layout: ../../layouts/MdxPage.astro
+title: How the testing works
+description: How the CL1! tester copies TradingView's Strategy Tester, the fixed costs, slippage, sessions and data limits, in plain English.
+lede: The tester is like a flight simulator for a TradingView strategy. The price data is the weather recording, the strategy is the pilot, and the fill rules are the physics. Here is the physics.
+---
+import Callout from "../../components/Callout.astro";
+import FixedRules from "../../components/FixedRules.astro";
+
+## The goal
+
+Get the same numbers TradingView's Strategy Tester would give on **CL1!**, front-month crude oil futures, on
+1-minute bars. Same fills, same costs, same report. The difference: it runs hundreds of settings in one go, and
+every number can be checked.
+
+## Fixed settings
+
+These match the Properties tab of a TradingView strategy, and they never change between strategies.
+
+<FixedRules />
+
+Commission is a fee per order. Slippage is a worse fill price. They are separate costs and shown separately.
+Margin is not checked, so "margin calls: 0" in a report only means margin was switched off.
+
+## How orders fill
+
+- **Signals act on the next candle.** A strategy looks at each candle when it closes. Any order it places fills
+  from the next candle, like TradingView's default.
+- **The path inside a candle.** A 1-minute candle only shows open, high, low and close. Like TradingView, the
+  tester assumes price went open → the nearer extreme → the other extreme → close. Stops and limits fill in that
+  order.
+- **Gaps.** If a candle opens past a stop or limit, it fills at the open.
+- **Slippage.** Market and stop orders fill N ticks worse. Limit orders, like a profit target, never slip.
+- **One position at a time.** No adding to a trade.
+
+## Sessions
+
+CL trades almost 24 hours, so "Asia", "London" and "New York" are not official. Each session open is the minute
+where volume jumps, measured on two years of CL data: 09:00 UTC+8 for Asia, 08:00 London, and 09:00 New York.
+Daylight saving time is handled for each city.
+
+## One rule that is mine, not TradingView's
+
+<Callout title="Roll exit (owner rule)">
+  <p>A futures contract expires, and CL1! switches to the next contract. If a trade is still open on the last bar of
+  a contract, the tester closes it there. TradingView would hold it across the switch and count the price gap
+  between contracts as profit or loss. In practice this affects 0 or 1 trades per session.</p>
+</Callout>
+
+## What "matches TradingView" can and cannot mean
+
+The tester uses Databento's front-month data. TradingView's CL1! also switches contract by volume, but with its own
+rule, so a few roll days can differ by about a day, and prices can differ slightly between data vendors. One known
+case: on 20 April 2020, when May crude went to −$37.63, Databento had already switched to June.
+
+So the only real proof is a TradingView export of the same strategy. That is why every strategy also has a Pine
+twin: the same rules written for TradingView, so trades can be compared on the real chart.
+
+## How results are checked
+
+- **Tests.** The engine has a test suite for fills, costs and edge cases.
+- **Independent review.** Codex reviews the code before results count.
+- **Independent replication.** For headline results, Codex writes its own engine, without using any of my code,
+  and rebuilds the result from the same data. If every trade matches, the result counts as replicated.
+
+Next: [how to read the results](/method/how-to-read/).

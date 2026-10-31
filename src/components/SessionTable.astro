@@ -1,0 +1,28 @@
+---
+// Source: docs/SESSIONS.md (open minutes measured on CL volume) and the strategy report.
+const rows = [
+  { s: "New York", open: "09:00 New York (NYMEX crude open)", anchor: "08:59", my: "21:00 US summer · 22:00 US winter", flat: "14:30 New York" },
+  { s: "London", open: "08:00 London", anchor: "07:59", my: "15:00 UK summer · 16:00 UK winter", flat: "13:00 London" },
+  { s: "Asia", open: "09:00 UTC+8 (Shanghai, Singapore, KL)", anchor: "08:59", my: "09:00 all year", flat: "15:00 UTC+8" },
+];
+---
+<div class="table-scroll">
+  <table class="data">
+    <caption class="sr-only">CL session opens used as anchors</caption>
+    <thead><tr><th scope="col">Session</th><th scope="col">Open</th><th scope="col">Anchor candle</th><th scope="col">Malaysia time</th><th scope="col">Flat at</th></tr></thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr><th scope="row">{r.s}</th><td>{r.open}</td><td class="mono">{r.anchor}</td><td>{r.my}</td><td>{r.flat}</td></tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<p class="note">CL trades almost 24 hours, so the exchange has no official sessions. Each open is the minute where
+volume jumps, measured on CL data for 2024 and 2025.</p>
+<style>
+  .note {
+    margin-top: 0.7rem;
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+  }
+</style>

@@ -1,0 +1,211 @@
+---
+import Base from "../layouts/Base.astro";
+import CandleSculpture from "../components/CandleSculpture.astro";
+import Frame from "../components/Frame.astro";
+import StrategyIndex from "../components/StrategyIndex.astro";
+import Pipeline from "../components/Pipeline.astro";
+import FixedRules from "../components/FixedRules.astro";
+import JournalList from "../components/JournalList.astro";
+import Icon from "../components/Icon.astro";
+---
+<Base description="A public research journal of crude oil (CL1!) trading strategies, tested on 1-minute bars the way TradingView's Strategy Tester does, explained in plain English with honest labels.">
+  <section class="hero wrap">
+    <div class="copy">
+      <h1>Testing crude oil strategies the TradingView way, in plain English.</h1>
+      <p class="lede">A public journal of every CL1! strategy I test on 1-minute bars: the idea, the rules, the
+      results after costs, and what went wrong.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#strategies">Browse strategies <Icon name="arrow-right" /></a>
+        <a class="btn btn-quiet" href="/method/">How the testing works</a>
+      </div>
+      <p class="fine">No signals, no courses. In-sample research, shared openly.</p>
+    </div>
+    <div class="art">
+      <CandleSculpture />
+    </div>
+  </section>
+
+  <section id="strategies" class="index wrap" aria-labelledby="strategies-index-h">
+    <div class="tilt-stage">
+      <Frame class="tilt">
+        <StrategyIndex interactiveHeading="Strategies" />
+      </Frame>
+    </div>
+    <p class="index-note"><a href="/strategies/">All strategies</a> · F1, F2, F3 are the three test stages, explained
+    below.</p>
+  </section>
+
+  <section class="how wrap" aria-labelledby="how-h">
+    <div class="how-head">
+      <h2 id="how-h">How a strategy earns a result</h2>
+      <p class="muted">Every strategy goes down the same path. Most stop early, and those are published too.</p>
+      <a class="more" href="/method/">The full method <Icon name="arrow-right" /></a>
+    </div>
+    <Pipeline />
+  </section>
+
+  <section class="rules wrap" aria-labelledby="rules-h">
+    <h2 id="rules-h">The same rules for every test</h2>
+    <p class="muted rules-sub">Set once, never tuned per strategy. Slippage is never mixed into commission.</p>
+    <FixedRules />
+  </section>
+
+  <section class="journal wrap" aria-labelledby="journal-h">
+    <div class="j-head">
+      <h2 id="journal-h">From the journal</h2>
+      <a class="more" href="/journal/">All entries <Icon name="arrow-right" /></a>
+    </div>
+    <JournalList limit={4} />
+  </section>
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    align-items: center;
+    gap: 3rem;
+    padding: clamp(3.5rem, 8vw, 6.5rem) 0 2.5rem;
+  }
+  h1 {
+    max-width: 15ch;
+  }
+  .lede {
+    margin-top: 1.5rem;
+    max-width: 46ch;
+    font-size: 1.1875rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2.25rem;
+  }
+  .fine {
+    margin-top: 1.25rem;
+    font-size: 0.875rem;
+    color: var(--ink-3);
+  }
+  .art {
+    padding: 1rem 0 0 1rem;
+    margin-right: -2rem;
+  }
+
+  .index {
+    padding-top: 2rem;
+  }
+  .tilt-stage {
+    perspective: 1800px;
+  }
+  .index-note {
+    margin-top: 1.1rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--ink-3);
+  }
+  .index-note a {
+    color: var(--ink-2);
+  }
+
+  /* The one authored motion: the terminal arrives tilted, like Graphite's inbox, and straightens as it scrolls in. */
+  @supports (animation-timeline: view()) {
+    @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+      .tilt-stage :global(.tilt) {
+        transform-origin: 50% 100%;
+        animation-name: untilt;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+      }
+      /* Separate selector: a minifier must not fold the timeline into the shorthand (Chrome drops it there). */
+      .tilt-stage :global(.tilt.tilt) {
+        animation-timeline: view();
+        animation-range: entry 0% cover 42%;
+      }
+    }
+  }
+  @keyframes untilt {
+    from {
+      transform: rotateX(26deg) scale(0.92) translateY(30px);
+      opacity: 0.55;
+      filter: blur(1.5px);
+    }
+    to {
+      transform: none;
+      opacity: 1;
+      filter: none;
+    }
+  }
+
+  .how {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 4rem;
+    margin-top: 9rem;
+  }
+  .how-head {
+    position: sticky;
+    top: 110px;
+    align-self: start;
+    display: grid;
+    gap: 1rem;
+  }
+  .more {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .more :global(svg) {
+    transition: transform 0.3s var(--ease-out);
+  }
+  .more:hover :global(svg) {
+    transform: translateX(3px);
+  }
+
+  .rules {
+    margin-top: 9rem;
+  }
+  .rules-sub {
+    margin: 0.75rem 0 2rem;
+  }
+
+  .journal {
+    margin-top: 9rem;
+  }
+  .j-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  @media (max-width: 900px) {
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    .art {
+      max-width: 360px;
+      padding: 0;
+    }
+    .how {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      margin-top: 6rem;
+    }
+    .how-head {
+      position: static;
+    }
+    .rules,
+    .journal {
+      margin-top: 6rem;
+    }
+  }
+</style>

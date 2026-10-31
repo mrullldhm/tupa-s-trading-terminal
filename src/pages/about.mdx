@@ -1,0 +1,34 @@
+---
+layout: ../layouts/MdxPage.astro
+title: About
+description: Who runs Tupa's Trading Terminal, why only CL, how Codex is involved, and the full disclaimer.
+lede: A one-person research journal. I test trading ideas on one market, the way TradingView would, and publish what I find, including what fails.
+---
+## Why this exists
+
+Most trading content shows the winners. I wanted a record that shows the whole process: the idea, the exact rules,
+the costs, the result, and the reasons a result might not hold. Writing it in public keeps me honest.
+
+## Why only CL
+
+Everything here is tested on CL1!, NYMEX WTI crude oil futures. One market means the costs, sessions and data quirks
+can be learned properly instead of guessed. Micro crude (MCL) is never used: it is not acceptable to me under my
+own Islamic finance (syariah) principles.
+
+## Who does what
+
+I decide what to test and the rules each test follows. Claude, an AI assistant, builds the tester and the
+strategies. Codex, a second AI from a different company, reviews the code and independently rebuilds key results.
+A result only counts as replicated when the two engines agree trade for trade.
+
+## Disclaimer
+
+**This is not financial advice.** Everything on this site is backtest research on past data, shared for education
+and to document the process.
+
+- Results are **in-sample** unless a page clearly says otherwise. Many are the best of many tries, which makes them
+  look better than what the same rules can be expected to earn.
+- Backtests leave out real-world effects: changes in liquidity, fills worse than the tested slippage, data errors
+  and changes in the market itself.
+- Charts that teach how a strategy works use **illustrative prices**, not real market data.
+- Past results do not predict future results. Futures trading carries a high risk of loss.

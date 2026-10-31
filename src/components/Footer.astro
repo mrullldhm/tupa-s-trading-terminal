@@ -1,0 +1,56 @@
+---
+import Logo from "./Logo.astro";
+---
+<footer class="site-footer">
+  <div class="wrap grid">
+    <div class="who">
+      <a class="brand" href="/"><Logo size={22} /> Tupa's Trading Terminal</a>
+      <p class="muted">A public research journal. CL1! crude oil futures, 1-minute bars.</p>
+    </div>
+    <div class="fine">
+      <p><strong>Not financial advice.</strong> Everything here is backtest research on past data. Results are
+      in-sample unless a page says otherwise, and many were picked as the best of many tries, which makes them look
+      better than what the same rules can be expected to earn. Charts that teach a strategy use illustrative prices,
+      not real market data. Past results do not predict future results.</p>
+      <p><a href="/about/#disclaimer">Full disclaimer</a> · <a href="/method/how-to-read/">How to read the results</a></p>
+    </div>
+  </div>
+</footer>
+<style>
+  .site-footer {
+    margin-top: 8rem;
+    border-top: 1px solid var(--line);
+    background: var(--bg-raise);
+    padding: 3rem 0 3.5rem;
+    font-size: 0.875rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 3rem;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 500;
+    text-decoration: none;
+    margin-bottom: 0.6rem;
+  }
+  .fine {
+    color: var(--ink-2);
+    display: grid;
+    gap: 0.8rem;
+    max-width: 68ch;
+  }
+  .fine strong {
+    color: var(--ink);
+    font-weight: 550;
+  }
+  @media (max-width: 720px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+</style>

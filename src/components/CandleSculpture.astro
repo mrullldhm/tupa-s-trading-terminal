@@ -1,0 +1,76 @@
+---
+// Hero line art: the Fair Price Reversal shape drawn as glowing outlines with echo trails (Graphite's layered
+// hexagon, retold as candles). Illustrative shape, no data.
+const W = 520;
+const C = [
+  // [open, close, high, low] in px (y grows down). Anchor first, then the move away, the swing, the return.
+  [176, 132, 112, 196],
+  [140, 182, 128, 196],
+  [182, 236, 170, 252],
+  [234, 292, 226, 312],
+  [292, 268, 250, 330],
+  [266, 300, 254, 318],
+  [300, 246, 236, 314],
+  [244, 196, 186, 258],
+  [198, 150, 138, 210],
+  [152, 128, 112, 166],
+];
+const x0 = 64, dx = 44, bw = 22;
+const echoes = [
+  { dx: 27, dy: -21, o: 0.06 },
+  { dx: 18, dy: -14, o: 0.12 },
+  { dx: 9, dy: -7, o: 0.24 },
+  { dx: 0, dy: 0, o: 1 },
+];
+---
+<figure class="sculpture" aria-hidden="true">
+  <svg viewBox={`0 76 ${W} 274`} fill="none">
+    <defs>
+      <linearGradient id="band" x1="0" x2="1">
+        <stop offset="0" stop-color="#fff" stop-opacity="0.16" />
+        <stop offset="1" stop-color="#fff" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+    <rect x={x0 - 6} y="132" width={W - x0 - 10} height="44" fill="url(#band)" />
+    <path d={`M${x0 - 6} 132H${W - 16}M${x0 - 6} 176H${W - 16}`} stroke="#fff" stroke-opacity="0.35" stroke-dasharray="3 6" />
+    {echoes.map((e) => (
+      <g transform={`translate(${e.dx} ${e.dy})`} opacity={e.o} class={e.o === 1 ? "front" : "echo"}>
+        {C.map(([o, c, h, l], i) => {
+          const x = x0 + i * dx;
+          const up = c < o;
+          const top = Math.min(o, c), hgt = Math.max(Math.abs(c - o), 3);
+          return (
+            <g>
+              <path d={`M${x} ${h}V${top}M${x} ${top + hgt}V${l}`} stroke="#fff" stroke-width="2.5" stroke-linecap="round" />
+              <rect x={x - bw / 2} y={top} width={bw} height={hgt} rx="3" stroke="#fff" stroke-width="2.5" fill={up ? "none" : "rgba(255,255,255,0.18)"} />
+            </g>
+          );
+        })}
+      </g>
+    ))}
+  </svg>
+  <figcaption>Illustrative shape: anchor, move away, swing, return to the fair price.</figcaption>
+</figure>
+<style>
+  .sculpture {
+    margin: 0;
+    position: relative;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .front {
+    filter: var(--glow);
+  }
+  .echo {
+    filter: blur(0.4px);
+  }
+  figcaption {
+    margin-top: 0.4rem;
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--ink-3);
+  }
+</style>

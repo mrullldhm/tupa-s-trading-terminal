@@ -1,0 +1,15 @@
+---
+// Mark: a rounded hexagon (Graphite's frame) holding one candlestick.
+interface Props { size?: number }
+const { size = 26 } = Astro.props;
+---
+<svg class="logo-mark" width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
+  <path d="M16 2.6 27.6 9.3v13.4L16 29.4 4.4 22.7V9.3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+  <path d="M16 8.5v15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+  <rect x="12.5" y="12" width="7" height="8" rx="1" fill="currentColor" />
+</svg>
+<style>
+  .logo-mark {
+    filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.45));
+  }
+</style>

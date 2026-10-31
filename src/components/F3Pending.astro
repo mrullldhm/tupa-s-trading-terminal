@@ -1,0 +1,41 @@
+---
+import Icon from "./Icon.astro";
+---
+<div class="pending">
+  <span class="ico"><Icon name="clock" size={18} /></span>
+  <div>
+    <p class="h">Not built yet</p>
+    <p class="b"><slot /></p>
+  </div>
+</div>
+<style>
+  .pending {
+    display: flex;
+    gap: 1rem;
+    max-width: var(--measure);
+    padding: 1.25rem;
+    border-radius: var(--radius);
+    border: 1px dashed var(--line-3);
+    background-image: repeating-linear-gradient(135deg, transparent 0 9px, rgb(255 255 255 / 0.018) 9px 10px);
+  }
+  .ico {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: var(--ink-2);
+    background: var(--panel-2);
+    box-shadow: 0 0 0 1px var(--line) inset;
+  }
+  .h {
+    font-weight: 550;
+    color: var(--ink);
+  }
+  .b {
+    margin-top: 0.25rem;
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+  }
+</style>

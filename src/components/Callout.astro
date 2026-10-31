@@ -1,0 +1,42 @@
+---
+import Icon from "./Icon.astro";
+interface Props { tone?: "note" | "warn" | "honest"; title: string }
+const { tone = "note", title } = Astro.props;
+---
+<aside class:list={["callout", tone]}>
+  <p class="t">{tone === "warn" && <Icon name="flask" size={15} />}{title}</p>
+  <div class="b"><slot /></div>
+</aside>
+<style>
+  .callout {
+    max-width: var(--measure);
+    padding: 1rem 1.15rem;
+    border-radius: var(--radius);
+    background: var(--panel);
+    box-shadow: 0 0 0 1px var(--line-2) inset;
+    font-size: 0.9375rem;
+    color: var(--ink-2);
+  }
+  .t {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ink);
+    font-weight: 550;
+    margin-bottom: 0.35rem;
+  }
+  .warn {
+    background: linear-gradient(var(--amber-dim), var(--amber-dim)), var(--panel);
+    box-shadow: 0 0 0 1px rgb(233 201 138 / 0.22) inset;
+  }
+  .warn .t {
+    color: var(--amber);
+  }
+  .honest {
+    background: var(--panel-2);
+    box-shadow: 0 0 0 1px var(--line-3) inset;
+  }
+  .b :global(p + p) {
+    margin-top: 0.6em;
+  }
+</style>

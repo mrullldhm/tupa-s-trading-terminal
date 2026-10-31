@@ -1,0 +1,88 @@
+---
+import Tabs from "./Tabs.astro";
+import ScenarioTable from "./ScenarioTable.astro";
+import CurveChart from "./CurveChart.astro";
+import { strategyData, sessionLabel, SESSION_ORDER } from "../lib/data";
+import { usd, int, pct, num, tone, date } from "../lib/format";
+import { targetLabel } from "../lib/labels";
+
+interface Props { strategy: string; paramLabels?: Record<string, string> }
+const { strategy, paramLabels = {} } = Astro.props;
+const f1 = strategyData(strategy).features.f1;
+const keys = SESSION_ORDER.filter((k) => k in f1.variants);
+const unknown = Object.keys(f1.variants).filter((k) => !SESSION_ORDER.includes(k));
+if (unknown.length) throw new Error(`F1Results: unknown sessions ${unknown.join(", ")}`);
+const plabel = (k: string) => paramLabels[k] ?? k;
+---
+<Tabs name="Session" tabs={keys.map((k) => ({ id: `f1-${k}`, label: sessionLabel(k) }))}>
+  {keys.map((k, i) => {
+    const v = f1.variants[k];
+    const s0 = v.scenarios["0"];
+    return (
+      <section id={`panel-f1-${k}`} role="tabpanel" tabindex="0" aria-labelledby={`tab-f1-${k}`} hidden={i !== 0} class="panel">
+        <p class="params">
+          <span class="muted">Best of {int(v.grid_size)} settings at 0 ticks:</span>{" "}
+          {Object.entries(v.params).filter(([p]) => p !== "session").map(([p, val]) => (
+            <code>{plabel(p)} {targetLabel(String(val))}</code>
+          ))}
+        </p>
+        <p class="period muted">
+          Tested {date(s0.period_start)} to {date(s0.period_end)}. In-sample: the settings were picked on this same data.
+        </p>
+        <ScenarioTable scenarios={v.scenarios} caption={`Feature 1, ${sessionLabel(k)} session, top combination at 0, 1 and 2 ticks`} />
+        <CurveChart
+          title={`${sessionLabel(k)}: cumulative closed-trade P&L`}
+          caption="Month-end values of closed-trade profit, one line per slippage scenario. Each scenario is its own test run. Swings inside a month and open trades are not shown, so read drawdown from the table, not from this chart."
+          series={[
+            { label: "0 ticks", tone: "ink", points: v.curve_month_end_closed_pnl["0"] },
+            { label: "1 tick", tone: "dim", points: v.curve_month_end_closed_pnl["1"] },
+            { label: "2 ticks", tone: "faint", points: v.curve_month_end_closed_pnl["2"] },
+          ]}
+        />
+        <details class="years">
+          <summary>Year by year at 0 ticks</summary>
+          <div class="table-scroll">
+            <table class="data">
+              <thead><tr><th scope="col">Year</th><th scope="col" class="num">Trades</th><th scope="col" class="num">Net profit</th><th scope="col" class="num">% profitable</th><th scope="col" class="num">Profit factor</th></tr></thead>
+              <tbody>
+                {v.by_year_0_ticks.map((y) => (
+                  <tr><th scope="row" class="mono">{y.year}</th><td class="num">{int(y.trades)}</td><td class:list={["num", tone(y.net_profit)]}>{usd(y.net_profit)}</td><td class="num">{pct(y.percent_profitable)}</td><td class="num">{num(y.profit_factor, 3)}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+    );
+  })}
+</Tabs>
+<style>
+  .panel {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .params {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9375rem;
+  }
+  .period {
+    margin-top: -1rem;
+    font-size: 0.875rem;
+  }
+  .years summary {
+    cursor: pointer;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    padding: 0.4rem 0;
+    color: var(--ink-2);
+  }
+  .years summary:hover {
+    color: var(--ink);
+  }
+  .years[open] summary {
+    margin-bottom: 0.8rem;
+  }
+</style>

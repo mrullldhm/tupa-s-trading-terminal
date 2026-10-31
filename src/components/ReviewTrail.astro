@@ -1,0 +1,66 @@
+---
+import Badge from "./Badge.astro";
+import { date } from "../lib/format";
+interface Props { reviews: { id: string; kind: "code" | "replication" | "plan"; label: string; date: Date }[] }
+const { reviews } = Astro.props;
+---
+<ol class="trail">
+  {reviews.map((r) => (
+    <li>
+      <span class="node" aria-hidden="true"></span>
+      <div class="body">
+        <p class="top"><Badge tone={r.kind === "replication" ? "done" : "info"} icon={r.kind === "replication" ? "check" : undefined}>{r.kind === "replication" ? "Replication" : "Review"}</Badge><span class="mono id">{r.id}</span><time datetime={r.date.toISOString()}>{date(r.date)}</time></p>
+        <p class="label">{r.label}</p>
+      </div>
+    </li>
+  ))}
+</ol>
+<style>
+  .trail {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 1.1rem;
+    max-width: var(--measure);
+  }
+  .trail::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 10px;
+    bottom: 10px;
+    width: 1px;
+    background: var(--line-3);
+  }
+  li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 13px minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .node {
+    margin-top: 5px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: 0 0 0 1.5px var(--ink) inset, 0 0 10px rgb(255 255 255 / 0.4);
+  }
+  .top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+  }
+  .id {
+    color: var(--ink-2);
+  }
+  .label {
+    margin-top: 0.3rem;
+    color: var(--ink);
+  }
+</style>

@@ -1,0 +1,62 @@
+---
+layout: ../../layouts/MdxPage.astro
+title: How to read the results
+description: What each number on a results page means, and what it does not mean. In-sample, best of N, slippage, drawdown and more.
+lede: A backtest number is only as honest as its label. These are the labels used on every results page, and what they mean in plain words.
+crumbs:
+  - { href: /method/, label: Method }
+---
+## In-sample
+
+**The settings were picked on the same data they are reported on.** Picking the best of many tries on known data
+always looks better than what the same rules will earn on new data. Treat an in-sample result as an upper bound,
+not a forecast.
+
+## Best of N
+
+"Best of 192" means 192 settings were tried and only the best is shown. The bigger N is, the more likely the winner
+is just lucky. Feature 2 pages show both the size of that run and the total number of tries across all runs, since
+every try counts against the result.
+
+## Reserved is not clean out-of-sample
+
+Data from 1 January 2024 on is **reserved**: Feature 2 searches never use it. But the starting settings came from
+Feature 1, which used all the data, and an early check also touched 2024+. So reserved data is less contaminated,
+not untouched. Each strategy's Evidence page lists the known exceptions.
+
+## Slippage scenarios
+
+- **0 ticks** still pays commission: $4.02 per round trip is in every number.
+- **1 tick and 2 ticks** are separate test runs, not a simple subtraction. Trade counts can differ slightly
+  between them, so each scenario shows its own count.
+- Only market and stop orders slip. A trade that exits at its limit target slips once, not twice.
+
+## Net profit and the search objective
+
+**Net profit** is the sum of all closed trades. The Feature 2 search scored settings on net profit at 1 tick
+**plus** the value of any trade still open at the end. Usually there is none and the two are the same; when they
+differ, both are shown.
+
+## The P&L charts
+
+The charts show **cumulative closed-trade profit, sampled at the end of each month**. They do not show swings
+inside a month or open trades. Do not read drawdown off the chart.
+
+## Drawdown
+
+**Max drawdown** is the biggest drop from a high point in equity, measured inside each candle while a trade is open,
+like TradingView. The percentage is of the $50,000 starting capital.
+
+## Sharpe and Sortino
+
+Both use monthly returns and are **not annualized**, as TradingView reports them. Do not compare them with yearly
+Sharpe ratios you see elsewhere.
+
+## Replicated
+
+A replication badge means Codex rebuilt that exact result with its own engine and every trade matched. It covers
+only the sessions, features and slippage levels named on the badge. It is not a TradingView export.
+
+## Not financial advice
+
+This is research on past data, shared to show the process. Nothing here is a signal or a recommendation.

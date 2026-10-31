@@ -1,0 +1,67 @@
+---
+// Accessible tabs. Panels are server-rendered; the script only toggles `hidden`.
+interface Props { tabs: { id: string; label: string }[]; name: string }
+const { tabs, name } = Astro.props;
+---
+<div class="tabs" data-tabs>
+  <div class="list" role="tablist" aria-label={name}>
+    {tabs.map((t, i) => (
+      <button type="button" role="tab" id={`tab-${t.id}`} aria-controls={`panel-${t.id}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? 0 : -1}>{t.label}</button>
+    ))}
+  </div>
+  <slot />
+</div>
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>("[data-tabs]")) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>(":scope > .list > [role=tab]")];
+    const select = (i: number) => {
+      tabs.forEach((t, k) => {
+        const on = k === i;
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        const panel = document.getElementById(t.getAttribute("aria-controls") ?? "");
+        if (panel) panel.hidden = !on;
+      });
+      tabs[i].focus({ preventScroll: true });
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener("click", () => select(i));
+      t.addEventListener("keydown", (e) => {
+        const target = { ArrowRight: (i + 1) % tabs.length, ArrowLeft: (i - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 }[e.key];
+        if (target === undefined) return;
+        e.preventDefault();
+        select(target);
+      });
+    });
+  }
+</script>
+<style>
+  .list {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    background: var(--panel);
+    box-shadow: 0 0 0 1px var(--line) inset;
+  }
+  [role="tab"] {
+    height: 34px;
+    padding: 0 1rem;
+    border: 0;
+    border-radius: 7px;
+    font: 500 0.875rem/1 var(--font);
+    color: var(--ink-2);
+    background: transparent;
+    cursor: pointer;
+    transition: color 0.2s, background-color 0.2s;
+  }
+  [role="tab"]:hover {
+    color: var(--ink);
+  }
+  [role="tab"][aria-selected="true"] {
+    color: var(--ink);
+    background: var(--panel-3);
+    box-shadow: 0 0 0 1px var(--line-2) inset, 0 1px 0 rgb(255 255 255 / 0.06) inset;
+  }
+</style>

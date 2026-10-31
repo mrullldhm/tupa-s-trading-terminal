@@ -1,0 +1,24 @@
+---
+import Base from "../../layouts/Base.astro";
+import JournalList from "../../components/JournalList.astro";
+---
+<Base title="Journal" description="Dated entries from the CL1! research: results, dead ends, reviews and milestones.">
+  <section class="wrap page">
+    <h1>Journal</h1>
+    <p class="lede">The research in the order it happened. Dead ends stay in, because knowing what failed is part of
+    trusting what works.</p>
+    <JournalList />
+  </section>
+</Base>
+<style>
+  .page {
+    padding-top: 3.5rem;
+    max-width: 960px;
+  }
+  .lede {
+    margin: 1rem 0 2.5rem;
+    max-width: 58ch;
+    font-size: 1.125rem;
+    color: var(--ink-2);
+  }
+</style>

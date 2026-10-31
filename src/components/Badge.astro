@@ -1,0 +1,46 @@
+---
+import Icon from "./Icon.astro";
+interface Props {
+  tone?: "done" | "pending" | "rejected" | "info" | "warn";
+  icon?: "check" | "clock" | "dash" | "x" | "flask" | "lock";
+}
+const { tone = "info", icon } = Astro.props;
+---
+<span class:list={["badge", tone]}>{icon && <Icon name={icon} size={13} />}<slot /></span>
+<style>
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 24px;
+    padding: 0 0.55rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--ink-2);
+    background: var(--panel-2);
+    box-shadow: 0 0 0 1px var(--line) inset;
+  }
+  .done {
+    color: var(--ink);
+    box-shadow: 0 0 0 1px var(--line-3) inset;
+  }
+  .pending {
+    color: var(--ink-3);
+    background: transparent;
+    box-shadow: 0 0 0 1px var(--line-2) inset;
+    border: 0;
+    background-image: repeating-linear-gradient(135deg, transparent 0 5px, rgb(255 255 255 / 0.03) 5px 6px);
+  }
+  .rejected {
+    color: var(--short);
+    background: var(--short-dim);
+    box-shadow: none;
+  }
+  .warn {
+    color: var(--amber);
+    background: var(--amber-dim);
+    box-shadow: none;
+  }
+</style>

@@ -1,0 +1,100 @@
+---
+import type { Scenarios } from "../lib/data";
+import { usd, int, pct, num, tone } from "../lib/format";
+interface Props { scenarios: Scenarios; caption: string; objectiveNote?: boolean }
+const { scenarios, caption, objectiveNote = false } = Astro.props;
+const ks = ["0", "1", "2"] as const;
+// `s` is the short form shown on narrow screens so all three scenarios fit side by side.
+type Cell = { v: string; s?: string; t?: string };
+const money = (v: number) => ({ v: usd(v), s: usd(v, { cents: false }), t: tone(v) });
+const rows: { label: string; hint?: string; get: (k: (typeof ks)[number]) => Cell }[] = [
+  { label: "Net profit", hint: "closed trades, after $4.02 commission per round trip", get: (k) => money(scenarios[k].net_profit) },
+  { label: "Closed trades", get: (k) => ({ v: int(scenarios[k].total_closed_trades) }) },
+  { label: "Percent profitable", get: (k) => ({ v: pct(scenarios[k].percent_profitable) }) },
+  { label: "Profit factor", hint: "gross profit ÷ gross loss", get: (k) => ({ v: num(scenarios[k].profit_factor, 3), s: num(scenarios[k].profit_factor, 2) }) },
+  { label: "Average trade", get: (k) => money(scenarios[k].avg_trade) },
+  {
+    label: "Max drawdown",
+    hint: "intrabar, % of $50,000",
+    get: (k) => ({
+      v: `${usd(scenarios[k].max_equity_drawdown, { sign: false })} · ${pct(scenarios[k].max_equity_drawdown_pct)}`,
+      s: usd(scenarios[k].max_equity_drawdown, { sign: false, cents: false }),
+    }),
+  },
+  { label: "Commission paid", get: (k) => ({ v: usd(scenarios[k].commission_paid, { sign: false }), s: usd(scenarios[k].commission_paid, { sign: false, cents: false }) }) },
+  { label: "Sharpe ratio", hint: "monthly, not annualized", get: (k) => ({ v: num(scenarios[k].sharpe_ratio, 3), s: num(scenarios[k].sharpe_ratio, 2) }) },
+];
+if (objectiveNote) {
+  rows.splice(1, 0, { label: "Open P&L at the end", hint: "part of the search objective, not of net profit", get: (k) => money(scenarios[k].open_pnl) });
+}
+---
+<div class="table-scroll scen">
+  <table class="data">
+    <caption class="sr-only">{caption}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Number</th>
+        <th scope="col" class="num">0 ticks<span class="long"> slippage</span></th>
+        <th scope="col" class="num">1 tick<span class="long"> slippage</span></th>
+        <th scope="col" class="num">2 ticks<span class="long"> slippage</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr>
+          <th scope="row">{r.label}{r.hint && <span class="hint">{r.hint}</span>}</th>
+          {ks.map((k) => {
+            const c = r.get(k);
+            return (
+              <td class:list={["num", c.t]}>
+                {c.s ? <><span class="full">{c.v}</span><span class="short" aria-hidden="true">{c.s}</span></> : c.v}
+              </td>
+            );
+          })}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<style>
+  .hint {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--ink-3);
+  }
+  tbody tr:first-child td {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  .short {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .scen :global(table.data) {
+      font-size: 0.78rem;
+      table-layout: fixed;
+    }
+    .scen :global(th),
+    .scen :global(td) {
+      padding: 0.6rem 0.45rem;
+    }
+    .scen :global(th[scope="row"]) {
+      width: 34%;
+      white-space: normal;
+    }
+    .hint,
+    .long {
+      display: none;
+    }
+    .full {
+      display: none;
+    }
+    .short {
+      display: inline;
+    }
+    tbody tr:first-child td {
+      font-size: 0.85rem;
+    }
+  }
+</style>

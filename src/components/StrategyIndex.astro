@@ -1,0 +1,207 @@
+---
+import { getCollection } from "astro:content";
+import Badge from "./Badge.astro";
+import Icon from "./Icon.astro";
+
+interface Props { interactiveHeading?: string }
+const { interactiveHeading = "Strategies" } = Astro.props;
+const all = (await getCollection("strategies")).sort((a, b) => a.data.order - b.data.order);
+const tested = all.filter((s) => s.data.stage === "tested").length;
+const planned = all.length - tested;
+const fname = { f1: "F1", f2: "F2", f3: "F3" } as const;
+---
+<div class="terminal" data-strategy-index>
+  <aside class="side">
+    <p class="side-h" id="filter-h">Show</p>
+    <ul aria-labelledby="filter-h">
+      <li><button type="button" data-filter="all" aria-pressed="true"><span>All strategies</span><span class="mono">{all.length}</span></button></li>
+      <li><button type="button" data-filter="tested" aria-pressed="false"><span>Tested</span><span class="mono">{tested}</span></button></li>
+      <li><button type="button" data-filter="planned" aria-pressed="false"><span>Planned</span><span class="mono">{planned}</span></button></li>
+    </ul>
+    <p class="side-h">Market</p>
+    <p class="market">CL1! · 1 minute</p>
+  </aside>
+  <div class="main">
+    <div class="titlebar">
+      <h2 class="tb-h" id="strategies-index-h">{interactiveHeading}</h2>
+      <span class="legend mono">F1 test · F2 search · F3 validation</span>
+    </div>
+    <ul class="rows">
+      {all.map((s) => {
+        const href = s.data.stage === "tested" ? `/strategies/${s.id}/` : undefined;
+        const El = href ? "a" : "div";
+        return (
+          <li data-stage={s.data.stage}>
+            <El class:list={["row", { link: !!href }]} href={href}>
+              <div class="name">
+                <span class="title">{s.data.title}</span>
+                <span class="summary">{s.data.summary}</span>
+              </div>
+              <div class="chips">
+                {(Object.keys(fname) as (keyof typeof fname)[]).map((k) => (
+                  <Badge tone={s.data.features[k] === "done" ? "done" : "pending"} icon={s.data.features[k] === "done" ? "check" : "clock"}>
+                    {fname[k]}<span class="sr-only"> {s.data.features[k]}</span>
+                  </Badge>
+                ))}
+              </div>
+              <p class="verdict">{s.data.verdict}</p>
+              <span class="go">{href ? <Icon name="arrow-right" /> : <Badge tone="pending">Planned</Badge>}</span>
+            </El>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</div>
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>("[data-strategy-index]")) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>("[data-filter]")];
+    const rows = [...root.querySelectorAll<HTMLElement>("[data-stage]")];
+    buttons.forEach((b) =>
+      b.addEventListener("click", () => {
+        const f = b.dataset.filter;
+        buttons.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        rows.forEach((r) => (r.hidden = f !== "all" && r.dataset.stage !== f));
+      }),
+    );
+  }
+</script>
+<style>
+  .terminal {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    text-align: left;
+  }
+  .side {
+    padding: 1.1rem 0.75rem;
+    border-right: 1px solid var(--line);
+    background: var(--panel);
+    font-size: 0.8125rem;
+  }
+  .side-h {
+    padding: 0 0.6rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--ink-3);
+  }
+  .side ul {
+    margin: 0 0 1.2rem;
+    padding: 0;
+    list-style: none;
+  }
+  .side button {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 0;
+    border-radius: 6px;
+    font: inherit;
+    color: var(--ink-2);
+    background: transparent;
+    cursor: pointer;
+    transition: color 0.2s, background-color 0.2s;
+  }
+  .side button:hover {
+    color: var(--ink);
+    background: var(--panel-2);
+  }
+  .side button[aria-pressed="true"] {
+    color: var(--ink);
+    background: var(--panel-3);
+  }
+  .market {
+    padding: 0 0.6rem;
+    color: var(--ink-2);
+  }
+  .titlebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.95rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .tb-h {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+  .legend {
+    font-size: 0.6875rem;
+    color: var(--ink-3);
+  }
+  .rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .rows li + li {
+    border-top: 1px solid var(--line);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.05rem 1.25rem;
+    text-decoration: none;
+    transition: background-color 0.2s;
+  }
+  .row.link:hover {
+    background: var(--panel-2);
+  }
+  .row.link:hover .go {
+    color: var(--ink);
+    transform: translateX(3px);
+  }
+  .name {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+  .title {
+    font-weight: 500;
+  }
+  .summary {
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+  }
+  .chips {
+    display: flex;
+    gap: 0.3rem;
+  }
+  .verdict {
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+  }
+  .go {
+    justify-self: end;
+    color: var(--ink-3);
+    transition: transform 0.3s var(--ease-out), color 0.2s;
+  }
+  @media (max-width: 900px) {
+    .terminal {
+      grid-template-columns: 1fr;
+    }
+    .side {
+      display: none;
+    }
+    .row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.6rem 1rem;
+    }
+    .chips,
+    .verdict {
+      grid-column: 1;
+    }
+    .go {
+      grid-row: 1;
+      grid-column: 2;
+    }
+    .legend {
+      display: none;
+    }
+  }
+</style>

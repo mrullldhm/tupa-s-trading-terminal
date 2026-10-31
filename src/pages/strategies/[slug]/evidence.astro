@@ -1,0 +1,138 @@
+---
+import { getCollection } from "astro:content";
+import Doc from "../../../layouts/Doc.astro";
+import Badge from "../../../components/Badge.astro";
+import ReviewTrail from "../../../components/ReviewTrail.astro";
+import { strategyData, sessionLabel, MIN_ELIGIBLE_TRADES } from "../../../lib/data";
+import { F2_VERDICTS } from "../../../data/verdicts";
+import { usd, int, date, tone } from "../../../lib/format";
+
+export async function getStaticPaths() {
+  const all = await getCollection("strategies", (s) => s.data.stage === "tested");
+  return all.flatMap((entry) => (entry.data.dataKey ? [{ params: { slug: entry.id }, props: { entry, key: entry.data.dataKey } }] : []));
+}
+const { entry, key } = Astro.props;
+const data = strategyData(key);
+const f1 = data.features.f1;
+const f2 = data.features.f2;
+const verdicts = F2_VERDICTS[key] ?? {};
+const toc = [
+  { depth: 2, slug: "protocol", text: "Protocol" },
+  { depth: 2, slug: "exposure", text: "Exposure to reserved data" },
+  { depth: 2, slug: "runs", text: "Every run" },
+  { depth: 2, slug: "reviews", text: "Reviews" },
+  { depth: 2, slug: "sources", text: "Source files" },
+];
+---
+<Doc title={`${entry.data.title}: evidence`} description={`Protocol, exposure history, every run and the reviews behind ${entry.data.title}.`} toc={toc}>
+  <Fragment slot="head">
+    <p class="crumbs"><a href="/strategies/">Strategies</a> / <a href={`/strategies/${entry.id}/`}>{entry.data.title}</a> /</p>
+    <h1>Evidence and run history</h1>
+    <p class="lede">Everything behind the numbers on the strategy page: what was decided before testing, every
+    search run with its verdict, what touched the reserved data, and who checked what.</p>
+  </Fragment>
+  <div class="prose wide">
+    <h2 id="protocol">Protocol</h2>
+    <ul>
+      <li><strong>Feature 1:</strong> {f1.grid_size.join(", ")} settings per session, each run over the full data
+      ({date(Object.values(f1.variants)[0].scenarios["0"].period_start)} to {date(Object.values(f1.variants)[0].scenarios["0"].period_end)}).
+      The winner is the highest net profit at 0 ticks, then rerun at 1 and 2 ticks.</li>
+      {f2 && <li><strong>Feature 2:</strong> development data only (before 1 Jan 2024). Hypotheses, objective and trial budget were
+      written down before the first run. Objective: net profit plus open P&amp;L at 1 tick, with at least {MIN_ELIGIBLE_TRADES}
+      closed trades. {int(f2.total_trials)} search trials in total, {int(f2.total_engine_evaluations)} engine runs logged.</li>}
+      <li><strong>Feature 3:</strong> not built yet.</li>
+    </ul>
+
+    <h2 id="exposure">Exposure to reserved data</h2>
+    <p>Reserved means "not used to pick settings". These are the known exceptions, copied from the run ledger:</p>
+    <ul>
+      {f2?.lineage.map((n) => <li>{n}</li>)}
+      {f2?.manual_looks.map((m) => <li><span class="mono">{date(m.time_utc)}</span> · {m.evaluations} engine runs · {m.note}</li>)}
+    </ul>
+    <p>So 2024+ is reserved, but it is not a clean out-of-sample test. Feature 3 has to count this.</p>
+
+    <h2 id="runs">Every run</h2>
+    {f2 && (
+      <div class="table-scroll">
+        <table class="data">
+          <caption class="sr-only">All feature-2 runs</caption>
+          <thead>
+            <tr><th scope="col">Run</th><th scope="col" class="num">Trials</th><th scope="col" class="num">Eligible</th><th scope="col" class="num">Engine runs</th><th scope="col" class="num">Net 0 / 1 / 2 ticks</th><th scope="col">Verdict</th></tr>
+          </thead>
+          <tbody>
+            {f2.runs.map((r) => (
+              <tr>
+                <th scope="row"><span class="mono run">{r.run_id}</span><span class="sub">{sessionLabel(r.variant)} · {r.sampler} · seed {r.seed} · trial #{r.source_trial} · {date(r.time_utc)}</span></th>
+                <td class="num">{int(r.trials)}{r.duplicates > 0 && <span class="sub">{r.duplicates} repeats</span>}</td>
+                <td class="num">{int(r.eligible)}</td>
+                <td class="num">{int(r.evaluations)}</td>
+                <td class="num">{(["0", "1", "2"] as const).map((k, i) => <><span class={tone(r.scenarios[k].net_profit)}>{usd(r.scenarios[k].net_profit, { cents: false })}</span>{i < 2 && <br />}</>)}</td>
+                <td><Badge tone={verdicts[r.run_id]?.verdict === "candidate" ? "done" : "rejected"}>{verdicts[r.run_id]?.verdict ?? "none"}</Badge></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+    <p>"Eligible" means the trial had at least {MIN_ELIGIBLE_TRADES} closed trades. Each trial runs the engine at 0, 1 and 2 ticks, and
+    neighbour checks add more runs, so engine runs are about three times the trials.</p>
+
+    <h2 id="reviews">Reviews</h2>
+    <ReviewTrail reviews={entry.data.reviews} />
+
+    <h2 id="sources">Source files</h2>
+    <p>The numbers on this site are copied from these tester outputs by an exporter that never recomputes them.
+    Exported {date(data.generated_utc)}, format version {data.export_version}. SHA-256 shown in short.</p>
+    <div class="table-scroll">
+      <table class="data src">
+        <thead><tr><th scope="col">File</th><th scope="col">SHA-256</th></tr></thead>
+        <tbody>
+          {data.sources.map((s) => <tr><td class="mono">{s.path}</td><td class="mono">{s.sha256.slice(0, 16)}…</td></tr>)}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</Doc>
+<style>
+  .crumbs {
+    font-size: 0.875rem;
+    color: var(--ink-3);
+    margin-bottom: 1rem;
+  }
+  .crumbs a {
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+  .lede {
+    margin-top: 1rem;
+    max-width: 60ch;
+    font-size: 1.125rem;
+    color: var(--ink-2);
+  }
+  .wide {
+    max-width: none;
+  }
+  .wide > :global(p),
+  .wide > :global(ul),
+  .wide > :global(h2) {
+    max-width: var(--measure);
+  }
+  .wide > :global(h2) {
+    margin-top: 3.5rem;
+  }
+  .wide > :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .run {
+    font-size: 0.8125rem;
+  }
+  .sub {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--ink-3);
+  }
+  .src td {
+    font-size: 0.75rem;
+  }
+</style>
