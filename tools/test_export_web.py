@@ -336,3 +336,101 @@ def test_walk_forward_pick_labels_reject_unlisted_fields(label):
 def test_walk_forward_pick_labels_accept_filters_and_declared_params():
     assert ew.check_picked("anchor_body_atr >= 0.3, risk_ticks <= 32", ()) == "anchor_body_atr >= 0.3, risk_ticks <= 32"
     assert ew.check_picked("swing=3, risk_ticks >= 30", ("swing",)) == "swing=3, risk_ticks >= 30"
+
+
+def fake_scenario(k, net, open_pnl=0.0):
+    s = {f: 0.0 for f in ew.SUMMARY_FIELDS}
+    s.update({"open_pnl": open_pnl, "slippage_ticks": k, "period_start": "2010-06-07", "period_end": "2026-10-27"})
+    s["all"] = {f: 0.0 for f in ew.ALL_FIELDS}
+    s["all"]["net_profit"] = net
+    s["long"] = s["short"] = {f: 0.0 for f in ew.SIDE_FIELDS}
+    s["exit_reasons"] = {"limit": 1, "stop": 1}
+    return s
+
+
+def fake_exit_run(root, run_id="20261101T000000Z_abc123", rules=ew.EXIT_RULES, variant="ny", close=True):
+    """A tiny exit-study run: rule 0 is the baseline, rule 1 the best, and the rest spread over the families."""
+    fams = ["baseline", *ew.EXIT_FAMILIES]
+    rows = [{"order": i, "family": fams[min(i, len(fams) - 1)] if i < len(fams) else ew.EXIT_FAMILIES[i % 12],
+             "rule": "none" if i == 0 else f"rule {i}", "objective": 100.0 - i if i else 50.0,
+             "unverified": False} for i in range(rules)]
+    rows[1]["objective"] = 200.0
+    grid = pd.DataFrame(rows).sort_values("objective", ascending=False, kind="stable")
+    out = root / "exits" / run_id / variant
+    out.mkdir(parents=True)
+    grid.to_csv(out / "grid.csv", index=False)
+    by_order = {r["order"]: r for r in rows}
+    summary, winners = {}, {}
+    for role in ["baseline", *ew.EXIT_FAMILIES, "overall"]:
+        pool = [r for r in rows if role in ("overall",) or r["family"] == role]
+        best = max(pool, key=lambda r: (r["objective"], -r["order"]))
+        winners[role] = best["order"]
+        summary[role] = {"order": best["order"], "rule": best["rule"], "family": best["family"], "unverified": False,
+                         **{f"slippage_{k}": fake_scenario(k, best["objective"] - 5 * k, 0.0) for k in (0, 1, 2)}}
+    (out / "summary.json").write_text(json.dumps(summary))
+    if close:
+        event = {"kind": "exit_study", "run_id": run_id, "variant": variant, "rules": rules, "winners": winners,
+                 "best_objective": 200.0, "baseline_objective": 50.0}
+        with (root / "ledger.jsonl").open("a") as f:
+            f.write(json.dumps(event) + "\n")
+    return out
+
+
+def exits_exporter(tmp_path, monkeypatch):
+    monkeypatch.setattr(ew, "sha256", lambda p: "0" * 64)
+    monkeypatch.setattr(ew, "ROOT", tmp_path)
+    e = ew.Exporter("fair_price_reversal")
+    e.results = tmp_path
+    return e
+
+
+def test_exits_is_none_without_a_complete_run(tmp_path, monkeypatch):
+    assert exits_exporter(tmp_path, monkeypatch).feature_exits() is None  # no exits directory at all
+    (tmp_path / "ledger.jsonl").write_text("")
+    fake_exit_run(tmp_path, "20261101T000000Z_open", close=False)  # no closing ledger event
+    fake_exit_run(tmp_path, "20261031T000000Z_old", rules=330)  # older 330-rule format
+    assert exits_exporter(tmp_path, monkeypatch).feature_exits() is None
+
+
+def test_exits_exports_the_newest_complete_run(tmp_path, monkeypatch):
+    (tmp_path / "ledger.jsonl").write_text("")
+    fake_exit_run(tmp_path, "20261031T000000Z_older")
+    fake_exit_run(tmp_path, "20261101T000000Z_newest")
+    fake_exit_run(tmp_path, "20261102T000000Z_unfinished", close=False)
+    exits = exits_exporter(tmp_path, monkeypatch).feature_exits()
+    assert exits["run_id"] == "20261101T000000Z_newest"
+    v = exits["variants"]["ny"]
+    assert v["rules_total"] == ew.EXIT_RULES and sum(v["family_counts"].values()) == ew.EXIT_RULES - 1
+    assert v["winners"]["overall"]["best_of"] == ew.EXIT_RULES and v["winners"]["baseline"]["best_of"] == 1
+    assert v["winners"]["overall"]["order"] == 1 and v["winners"]["overall"]["objective_usd"] == 200.0
+    assert set(v["winners"]["overall"]["scenarios"]) == {"0", "1", "2"}
+    assert v["beating_baseline"]["total"] == 49 and v["positive_objective"] == 100  # objective 100 - order
+    assert v["winners"]["trail_sar"]["best_of"] == v["family_counts"]["trail_sar"]
+    ew.check_publication(exits)
+
+
+def test_exits_rejects_a_grid_that_disagrees_with_the_summary(tmp_path, monkeypatch):
+    (tmp_path / "ledger.jsonl").write_text("")
+    out = fake_exit_run(tmp_path)
+    summary = json.loads((out / "summary.json").read_text())
+    summary["overall"]["slippage_0"]["all"]["net_profit"] += 5.0
+    (out / "summary.json").write_text(json.dumps(summary))
+    with pytest.raises(ew.ExportError, match="grid objective"):
+        exits_exporter(tmp_path, monkeypatch).feature_exits()
+
+
+def test_exits_rejects_a_wrong_overall_or_ledger_best(tmp_path, monkeypatch):
+    (tmp_path / "ledger.jsonl").write_text("")
+    out = fake_exit_run(tmp_path)
+    summary = json.loads((out / "summary.json").read_text())
+    summary["overall"]["order"] = 2
+    (out / "summary.json").write_text(json.dumps(summary))
+    with pytest.raises(ew.ExportError, match="top row"):
+        exits_exporter(tmp_path, monkeypatch).feature_exits()
+    (tmp_path / "ledger.jsonl").write_text("")
+    fake_exit_run(tmp_path, "20261103T000000Z_x")
+    ledger = [json.loads(x) for x in (tmp_path / "ledger.jsonl").read_text().splitlines()]
+    ledger[-1]["best_objective"] = 999.0
+    (tmp_path / "ledger.jsonl").write_text("\n".join(json.dumps(e) for e in ledger) + "\n")
+    with pytest.raises(ew.ExportError, match="ledger closing event"):
+        exits_exporter(tmp_path, monkeypatch).feature_exits()

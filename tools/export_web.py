@@ -31,7 +31,7 @@ OUT = ROOT / "web" / "src" / "data" / "strategies"
 # Month, week and day tables are static files the browser fetches on demand; year tables stay in the main JSON.
 PUBLIC_OUT = ROOT / "web" / "public" / "data"
 VERDICTS = ROOT / "web" / "src" / "data" / "verdicts.ts"
-EXPORT_VERSION = 3
+EXPORT_VERSION = 4
 FETCHED_GRAINS = ("month", "week", "day")
 SCENARIOS = (0, 1, 2)
 
@@ -48,6 +48,9 @@ ALL_FIELDS = (
     "ratio_avg_win_avg_loss", "largest_winning_trade", "largest_losing_trade", "avg_bars_in_trades",
     "long_trades", "short_trades",
 )
+EXIT_FAMILIES = ("be_touch", "be_close", "be_time", "trail_frac", "trail_atr", "trail_swing", "trail_step",
+                 "trail_close", "trail_ema", "trail_sar", "both", "time_exit")
+EXIT_RULES = 428  # the declared exit-study grid (tvtester.exits.study_rules); older runs had 330
 SIDE_FIELDS = ("net_profit", "total_closed_trades", "percent_profitable", "profit_factor")
 # These percentages use initial capital, never an instrument price.
 ALLOWED_PCT_KEYS = {"max_equity_drawdown_pct", "max_equity_runup_pct", "net_profit_pct"}
@@ -485,13 +488,89 @@ class Exporter:
         return {"runs": runs, "total_engine_runs": sum(e.get("evaluations", 0) for e in ledger
                                                        if e["kind"].startswith("validate"))}
 
+    def complete_exit_run(self) -> tuple[str, list[Path], dict[str, dict]] | None:
+        """Newest exit-study run that is complete: every variant directory has a summary, a 428-row grid and a
+        closing `exit_study` ledger event. Older formats (330 rules) and interrupted runs are skipped."""
+        base = self.results / "exits"
+        ledger_path = self.results / "ledger.jsonl"
+        if not base.is_dir() or not ledger_path.exists():
+            return None
+        closing: dict[str, dict[str, dict]] = {}
+        for line in ledger_path.read_text().splitlines():
+            e = json.loads(line) if line.strip() else {}
+            if e.get("kind") == "exit_study" and "run_id" in e:
+                closing.setdefault(e["run_id"], {})[e["variant"]] = e
+        for rdir in sorted((d for d in base.iterdir() if d.is_dir()), key=lambda d: d.name, reverse=True):
+            vdirs = sorted(d for d in rdir.iterdir() if d.is_dir())
+            done = (vdirs and all((d / "summary.json").exists() and (d / "grid.csv").exists() for d in vdirs)
+                    and {d.name for d in vdirs} <= set(closing.get(rdir.name, {})))
+            if done and all(len(pd.read_csv(d / "grid.csv", usecols=["order"])) == EXIT_RULES for d in vdirs):
+                return rdir.name, vdirs, closing[rdir.name]
+        return None
+
+    def feature_exits(self) -> dict | None:
+        """Exit study (breakeven / trailing stop / time exit) from results/<s>/exits/<run_id>/<variant>/. Copied from
+        summary.json and grid.csv; the counts are tallies of the grid's own objective column. None until a complete
+        428-rule run exists."""
+        found = self.complete_exit_run()
+        if not found:
+            return None
+        run_id, vdirs, closing = found
+        self.read(self.results / "ledger.jsonl")
+        variants = {}
+        for vdir in vdirs:
+            v = vdir.name
+            summary = json.loads(self.read(vdir / "summary.json").read_text())
+            grid = pd.read_csv(self.read(vdir / "grid.csv"))
+            event = closing[v]
+            roles = ["baseline", *EXIT_FAMILIES, "overall"]
+            if set(summary) != set(roles):
+                raise ExportError(f"{v}: exit summary roles {sorted(summary)} are not the declared roles")
+            if int(summary["overall"]["order"]) != int(grid.iloc[0]["order"]):
+                raise ExportError(f"{v}: exit summary overall order != grid top row order")
+            if grid["order"].duplicated().any():
+                raise ExportError(f"{v}: duplicate rule order in the exit grid")
+            by_order = grid.set_index("order")
+            baseline = float(by_order.loc[int(summary["baseline"]["order"]), "objective"])
+            if (abs(float(grid.iloc[0]["objective"]) - float(event["best_objective"])) > 0.01
+                    or abs(baseline - float(event["baseline_objective"])) > 0.01
+                    or event["rules"] != len(grid) or event.get("winners", {}) != {
+                        r: int(summary[r]["order"]) for r in roles}):
+                raise ExportError(f"{v}: exit ledger closing event does not match the grid and summary")
+            out = {}
+            for role in roles:
+                w = summary[role]
+                row = by_order.loc[int(w["order"])]
+                s0 = w["slippage_0"]
+                if abs(float(row["objective"]) - (s0["all"]["net_profit"] + s0["open_pnl"])) > 0.01:
+                    raise ExportError(f"{v} {role}: grid objective != summary net profit + open P&L")
+                if row["family"] != w["family"] or bool(row["unverified"]) != bool(w["unverified"]):
+                    raise ExportError(f"{v} {role}: grid row and summary disagree on family or unverified")
+                best_of = (1 if role == "baseline" else len(grid) if role == "overall"
+                           else int((grid["family"] == role).sum()))
+                out[role] = {
+                    "order": int(w["order"]), "family": w["family"], "rule": w["rule"],
+                    "unverified": bool(w["unverified"]), "best_of": best_of, "objective_usd": clean(float(row["objective"])),
+                    "scenarios": {str(k): self.scenario(w, k) for k in SCENARIOS},
+                }
+            beating = grid["objective"] > baseline
+            variants[v] = {
+                "rules_total": len(grid), "baseline_objective": clean(baseline),
+                "family_counts": {f: int((grid["family"] == f).sum()) for f in EXIT_FAMILIES},
+                "beating_baseline": {"total": int(beating.sum()), **{
+                    f: int((beating & (grid["family"] == f)).sum()) for f in EXIT_FAMILIES}},
+                "positive_objective": int((grid["objective"] > 0).sum()),
+                "winners": out,
+            }
+        return {"run_id": run_id, "variants": variants}
+
     def run(self) -> Path:
         data = {
             "export_version": EXPORT_VERSION,
             "generated_utc": self.generated_utc,
             "strategy": self.strategy,
             "features": {"f1": self.feature1(), "f2": self.feature2(), "f3": self.feature3(), "f4": None,
-                         "f5": None},
+                         "f5": None, "exits": self.feature_exits()},
         }
         data["sources"] = [{"path": p, "sha256": h} for p, h in sorted(self.sources.items())]
         check_publication(data)

@@ -29,6 +29,7 @@ import { story } from "../../lib/illustrative/fair-price-reversal";
 import Callout from "../../components/Callout.astro";
 import F1Results from "../../components/F1Results.astro";
 import F2Runs from "../../components/F2Runs.astro";
+import ExitStudy from "../../components/ExitStudy.astro";
 import F3Results from "../../components/F3Results.astro";
 import Pending from "../../components/Pending.astro";
 import SessionTable from "../../components/SessionTable.astro";
@@ -79,6 +80,24 @@ then reports the one with the highest net profit at 0 ticks. Below is that winne
 </Callout>
 
 <F1Results strategy="fair_price_reversal" paramLabels={{ window: "window (min)", atr_mult: "ATR multiple", swing: "swing bars", target: "target" }} />
+
+## Exit study: breakeven and trailing stop
+
+Here the entry and the first stop stay exactly as F1 found them, and only the exit changes. **T** is the target
+distance: how far the profit target sits from the entry. The study tried breakeven by touch, by close and by time;
+trailing stops that follow a fraction of T, an ATR line, the last swing pivot, a step ratchet, the best close, an
+EMA or Parabolic SAR; combinations with three declared breakevens; and a plain time exit. Stops move at each
+1-minute close and work from the next bar.
+
+<ExitStudy strategy="fair_price_reversal" />
+
+### What this means
+
+Changing the exit does not rescue this strategy. In Asia and New York no exit rule beat the plain fixed stop and
+target. In London only 2 of 427 rules did, the best by about $2,800 over 16 years, and it still loses money at
+1 tick. Breakeven rules hurt the most (New York: $42,476 down to between $11,714 and $23,988 at 0 ticks). The likely
+reason is that trades pulled back to the entry and later reached the target, but the moved stop closed them first. The problem found in F1 is the
+entry's edge being smaller than costs. A different exit cannot fix that.
 
 ## Search for a better filter (F2)
 

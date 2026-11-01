@@ -28,6 +28,7 @@ import { story } from "../../lib/illustrative/supertrend-kalman";
 import Callout from "../../components/Callout.astro";
 import F1Results from "../../components/F1Results.astro";
 import F2Runs from "../../components/F2Runs.astro";
+import ExitStudy from "../../components/ExitStudy.astro";
 import F3Results from "../../components/F3Results.astro";
 import Pending from "../../components/Pending.astro";
 
@@ -73,6 +74,26 @@ best one of each version, rerun at 1 and 2 ticks.
 </Callout>
 
 <F1Results strategy="supertrend_kalman" paramLabels={{ trigger: "entry", vol: "volatility filter", exit: "exit", rr: "target R", swing: "swing bars", trail_mult: "trail ATR ×", st_factor: "Supertrend factor", kalman_q: "Kalman q" }} />
+
+## Exit study: breakeven and trailing stop
+
+Here the entry and the first stop stay exactly as F1 found them, and only the exit changes. **T** is the target
+distance: how far the profit target sits from the entry. The study tried breakeven by touch, by close and by time;
+trailing stops that follow a fraction of T, an ATR line, the last swing pivot, a step ratchet, the best close, an
+EMA or Parabolic SAR; combinations with three declared breakevens; and a plain time exit. Stops move at each
+1-minute close and work from the next bar.
+
+<ExitStudy strategy="supertrend_kalman" />
+
+### What this means
+
+Exit rules do not change the picture. In All hours and New York, the two biggest variants, no rule really beat the
+fixed stop and target. All hours: 0 of 427. New York: the best gained $40 over 16 years. In All hours, every
+breakeven and trailing family cut net profit sharply, and some turned it negative. Asia and London improved
+slightly. The best London rule (breakeven at half the target plus a 1-minute EMA(9) trail, target removed) added
+$2,440 at 0 ticks and $2,900 at 1 tick over 16 years, and Asia still loses at 1 tick. Those gains are the best of
+428 tries on the same data. They are about the size that picking the best of many rules can produce by luck. They
+were found on the full history, including the reserved 2024+ years, so they cannot be checked there.
 
 ## Search for a better filter (F2)
 

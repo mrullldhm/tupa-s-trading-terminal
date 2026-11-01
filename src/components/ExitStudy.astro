@@ -1,0 +1,152 @@
+---
+// Exit study (breakeven / trailing stop / time exit), copied from the tester's exits output by the exporter.
+// Display only: the winners, their slippage reruns and the counts are all tester numbers.
+import Badge from "./Badge.astro";
+import Callout from "./Callout.astro";
+import Pending from "./Pending.astro";
+import { strategyData, sessionLabel, SESSION_ORDER, type ExitVariant } from "../lib/data";
+import { usd, int, num, pct, tone } from "../lib/format";
+
+interface Props { strategy: string }
+const { strategy } = Astro.props;
+const exits = strategyData(strategy).features.exits;
+
+const FAMILY_LABEL: Record<string, string> = {
+  baseline: "Baseline (no exit rule)",
+  be_touch: "Breakeven, by touch",
+  be_close: "Breakeven, by close",
+  be_time: "Breakeven, by time",
+  trail_frac: "Trail a fraction of T",
+  trail_atr: "Trail by ATR",
+  trail_swing: "Trail at swing pivot",
+  trail_step: "Step ratchet",
+  trail_close: "Trail from best close",
+  trail_ema: "Trail at EMA",
+  trail_sar: "Trail at Parabolic SAR",
+  both: "Breakeven plus trailing",
+  time_exit: "Time exit",
+  overall: "Best of all",
+};
+const ROLES = ["baseline", "be_touch", "be_close", "be_time", "trail_frac", "trail_atr", "trail_swing", "trail_step", "trail_close", "trail_ema", "trail_sar", "both", "time_exit", "overall"];
+
+const variants: [string, ExitVariant][] = exits
+  ? Object.entries(exits.variants).sort((a, b) => SESSION_ORDER.indexOf(a[0]) - SESSION_ORDER.indexOf(b[0]))
+  : [];
+const total = variants[0]?.[1].rules_total;
+const beats = (v: ExitVariant, role: string): string =>
+  role === "baseline" ? "—"
+  : role === "overall" ? `${int(v.beating_baseline.total)} of ${int(v.rules_total)}`
+  : `${int(v.beating_baseline[role])} of ${int(v.family_counts[role])}`;
+---
+{!exits && (
+  <Pending heading="Run in progress">
+    The exit study for this strategy is still running. The results will appear here when every version has finished.
+  </Pending>
+)}
+{exits && <>
+<Callout tone="honest" title="Read this first">
+  <p>This is in-sample. Each version is the best of {int(total)} exit rules, and its F1 settings are frozen, so only
+  the exit changes. Those settings were picked on the full F1 data, and the test uses the same data, including the
+  reserved 2024+ years. The winners cannot be validated on 2024+. The 1 and 2 tick columns rerun the same winner;
+  they are not new tests.</p>
+</Callout>
+
+{variants.map(([key, v]) => (
+  <section class="variant" aria-labelledby={`exit-${key}`}>
+    <h3 id={`exit-${key}`}>{sessionLabel(key)}</h3>
+    <div class="table-scroll">
+      <table class="data">
+        <caption class="sr-only">Exit study for the {sessionLabel(key)} version: the best rule of each family, with the baseline first</caption>
+        <thead>
+          <tr>
+            <th scope="col">Family</th>
+            <th scope="col">Best rule</th>
+            <th scope="col" class="num">Best of</th>
+            <th scope="col" class="num">Net profit, 0 ticks</th>
+            <th scope="col" class="num">1 tick</th>
+            <th scope="col" class="num">2 ticks</th>
+            <th scope="col" class="num">Trades</th>
+            <th scope="col" class="num">% profitable</th>
+            <th scope="col" class="num">Profit factor</th>
+            <th scope="col" class="num">Max drawdown</th>
+            <th scope="col" class="num">Rules beating baseline</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ROLES.map((role) => {
+            const w = v.winners[role];
+            const s = w.scenarios;
+            return (
+              <tr class:list={[role === "overall" && "overall", role === "baseline" && "base"]}>
+                <th scope="row">{FAMILY_LABEL[role]}</th>
+                <td class="rule">
+                  {role === "baseline" ? "No exit rule" : w.rule}
+                  {w.unverified && <> <Badge tone="warn">unverified</Badge></>}
+                </td>
+                <td class="num">{int(w.best_of)}</td>
+                <td class:list={["num", tone(s["0"].net_profit)]}>{usd(s["0"].net_profit, { cents: false })}</td>
+                <td class:list={["num", tone(s["1"].net_profit)]}>{usd(s["1"].net_profit, { cents: false })}</td>
+                <td class:list={["num", tone(s["2"].net_profit)]}>{usd(s["2"].net_profit, { cents: false })}</td>
+                <td class="num">{int(s["0"].total_closed_trades)}</td>
+                <td class="num">{pct(s["0"].percent_profitable)}</td>
+                <td class="num">{num(s["0"].profit_factor, 2)}</td>
+                <td class="num">{usd(s["0"].max_equity_drawdown, { cents: false, sign: false })}</td>
+                <td class="num">{beats(v, role)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+    <p class="note">{int(v.positive_objective)} of {int(v.rules_total)} rules ended above $0. Trades, % profitable, profit
+    factor and drawdown are at 0 ticks.</p>
+  </section>
+))}
+
+<p class="note foot">Net profit is closed trades. Rules were ranked on net profit plus any open position at the end,
+at 0 ticks, so a losing position left open could not hide. "Best of" is how many rules that row was picked from.
+<strong>Unverified:</strong> swing-pivot and Parabolic SAR trailing use Python copies of TradingView's
+<span class="mono">ta.pivotlow</span> and <span class="mono">ta.sar</span> that have not yet been checked against a
+TradingView export.</p>
+</>}
+<style>
+  .variant {
+    margin-top: 2.25rem;
+  }
+  .variant h3 {
+    font-size: var(--step-2);
+    margin-bottom: 0.9rem;
+  }
+  /* Eleven columns: scroll sideways instead of squeezing the rule text to one word a line. */
+  table.data {
+    min-width: 62rem;
+  }
+  .rule {
+    min-width: 13rem;
+    color: var(--ink-2);
+    font-size: 0.875rem;
+  }
+  tbody th[scope="row"] {
+    min-width: 11rem;
+  }
+  .base > * {
+    color: var(--ink-3);
+  }
+  .overall > * {
+    background: var(--panel-3);
+    border-top: 1px solid var(--line-3);
+    font-weight: 550;
+  }
+  .overall .rule {
+    color: var(--ink);
+  }
+  .note {
+    margin-top: 0.6rem;
+    max-width: var(--measure);
+    color: var(--ink-3);
+    font-size: 0.8125rem;
+  }
+  .foot {
+    margin-top: 1.75rem;
+  }
+</style>

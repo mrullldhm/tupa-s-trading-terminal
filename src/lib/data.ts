@@ -73,6 +73,26 @@ export type F2Run = {
   periods_year: PeriodTable | null;
 };
 
+/** One exit-study rule row (docs/ENGINE.md "Exit management"), as written by the tester. */
+export type ExitWinner = {
+  order: number;
+  family: string;
+  rule: string;
+  unverified: boolean;
+  best_of: number;
+  objective_usd: number;
+  scenarios: Scenarios;
+};
+export type ExitVariant = {
+  rules_total: number;
+  baseline_objective: number;
+  family_counts: Record<string, number>;
+  beating_baseline: Record<string, number>;
+  positive_objective: number;
+  winners: Record<string, ExitWinner>;
+};
+export type ExitStudyData = { run_id: string; variants: Record<string, ExitVariant> };
+
 export type StrategyData = {
   export_version: number;
   generated_utc: string;
@@ -89,11 +109,12 @@ export type StrategyData = {
     f3: { runs: F3Run[]; total_engine_runs: number } | null;
     f4: null;
     f5: null;
+    exits: ExitStudyData | null;
   };
   sources: { path: string; sha256: string }[];
 };
 
-export const EXPORT_VERSION = 3;
+export const EXPORT_VERSION = 4;
 export const MIN_ELIGIBLE_TRADES = 300; // docs/OPTIMIZE.md: a trial counts only with 300+ closed trades at 1 tick
 
 const all: Record<string, StrategyData> = {
@@ -132,6 +153,12 @@ function checkShape(key: string, d: StrategyData) {
   for (const r of d.features.f3?.runs ?? []) {
     if (!r.verdict || !r.wfo_total || !Array.isArray(r.folds) || !r.folds.length) bad(`f3 run ${r.tag} is incomplete`);
     if (r.verdict.advance !== (r.verdict.procedure && r.verdict.candidate)) bad(`f3 run ${r.tag}: advance must be procedure AND candidate`);
+  }
+  for (const [v, x] of Object.entries(d.features.exits?.variants ?? {})) {
+    if (!x.winners?.baseline || !x.winners?.overall) bad(`exits.${v} lacks the baseline or overall row`);
+    for (const [role, w] of Object.entries(x.winners)) {
+      for (const k of SCENARIO_KEYS) if (!w.scenarios?.[k]) bad(`exits.${v}.${role} has no scenario "${k}"`);
+    }
   }
 }
 
