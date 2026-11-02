@@ -67,7 +67,7 @@ Each export record carries source path, sha256, run id, interval, scenario, expo
 | `/method/how-to-read/` | How to read the results: 0 ticks still pays $4.02 commission; limits never slip; scenarios are separate runs; objective (net1, includes open P&L) vs closed net profit; non-annualized Sharpe; drawdown % of initial capital, intrabar; buy-and-hold comparator has roll gaps; margin calls 0 because margin is not checked; in-sample, best of N, reserved ≠ clean OOS |
 | `/strategies/<slug>/evidence/` | Stable evidence: protocol, exposure history, all runs with verdicts, scoped reviews with dates |
 | `/method/` | How the tester copies TradingView: fills, intrabar path, costs, slippage, sessions, roll rule (labelled as owner rule), dev vs reserved interval, "in-sample" and "best of N" in plain words |
-| `/journal/` | Dated entries: wins, dead ends (Donchian intraday, SSRN survey), reviews |
+| `/journal/` | Dated entries: wins, dead ends, reviews |
 | `/journal/<slug>/` | Entry |
 | `/about/` | Who, why CL only, Codex as reviewer, disclaimers in full |
 

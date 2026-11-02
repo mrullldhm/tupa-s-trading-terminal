@@ -70,7 +70,6 @@ published costs, separate slippage scenarios, an independent review and replicat
 - Feature 2 optimization runs: `../docs/strategies/fair_price_reversal/optimized/`, ledger in
   `../results/fair_price_reversal/ledger.jsonl`.
 - Engine rules: `../docs/ENGINE.md`. Optimize rules: `../docs/OPTIMIZE.md`. Codex reviews: `../docs/REVIEWS.md`.
-- Dead-end research worth journaling: daily Donchian breakout intraday, SSRN intraday CL survey.
 - No testimonials, followers, performance track record or live trading results exist. Do not invent any.
 
 ## Product Principles
