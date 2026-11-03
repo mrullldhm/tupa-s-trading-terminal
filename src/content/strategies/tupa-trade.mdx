@@ -19,6 +19,8 @@ updated: 2026-11-03
 ---
 import Callout from "../../components/Callout.astro";
 import F1Results from "../../components/F1Results.astro";
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/tupa-trade";
 
 ## The idea
 
@@ -29,6 +31,11 @@ Price always moves from a swing low to a swing high and back. So after a swing l
 high, and it can only be one of two things: a **higher high (HH)** or a **lower high (LH)**. After a swing high, the
 next swing is a **higher low (HL)** or a **lower low (LL)**. At every moment there are only two outcomes, and the
 trade comes from reading which one price is choosing right now.
+
+Click through this made-up short trade to see how the top-down reading leads to a 1-minute entry. These are
+illustrative prices, separate from the 26 October example below. Longs use the same rules in reverse.
+
+<AnnotatedChart story={story} />
 
 ## Swing points
 
