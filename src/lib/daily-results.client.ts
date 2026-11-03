@@ -3,6 +3,12 @@ import { SCENARIO_KEYS, isPeriodTable, periodFileUrl, type PeriodTable } from ".
 import type { TradeReplay } from "./trade-replay";
 
 const PAGE_SIZE = 30;
+// Share both the capability check and renderer download across result tables.
+let capability: Promise<{ available?: boolean } | null> | undefined;
+let renderer: Promise<typeof import("./trade-replay.render")> | undefined;
+function loadRenderer() {
+  return renderer ??= import("./trade-replay.render").catch(error => { renderer = undefined; throw error; });
+}
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, text = "", className = "") {
   const node = document.createElement(tag);
   node.textContent = text;
@@ -15,6 +21,7 @@ export function bootDailyResults() {
     if (root.dataset.booted) continue;
     root.dataset.booted = "true";
     const { strategy = "", key = "", version, generated } = root.dataset;
+    const panel = root.querySelector<HTMLElement>("[data-replay-panel]")!;
     const rows = root.querySelector<HTMLTableSectionElement>("[data-rows]")!;
     const more = root.querySelector<HTMLButtonElement>("[data-more]")!;
     const status = root.querySelector<HTMLElement>("[data-status]")!;
@@ -22,7 +29,7 @@ export function bootDailyResults() {
     let table: PeriodTable | undefined;
     let displayed = rows.children.length;
     let interactive = false;
-    let active: { row: HTMLTableRowElement; detail: HTMLTableRowElement; destroy?: () => void; controller: AbortController } | undefined;
+    let active: { row: HTMLTableRowElement; detail: HTMLElement; destroy?: () => void; controller: AbortController } | undefined;
 
     const close = () => {
       if (!active) return;
@@ -31,7 +38,8 @@ export function bootDailyResults() {
       active.row.removeAttribute("data-open");
       active.row.querySelector("button")?.setAttribute("aria-expanded", "false");
       active.row.querySelector("button")?.removeAttribute("aria-controls");
-      active.detail.remove();
+      active.detail.replaceChildren();
+      active.detail.hidden = true;
       active = undefined;
     };
 
@@ -51,12 +59,11 @@ export function bootDailyResults() {
         if (event.target instanceof Element && event.target.closest("button") && !button.contains(event.target)) return;
         if (active?.row === row) { close(); return; }
         close();
-        const detail = el("tr");
+        const detail = panel;
         detail.id = detailId;
-        const cell = el("td", "", "replay-cell");
-        cell.colSpan = 2;
-        detail.append(cell);
-        row.after(detail);
+        detail.hidden = false;
+        const cell = el("div", "", "replay-cell");
+        detail.replaceChildren(cell);
         button.setAttribute("aria-expanded", "true");
         button.setAttribute("aria-controls", detailId);
         row.dataset.open = "true";
@@ -65,19 +72,26 @@ export function bootDailyResults() {
         active = current;
         const toolbar = el("div", "", "replay-toolbar");
         toolbar.append(el("strong", `${row.dataset.day} · CL1! · 1 minute · MYT`));
+        const hide = el("button", "Hide chart", "toggle");
+        hide.type = "button";
+        hide.addEventListener("click", () => { close(); button.focus({ preventScroll: true }); });
+        toolbar.append(hide);
         cell.append(toolbar);
         const body = el("div"); cell.append(body);
         let request = 0;
         async function load() {
           const seq = ++request;
           current.destroy?.(); current.destroy = undefined;
-          const loading = el("p", "Loading real prices and replaying the strategy…", "replay-note");
+          const loading = el("p", "Loading real prices… The first chart verifies the full backtest and can take a few seconds.", "replay-note");
           loading.setAttribute("role", "status");
           body.replaceChildren(loading);
           body.setAttribute("aria-busy", "true");
           try {
             const query = new URLSearchParams({ strategy, key, day: row.dataset.day!, generated: generated! });
-            const response = await fetch(`/__trade-replay?${query}`, { signal: controller.signal });
+            // Download the renderer while the server prepares the verified replay.
+            const [response, chartRenderer] = await Promise.all([
+              fetch(`/__trade-replay?${query}`, { signal: controller.signal }), loadRenderer(),
+            ]);
             const data = await response.json();
             if (!response.ok) throw new Error(data.error ?? `Server answered ${response.status}`);
             if (seq !== request || active !== current) return;
@@ -90,10 +104,9 @@ export function bootDailyResults() {
               body.replaceChildren(el("p", "No trades closed on this day.", "replay-note"));
               return;
             }
-            const renderer = await import("./trade-replay.render");
             if (seq !== request || active !== current) return;
             body.replaceChildren();
-            current.destroy = renderer.renderReplay(body, replay);
+            current.destroy = chartRenderer.renderReplay(body, replay);
           } catch (error) {
             if (controller.signal.aborted || seq !== request || active !== current) return;
             const message = el("p", `Could not open this chart. ${error instanceof Error ? error.message : String(error)}`, "replay-note");
@@ -147,11 +160,23 @@ export function bootDailyResults() {
     more.hidden = displayed >= Number(root.dataset.total);
     more.addEventListener("click", loadEarlier);
     // Capability comes from the server; public builds never assume private market data is available.
-    if (root.dataset.replay === "local") void fetch("/__trade-replay/status").then(r => r.ok ? r.json() : null).then(capability => {
-      if (!capability?.available) return;
+    if (root.dataset.replay === "local") void (capability ??= fetch("/__trade-replay/status").then(r => r.ok ? r.json() : null).catch(() => null)).then(result => {
+      if (!result?.available) return;
       interactive = true;
       root.querySelector<HTMLElement>("[data-chart-hint]")!.hidden = false;
       rows.querySelectorAll<HTMLTableRowElement>("[data-day]").forEach(wireRow);
+      // Prepare the latest day shortly before its list enters view. Hidden tabs do no work.
+      // One request per table; the worker validates and caches it for the eventual click.
+      const observer = new IntersectionObserver(entries => {
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        observer.disconnect();
+        const day = rows.querySelector<HTMLElement>("[data-day]")?.dataset.day;
+        if (!day || (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
+        const query = new URLSearchParams({ strategy, key, day, generated: generated! });
+        void loadRenderer().catch(() => {});
+        void fetch(`/__trade-replay?${query}`).catch(() => {});
+      }, { rootMargin: "300px" });
+      observer.observe(root);
     }).catch(() => {});
   }
 }

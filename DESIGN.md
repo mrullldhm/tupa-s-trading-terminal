@@ -283,9 +283,11 @@ sticky headers, a row count and a 620px scroll well; without JavaScript the late
 Loading earlier days disables the button and names the loading state; a failure explains why and leaves it
 available to retry.
 
-On localhost development only, selecting a day expands one inline real historical CL one-minute chart;
-selecting it again collapses it, and selecting another day closes the previous chart. Opening removes the list's
-height cap. The replay uses the 0-tick baseline and checks simulated fills against saved trades. It shows
+On localhost development only, selecting a day opens one real historical CL one-minute chart above the daily list;
+selecting it again collapses it, and selecting another day replaces the chart. The daily list keeps its 620px
+scroll well, and the chart has a Hide chart control. The chart stays in document flow so it does not cover the
+list on smaller screens. The latest day is prepared as its list nears the viewport; repeated days and display
+indicators are cached privately with source invalidation. The replay uses the 0-tick baseline and checks simulated fills against saved trades. It shows
 entry/exit markers, working stop and target paths (including breakeven/trailing when active), strategy indicators,
 a full text legend and MYT execution prices in a table. Dates and execution timestamps stay on one line; wide
 numeric tables scroll horizontally. "Show candle and indicator values" supplies the chart's numeric alternative,

@@ -20,7 +20,8 @@ const first = days.slice(0, 30);
   <div class="daily-heading"><h4>Day by day</h4><span>Latest first · Malaysia time (UTC+8)</span></div>
   <p class="note">Net profit after commission. In-sample. Trades are grouped by the Malaysian date they closed.
     Days with no closed trades are left out; a dash means no trades closed.</p>
-  <p class="note" data-chart-hint hidden>Select a day to show its trades. Select it again to hide the chart.</p>
+  <p class="note" data-chart-hint hidden>Select a day to show its chart above the list. Select it again to hide the chart.</p>
+  <div class="replay-panel" data-replay-panel role="region" aria-label="Selected day chart" hidden></div>
   <div class="table-scroll tall">
     <table class="data">
       <caption class="sr-only">{label}: daily net profit after commission, latest first</caption>
@@ -51,14 +52,14 @@ const first = days.slice(0, 30);
   .daily-heading span, .count { font-size: 0.8125rem; color: var(--ink-3); }
   .note { max-width: var(--measure); margin: 0.5rem 0 0.9rem; font-size: 0.8125rem; color: var(--ink-2); }
   .daily-footer { margin-top: 0.75rem; align-items: center; }
-  .toggle { min-height: 44px; padding: 0 0.95rem; border: 0; border-radius: 9px; font: 500 0.875rem/1 var(--font);
+  .periods :global(.toggle) { min-height: 44px; padding: 0 0.95rem; border: 0; border-radius: 9px; font: 500 0.875rem/1 var(--font);
     color: var(--ink); background: var(--panel-2); box-shadow: 0 0 0 1px var(--line-2) inset; cursor: pointer; }
-  .toggle:hover:not(:disabled) { background: var(--panel-3); }
-  .toggle:disabled { cursor: progress; color: var(--ink-2); }
+  .periods :global(.toggle:hover:not(:disabled)) { background: var(--panel-3); }
+  .periods :global(.toggle:disabled) { cursor: progress; color: var(--ink-2); }
   .status { font-size: 0.8125rem; color: var(--short); }
   .status:empty { display: none; }
   .tall { max-height: 620px; overflow: auto; overscroll-behavior: contain; }
-  .tall:has([data-open]) { max-height: none; }
+  .replay-panel { margin-bottom: 1rem; border-radius: var(--radius-lg); background: var(--bg-raise); box-shadow: 0 0 0 1px var(--line-2) inset; }
   .tall :global(thead th) { position: sticky; top: 0; z-index: 1; }
   .periods :global(table.data) { min-width: 0; }
   .periods :global(table.data:not(.replay-trades)) { table-layout: fixed; width: 100%; }
@@ -73,8 +74,10 @@ const first = days.slice(0, 30);
   .periods :global(.replay-cell) { padding: 1rem; white-space: normal; }
   .periods :global(.replay-cell > *) { min-width: 0; max-width: 100%; }
   .periods :global(.replay-toolbar) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
-  .periods :global(.replay-toolbar select) { min-height: 44px; margin-left: 0.5rem; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 7px; padding: 0 0.5rem; font: inherit; }
+  .periods :global(.replay-toolbar strong) { font: 500 0.875rem/1.5 var(--font); }
+  .periods :global(.replay-toolbar .toggle) { flex: none; }
   .periods :global(.replay-canvas) { width: 100%; height: 360px; margin-top: 1rem; }
+  .periods :global([aria-busy="true"]) { min-height: 320px; }
   .periods :global(.replay-note) { font: 400 0.8125rem/1.6 var(--font); color: var(--ink-2); margin: 0.75rem 0; }
   .periods :global(.replay-trades) { min-width: 520px; font-size: 0.8125rem; }
   .periods :global(.replay-trades th), .periods :global(.execution-time), .periods :global(.execution-price) { white-space: nowrap; }

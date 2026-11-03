@@ -6,6 +6,8 @@ Requests and responses are newline-delimited JSON on stdin/stdout.
 """
 from __future__ import annotations
 
+from collections import OrderedDict
+
 import hashlib
 import importlib
 import json
@@ -25,6 +27,8 @@ from tvtester.data import Bars, load_bars
 
 STRATEGIES = {"fair_price_reversal", "supertrend_kalman", "tupa_trade"}
 CACHE = None
+# Small, private in-memory cache. Never exported into the public site.
+DAY_CACHE = OrderedDict()
 
 
 def seconds(time):
@@ -74,13 +78,24 @@ def replay(request):
              tuple((p.name, p.stat().st_mtime_ns, p.stat().st_size) for p in sorted((ROOT / "data/cl1").glob("year=*.parquet"))),
              tuple((str(p), p.stat().st_mtime_ns) for folder in ("strategies", "tvtester")
                    for p in sorted((ROOT / folder).glob("*.py"))))
+    # Invalidate cached days when any replay input changes, including this worker itself.
+    stamp += tuple((str(p), p.stat().st_mtime_ns, p.stat().st_size)
+                   for p in (Path(__file__), csv, ROOT / "web/src/data/strategies" / f"{request['strategy']}.json"))
+    day_key = (stamp, request["day"])
+    if day_key in DAY_CACHE:
+        DAY_CACHE.move_to_end(day_key)
+        return DAY_CACHE[day_key]
+    history_stamp = (summary["period_start"], summary["period_end"], stamp[4], stamp[5])
     if CACHE is None or CACHE[0] != stamp:
-        CACHE = None  # release the previous prepared history before allocating another
-        start = pd.Timestamp(summary["period_start"])
-        end = pd.Timestamp(summary["period_end"]) + pd.Timedelta(minutes=1)
-        frame = load_bars(str(start), str(end))
-        bars = Bars.from_frame(frame)
-        del frame
+        # Session/config changes can share the same bars and prepared indicator arrays.
+        bars = CACHE[1] if CACHE is not None and CACHE[5] == history_stamp else None
+        CACHE = None  # release the previous strategy and traces
+        if bars is None:
+            start = pd.Timestamp(summary["period_start"])
+            end = pd.Timestamp(summary["period_end"]) + pd.Timedelta(minutes=1)
+            frame = load_bars(str(start), str(end))
+            bars = Bars.from_frame(frame)
+            del frame
         strategy = module.STRATEGY(filters=filters, **params)
         paths = {}
 
@@ -108,8 +123,8 @@ def replay(request):
                     or trade.exit_reason != row.exit_reason
                     or abs(trade.profit - row.profit) > 0.005):
                 raise ValueError("Replay fills differ from the saved trades. No estimated chart will be shown.")
-        CACHE = (stamp, bars, strategy, result, paths)
-    _, bars, strategy, result, paths = CACHE
+        CACHE = (stamp, bars, strategy, result, paths, history_stamp)
+    _, bars, strategy, result, paths, _ = CACHE
     day = pd.Timestamp(request["day"], tz="Asia/Kuala_Lumpur")
     selected = [t for t in result.trades if day <= bars.ts[t.exit_bar] < day + pd.Timedelta(days=1)]
     payload = {"strategy": request["strategy"], "key": request["key"], "day": request["day"],
@@ -165,7 +180,10 @@ def replay(request):
     if request["strategy"] == "fair_price_reversal":
         # Anchor is raw body OHLC; swing levels are shown when confirmed, not backdated to the pivot.
         mod = strategy.mod
-        _, local_day = importlib.import_module("tvtester.sessions").local_clock(bars.ts, strategy.s.tz)
+        clock_key = ("replay-clock", strategy.s.tz)
+        if clock_key not in bars.cache:
+            bars.cache[clock_key] = importlib.import_module("tvtester.sessions").local_clock(bars.ts, strategy.s.tz)[1]
+        local_day = bars.cache[clock_key]
         upper, lower, top, bottom = [], [], None, None
         current_day = None
         for i in range(max(0, lo - 1500), hi):
@@ -178,18 +196,29 @@ def replay(request):
         add_line("Anchor body high", upper, "#b8b8bd")
         add_line("Anchor body low", lower, "#85858c")
         for high, label, values in ((True, "Confirmed swing high", bars.h), (False, "Confirmed swing low", bars.l)):
-            pivots = ta.buffer_pivots(values, strategy.params["swing"], high)
-            last = None; out = []
-            for i in range(hi):
-                if math.isfinite(pivots[i]): last = pivots[i]
-                if i >= lo: out.append(last)
+            pivot_key = ("replay-pivots", strategy.params["swing"], high)
+            if pivot_key not in bars.cache:
+                pivots = ta.buffer_pivots(values, strategy.params["swing"], high)
+                valid = np.flatnonzero(np.isfinite(pivots))
+                bars.cache[pivot_key] = pivots, valid
+            pivots, valid = bars.cache[pivot_key]
+            at = np.searchsorted(valid, indices, side="right") - 1
+            out = [pivots[valid[k]] if k >= 0 else None for k in at]
             add_line(label, out, "#b8b8bd" if high else "#85858c")
-        atr = ta.shift(ta.atr(bars.h, bars.l, bars.c, strategy.params["atr_len"]), 1)
+        atr_key = ("replay-atr", strategy.params["atr_len"])
+        if atr_key not in bars.cache:
+            bars.cache[atr_key] = ta.shift(ta.atr(bars.h, bars.l, bars.c, strategy.params["atr_len"]), 1)
+        atr = bars.cache[atr_key]
         add_line("ATR (previous bar, dollars)", atr[lo:hi], "#b8b8bd", 1)
     elif request["strategy"] == "supertrend_kalman":
         m = module.m15(bars)
-        st, _ = ta.supertrend(m["h"], m["l"], m["c"], strategy.params["st_factor"], strategy.params["atr_len"])
-        kalman, _ = ta.kalman_trend(m["c"] * TICK, strategy.params["kalman_q"])
+        display_key = ("replay-display", request["strategy"], strategy.params["st_factor"],
+                       strategy.params["atr_len"], strategy.params["kalman_q"])
+        if display_key not in bars.cache:
+            st, _ = ta.supertrend(m["h"], m["l"], m["c"], strategy.params["st_factor"], strategy.params["atr_len"])
+            kalman, _ = ta.kalman_trend(m["c"] * TICK, strategy.params["kalman_q"])
+            bars.cache[display_key] = st, kalman
+        st, kalman = bars.cache[display_key]
         j = strategy.prev[lo:hi]
         for label, values, color, ticks in (("M15 Supertrend", st, "#b8b8bd", True),
                                              ("M15 ATR trail", strategy.ind["tr_stop"], "#8fd4c1", True),
@@ -213,6 +242,9 @@ def replay(request):
             add_line(f"{tf} trend (+1 up / -1 down)", [state.trend[at[i]] if at[i] >= 0 else None for i in indices], "#b8b8bd", pane, ticks=False)
     rule = getattr(strategy, "rule", None)
     payload["notes"].append(f"Breakeven: {rule.be if rule else 'none'}. Extra trailing rule: {rule.trail if rule else 'none'}. Native strategy exit: {strategy.params.get('exit', 'fixed bracket')}.")
+    DAY_CACHE[day_key] = payload
+    while len(DAY_CACHE) > 16:
+        DAY_CACHE.popitem(last=False)
     return payload
 
 

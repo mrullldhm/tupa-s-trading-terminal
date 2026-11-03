@@ -33,7 +33,7 @@ PUBLIC_OUT = ROOT / "web" / "public" / "data"
 VERDICTS = ROOT / "web" / "src" / "data" / "verdicts.ts"
 EXPORT_VERSION = 4
 FETCHED_GRAINS = ("month", "week", "day")
-SCENARIOS = (0, 1, 2)
+SCENARIOS = (0,)
 
 # Per-scenario fields copied from summary.json. Dollar amounts and counts only, plus percentages of initial
 # capital (not of price).
@@ -392,8 +392,10 @@ class Exporter:
                         or abs((scen[k]["open_pnl"] or 0.0) - exp[f"open{k}"]) > 0.01
                         or scen[k]["total_closed_trades"] != exp[f"trades{k}"]):
                     raise ExportError(f"{run_id}: replay at {k} ticks does not match frozen config")
-            if abs(scen[1]["net_profit"] + (scen[1]["open_pnl"] or 0.0) - exp["objective"]) > 0.01:
-                raise ExportError(f"{run_id}: replay objective net1 does not match frozen config")
+            objective_k = int(cfg["source"]["objective"].removeprefix("net"))
+            objective_scenario = self.scenario(summary, objective_k)
+            if abs(objective_scenario["net_profit"] + (objective_scenario["open_pnl"] or 0.0) - exp["objective"]) > 0.01:
+                raise ExportError(f"{run_id}: replay objective does not match frozen config")
             tfs, curves = {}, {}
             for k in SCENARIOS:
                 tfs[k] = self.trades(self.results / "replay" / run_id / f"trades_slippage{k}.csv")
@@ -446,18 +448,20 @@ class Exporter:
                         if e["kind"] in ("validate_matrix", "validate_folds") and e.get("tag") == tag)
             if spent != done[0]["engine_runs"]:
                 raise ExportError(f"{tag}: ledger engine runs {spent} != validate event {done[0]['engine_runs']}")
-            check_totals = importlib.import_module("tvtester.validate").fold_totals(folds)
+            selected = int(meta["select_ticks"])
+            totals_args = {"select_ticks": selected, "scenarios": meta["scenarios"]}
+            check_totals = importlib.import_module("tvtester.validate").fold_totals(folds, **totals_args)
             for k in SCENARIOS:
                 if abs(check_totals[f"net{k}"] - verdict["wfo_total"][str(k)]) > 0.01:
                     raise ExportError(f"{tag}: fold table does not add up to the walk-forward total at {k} ticks")
-            if check_totals["positive1"] != verdict["positive_folds"]:
+            if check_totals[f"positive{selected}"] != verdict["positive_folds"]:
                 raise ExportError(f"{tag}: positive folds do not match the fold table")
             if verdict["advance"] != (verdict["procedure"] and verdict["candidate"]):
                 raise ExportError(f"{tag}: advance is not procedure AND candidate")
 
             validate_mod = importlib.import_module("tvtester.validate")
-            totals = validate_mod.fold_totals(folds)
-            rolling_totals = validate_mod.fold_totals(rolling)
+            totals = validate_mod.fold_totals(folds, **totals_args)
+            rolling_totals = validate_mod.fold_totals(rolling, **totals_args)
             rules = {k: meta["rules"][k] for k in ("min_positive_folds", "pbo_max", "dsr_min")}
             picked_labels = [None if pd.isna(x) else check_picked(str(x), self.param_keys) for x in folds["config"]]
 
@@ -471,7 +475,7 @@ class Exporter:
             def ds(x):
                 return {"dsr": clean(x["dsr"]), "sr0": clean(x["sr0"]), "n": x["n"]}
 
-            d1, d2 = dsr["ticks1"], dsr["ticks2"]
+            d1 = dsr[f"ticks{selected}"]
             runs.append({
                 "tag": tag, "variant": cfg["variant"], "time_utc": done[0]["time_utc"],
                 "candidate_trial": meta["candidate_trial"], "universe": meta["universe"],
@@ -482,21 +486,21 @@ class Exporter:
                             "advance": verdict["advance"], "procedure_checks": verdict["procedure_checks"],
                             "candidate_checks": verdict["candidate_checks"]},
                 "wfo_total": {str(k): clean(verdict["wfo_total"][str(k)]) for k in SCENARIOS},
-                "wfo_trades1": totals["trades1"],
+                "select_ticks": selected, "wfo_trades": totals[f"trades{selected}"],
                 "positive_folds": verdict["positive_folds"],
                 "folds": [{"year": int(r["year"]), "trial": None if pd.isna(r["trial"]) else int(r["trial"]),
                            "picked": picked_labels[i],
                            "train_obj": clean(opt(r["train_obj"])),
                            **{f"net{k}": clean(float(r[f"net{k}"])) for k in SCENARIOS},
-                           "trades1": int(r["trades1"]), "cand1": clean(float(r["cand1"]))}
+                           "trades": int(r[f"trades{selected}"]), "candidate": clean(float(r[f"cand{selected}"]))}
                           for i, (_, r) in enumerate(folds.iterrows())],
                 "rolling_total": {str(k): clean(rolling_totals[f"net{k}"]) for k in SCENARIOS},
                 "pbo": {"primary": pb(pbo["primary"]), "eligible_only": pb(pbo["eligible_only"]),
-                        "ticks2": pb(pbo["ticks2"]), "identical_paths": pbo["identical_paths"]},
+                        "identical_paths": pbo["identical_paths"]},
                 "dsr": {"sr": clean(d1["stats"]["sr"]), "skew": clean(d1["stats"]["skew"]),
                         "kurt": clean(d1["stats"]["kurt"]), "days": d1["stats"]["t"],
                         "primary": ds(d1["primary"]), "variant_n": ds(d1["variant_n"]),
-                        "strategy_n": ds(d1["strategy_n"]), "ticks2": ds(d2["primary"]),
+                        "strategy_n": ds(d1["strategy_n"]),
                         "monthly": ds(d1["monthly"]), "psr0": clean(d1["psr0"]["dsr"]),
                         "boot90": [clean(x) for x in d1["boot90"]] if d1["boot90"] else None},
             })

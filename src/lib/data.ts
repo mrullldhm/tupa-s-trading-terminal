@@ -42,13 +42,13 @@ export type Scenario = {
 };
 
 export type Curve = [string, number][];
-export type Scenarios = Record<"0" | "1" | "2", Scenario>;
+export type Scenarios = Record<"0", Scenario>;
 
 export type F1Variant = {
   params: Record<string, string | number>;
   grid_size: number;
   scenarios: Scenarios;
-  curve_month_end_closed_pnl: Record<"0" | "1" | "2", Curve>;
+  curve_month_end_closed_pnl: Record<"0", Curve>;
   periods_year: PeriodTable;
 };
 
@@ -70,7 +70,7 @@ export type F2Run = {
   interval: [string | null, string | null];
   source_trial: number;
   scenarios: Scenarios;
-  curve_month_end_closed_pnl: Record<"0" | "1" | "2", Curve>;
+  curve_month_end_closed_pnl: Record<"0", Curve>;
   periods_year: PeriodTable | null;
 };
 
@@ -164,7 +164,7 @@ function checkShape(key: string, d: StrategyData) {
   }
 }
 
-type Sc = { "0": number; "1": number; "2": number };
+type Sc = { "0": number; "1"?: number; "2"?: number };
 type Dsr = { dsr: number | null; sr0: number; n: number };
 type Pbo = { pbo: number | null; p_oos_loss: number | null; median_logit: number | null; splits: number; skipped: number };
 /** One F3 validation run (docs/VALIDATE.md), as written by the tester. */
@@ -183,16 +183,18 @@ export type F3Run = {
     procedure: boolean;
     candidate: boolean;
     advance: boolean;
-    procedure_checks: { wfo_net1: boolean; wfo_net2: boolean; folds: boolean; pbo: boolean };
+    procedure_checks: { wfo_net0?: boolean; wfo_net1?: boolean; wfo_net2?: boolean; folds: boolean; pbo: boolean };
     candidate_checks: { dsr: boolean };
   };
   wfo_total: Sc;
-  wfo_trades1: number;
+  select_ticks?: number;
+  wfo_trades?: number;
+  wfo_trades1?: number; // historical export
   positive_folds: number;
-  folds: { year: number; trial: number | null; picked: string | null; train_obj: number | null; net0: number; net1: number; net2: number; trades1: number; cand1: number }[];
+  folds: { year: number; trial: number | null; picked: string | null; train_obj: number | null; net0: number; net1?: number; net2?: number; trades?: number; candidate?: number; trades1?: number; cand1?: number }[];
   rolling_total: Sc;
-  pbo: { primary: Pbo; eligible_only: Pbo; ticks2: Pbo; identical_paths: number };
-  dsr: { sr: number | null; skew: number | null; kurt: number | null; days: number; primary: Dsr; variant_n: Dsr; strategy_n: Dsr; ticks2: Dsr; monthly: Dsr; psr0: number | null; boot90: [number, number] | null };
+  pbo: { primary: Pbo; eligible_only: Pbo; ticks2?: Pbo; identical_paths: number };
+  dsr: { sr: number | null; skew: number | null; kurt: number | null; days: number; primary: Dsr; variant_n: Dsr; strategy_n: Dsr; ticks2?: Dsr; monthly: Dsr; psr0: number | null; boot90: [number, number] | null };
 };
 
 export const SESSION_LABEL: Record<string, string> = { all: "All hours", asia: "Asia", london: "London", ny: "New York" };
