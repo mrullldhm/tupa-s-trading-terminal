@@ -5,7 +5,7 @@ order: 3
 dataKey: tupa_trade
 pine: strategies/tupa_trade.pine
 stage: tested
-verdict: Loses money even before slippage. The best of 4 settings won 31% of its trades; with a 25-tick target and a stop of up to 25 ticks it needs far more.
+verdict: Loses money after commission. The best of 4 settings won 31% of its trades; with a 25-tick target and a stop of up to 25 ticks it needs far more.
 features:
   f1: done
   f2: not-started
@@ -14,7 +14,7 @@ features:
   f5: not-started
 reviews:
   - { id: R19, kind: code, label: "Code reviewed; Pine session-reset bug fixed", date: 2026-11-03 }
-  - { id: R19, kind: replication, label: "Replicated: the 26 Oct trade and the F1 result, 0, 1 and 2 ticks", date: 2026-11-03 }
+  - { id: R19, kind: replication, label: "Replicated: the 26 Oct trade and the F1 baseline result", date: 2026-11-03 }
 updated: 2026-11-03
 ---
 import Callout from "../../components/Callout.astro";
@@ -49,7 +49,7 @@ illustrative prices, separate from the 26 October example below. Longs use the s
 ## Top-down reading
 
 I read the same chart on six timeframes: daily, 4 hours, 1 hour, 15 minutes, 5 minutes and 1 minute. Only closed
-candles count. The 4-hour candles start at 18:00 New York time, like the CME trading day.
+candles count. The 4-hour candles start at 06:00 MYT during US summer or 07:00 MYT during US winter, like the CME trading day.
 
 - **Downtrend** on a timeframe: its last higher low (HL) has been touched. **Uptrend:** its last lower high (LH)
   has been touched.
@@ -74,7 +74,7 @@ With a short bias, I wait for the 1-minute chart to turn from up to down:
 | Maximum risk | 25 ticks ($250 for one contract, before costs). If the stop is further away, the sell limit moves up toward it so the risk is exactly 25 ticks |
 | Take profit | 25 ticks from the fill |
 | Unfilled limit | Cancelled when the next 1-minute swing high forms |
-| Session | New York only, 09:00 to 14:30 New York time. One trade per session. An open trade is closed at the end |
+| Session | New York only: 21:00–02:30 MYT during US summer, 22:00–03:30 MYT during US winter (ends the following day). One trade per session. An open trade is closed at the end |
 
 ## One example: 26 October 2026
 
@@ -96,19 +96,18 @@ result, in my tester and in Codex's own code.
 
 The tester had no stop-limit orders before this strategy. They now follow one rule. When price touches the trigger,
 the order becomes a limit order. It can still fill later in the same candle if price comes back to the limit. A
-limit fill never gets slippage. This rule has not been checked against TradingView yet. The first check is whether
+limit fill uses the limit price or a better price. This rule has not been checked against TradingView yet. The first check is whether
 TradingView takes the 26 October trade at the same minute and price.
 
 ## Test every setting (F1)
 
 The open question of how low the tested timeframe may go became the one setting: 15 minutes, 1 hour, 4 hours or
-daily. All four ran over 16 years of 1-minute data, New York session only. Below is the best one, rerun at 1 and 2
-ticks.
+daily. All four ran over 16 years of 1-minute data, New York session only. Below is the best one, with commission included.
 
 <Callout tone="honest" title="The honest result">
-  <p>All four settings lose money, even with no slippage. The best one (the tested timeframe can only be the daily)
-  lost $14,149 over 858 trades at 0 ticks, and $26,209 at 2 ticks. It won 31% of its trades. With wins of about
-  $239 and losses of about $132, it would need to win about 36% just to break even before slippage. Longs and shorts
+  <p>All four settings lose money, after commission. The best one (the tested timeframe can only be the daily)
+  lost $14,149 over 858 trades. It won 31% of its trades. With wins of about
+  $239 and losses of about $132, it would need to win about 36% just to break even after commission. Longs and shorts
   lost about the same.</p>
 </Callout>
 
@@ -117,7 +116,7 @@ ticks.
 ### What this means
 
 As coded, these rules have no edge on CL. The other three settings traded more often (2,000 to 4,100 trades) and
-lost more ($32,852 to $34,158 at 0 ticks), so more trades did not help. Only 5 of the 17 years made money, none by
+lost more ($32,852 to $34,158 after commission), so more trades did not help. Only 5 of the 17 years made money, none by
 much.
 
 These numbers test the rules as written down, not the trader. If my hand trading uses judgement the rules do not

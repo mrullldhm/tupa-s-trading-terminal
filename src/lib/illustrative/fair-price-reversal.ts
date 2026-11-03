@@ -18,8 +18,8 @@ function rng(seed: number) {
   };
 }
 
-// Clock minutes from 08:40. A fake day, with UTC clock = displayed New York clock.
-const START = Date.UTC(2001, 0, 8, 8, 40) / 1000;
+// A fake January day: 08:40 New York is 13:40 UTC / 21:40 Malaysia.
+const START = Date.UTC(2001, 0, 8, 13, 40) / 1000;
 const m = (hh: number, mm: number) => (hh - 8) * 60 + mm - 40;
 
 // Close path waypoints [minute index, close].
@@ -111,7 +111,7 @@ export const steps: Step[] = [
     title: "The anchor candle sets the fair price",
     text: "The last 1-minute candle before the session opens is the anchor. Its body, from open to close, is treated as the fair price zone. Wicks do not count.",
     until: IDX.anchor + 1,
-    markers: [{ index: IDX.anchor, position: "aboveBar", shape: "arrowDown", text: "Anchor 08:59" }],
+    markers: [{ index: IDX.anchor, position: "aboveBar", shape: "arrowDown", text: "Anchor 21:59 MYT" }],
     lines: [
       { price: LEVELS.bodyTop, label: "Body top", tone: "ink" },
       { price: LEVELS.bodyBottom, label: "Body bottom", tone: "ink" },

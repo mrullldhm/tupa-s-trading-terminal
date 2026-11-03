@@ -13,8 +13,7 @@ bars. An order placed at a candle's close fills on the next candle. Inside a can
 then the nearer extreme, then the other extreme, then close. Stops and limits fill the same way TradingView fills
 them.
 
-Every test uses the same fixed costs: $2.01 per order, 1 contract, $50,000 capital. Slippage is shown separately
-at 0, 1 and 2 ticks, so a result can never hide behind a perfect fill.
+Every test uses the same fixed costs: $2.01 per order, 1 contract, $50,000 capital. The site displays baseline results after commission. Planned limit-entry strategy updates and new tests are pending.
 
 Before any result counted, Codex reviewed the plan and the code. It found one high and eight medium problems in
 the code review. All were fixed, each with a test. One rule is mine and not TradingView's: a trade still open on a

@@ -1,15 +1,15 @@
 // Shared by the build and the browser, so it must not import the strategy JSON.
-// Net profit per UTC exit period at 0, 1 and 2 ticks (tvtester.metrics.by_period). null = no exit in that period
-// at that slippage. Year tables are embedded; month, week and day tables are fetched on demand.
-export const SCENARIO_KEYS = ["0", "1", "2"] as const;
+// Daily display groups by Malaysia exit date; legacy report periods retain their source calendar.
+// Read the existing export schema while displaying only the baseline.
+export const SCENARIO_KEYS = ["0"] as const;
 export const FETCHED_GRAINS = ["month", "week", "day"] as const;
 export type FetchedGrain = (typeof FETCHED_GRAINS)[number];
 
 export type PeriodTable = { periods: string[]; net: Record<(typeof SCENARIO_KEYS)[number], (number | null)[]> };
-export type PeriodFile = PeriodTable & { export_version: number; strategy: string; key: string; grain: string };
+export type PeriodFile = PeriodTable & { export_version: number; generated_utc: string; strategy: string; key: string; grain: string; timezone?: string };
 
 export function periodFileUrl(strategy: string, key: string, grain: FetchedGrain): string {
-  return `/data/${strategy}/${key}/${grain}.json`;
+  return `/data/${strategy}/${key}/${grain === "day" ? "day-my" : grain}.json`;
 }
 
 export function isPeriodTable(t: unknown): t is PeriodTable {

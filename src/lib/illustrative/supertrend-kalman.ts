@@ -22,8 +22,8 @@ function rng(seed: number) {
   };
 }
 
-// A fake day; UTC clock = displayed New York clock. Bucket index b opens at 03:00 + 15 b minutes.
-const START = Date.UTC(2001, 0, 9, 3, 0) / 1000;
+// A fake January day: 03:00 New York is 08:00 UTC / 16:00 Malaysia. Bucket b adds 15 b minutes.
+const START = Date.UTC(2001, 0, 9, 8, 0) / 1000;
 const b = (hh: number, mm: number) => ((hh - 3) * 60 + mm) / 15;
 
 // Close path waypoints [bucket, close]: a slide, a base with a lower low, then a turn up.
@@ -129,7 +129,7 @@ export const steps: Step[] = [
   },
   {
     title: "Decide one minute later, with stop and target",
-    text: "The test waits for the first 1-minute bar of the next candle to close, then the order fills at the next 1-minute open, at 11:46. The stop goes at the last confirmed swing low. The target is 96 ticks above the fill: twice the 48-tick distance from the decision close to the stop.",
+    text: "The test waits for the first 1-minute bar of the next candle to close, then the order fills at the next 1-minute open, at 00:46 MYT the following day. The stop goes at the last confirmed swing low. The target is 96 ticks above the fill: twice the 48-tick distance from the decision close to the stop.",
     until: IDX.decide + 1,
     markers: [
       { index: IDX.swingLow, position: "belowBar", shape: "arrowUp", text: "Swing low" },

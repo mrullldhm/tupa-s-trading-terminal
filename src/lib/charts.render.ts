@@ -14,6 +14,7 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 import type { Candle, Overlay, Step, Tone } from "./illustrative/types";
+import { malaysiaTimestamp, malaysiaTick } from "./time";
 
 function required<T extends Element>(root: ParentNode, selector: string): T {
   const el = root.querySelector<T>(selector);
@@ -30,7 +31,6 @@ function jsonData<T>(el: HTMLElement, key: string): T {
 const css = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
 function base(el: HTMLElement, opts: { time: boolean; minutes?: boolean }): IChartApi {
-  const pad = (n: number) => String(n).padStart(2, "0");
   return createChart(el, {
     autoSize: true,
     layout: {
@@ -52,18 +52,12 @@ function base(el: HTMLElement, opts: { time: boolean; minutes?: boolean }): ICha
       fixLeftEdge: true,
       fixRightEdge: true,
       tickMarkFormatter: opts.minutes
-        ? (t: number) => {
-            const d = new Date(t * 1000);
-            return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
-          }
+        ? (t: number, type: number) => malaysiaTick(t, type)
         : undefined,
     },
     localization: opts.minutes
       ? {
-          timeFormatter: (t: number) => {
-            const d = new Date(t * 1000);
-            return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} NY`;
-          },
+          timeFormatter: (t: number) => `${malaysiaTimestamp(t)} MYT`,
         }
       : { locale: "en-US" },
     crosshair: {

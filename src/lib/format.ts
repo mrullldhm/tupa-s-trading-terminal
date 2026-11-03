@@ -33,5 +33,5 @@ export function tone(v: number | null | undefined): "pos" | "neg" | "" {
 
 export function date(iso: string | Date): string {
   const d = typeof iso === "string" ? new Date(iso) : iso;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kuala_Lumpur" });
 }

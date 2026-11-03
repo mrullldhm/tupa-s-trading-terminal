@@ -3,7 +3,7 @@ import type { Scenarios } from "../lib/data";
 import { usd, int, pct, num, tone } from "../lib/format";
 interface Props { scenarios: Scenarios; caption: string; objectiveNote?: boolean }
 const { scenarios, caption, objectiveNote = false } = Astro.props;
-const ks = ["0", "1", "2"] as const;
+const ks = ["0"] as const;
 // `s` is the short form shown on narrow screens so all three scenarios fit side by side.
 type Cell = { v: string; s?: string; sub?: string; t?: string };
 const money = (v: number) => ({ v: usd(v), s: usd(v, { cents: false }), t: tone(v) });
@@ -35,9 +35,7 @@ if (objectiveNote) {
     <thead>
       <tr>
         <th scope="col">Number</th>
-        <th scope="col" class="num">0 ticks<span class="long"> slippage</span></th>
-        <th scope="col" class="num">1 tick<span class="long"> slippage</span></th>
-        <th scope="col" class="num">2 ticks<span class="long"> slippage</span></th>
+        <th scope="col" class="num">Result</th>
       </tr>
     </thead>
     <tbody>
@@ -81,7 +79,7 @@ if (objectiveNote) {
       padding: 0.6rem 0.45rem;
     }
     .scen :global(th[scope="row"]) {
-      width: 34%;
+      width: 56%;
       white-space: normal;
     }
     /* Short forms are for the eye only; the full values stay in the accessibility tree. */

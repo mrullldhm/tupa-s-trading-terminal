@@ -54,7 +54,7 @@ function baselineBefore(variant: string, cutoff: string | null) {
   it is <strong>not</strong> a clean out-of-sample test.</p>
   <p>Each result is the best of its run ({trialSizes} tries). Across all sessions the search tried{" "}
   {int(f2.total_trials)} settings ({perSessionText}), on top of the {f1GridText}-setting F1 grids. That
-  took{" "}{int(f2.total_engine_evaluations)} engine runs in total (each try runs at 0, 1 and 2 ticks, plus checks).</p>
+  took{" "}{int(f2.total_engine_evaluations)} engine runs in total (including reruns and checks).</p>
 </Callout>
 
 <div class="table-scroll runs">
@@ -64,7 +64,7 @@ function baselineBefore(variant: string, cutoff: string | null) {
       <tr>
         <th scope="col">Run</th>
         <th scope="col">Best setting found</th>
-        <th scope="col" class="num">Net at 0 ticks</th>
+        <th scope="col" class="num">Net profit</th>
         <th scope="col" class="num">Trades</th>
         <th scope="col">Verdict</th>
       </tr>
@@ -81,7 +81,7 @@ function baselineBefore(variant: string, cutoff: string | null) {
               <span class="sub">{samplerLabel(r.sampler)} · {r.trials} tries</span>
             </th>
             <td class="setting"><ul>{plainSettings(r.winner).map((x) => <li>{x}</li>)}</ul></td>
-            <td class:list={["num", tone(s0.net_profit)]} data-label="Net at 0 ticks:">{usd(s0.net_profit)}</td>
+            <td class:list={["num", tone(s0.net_profit)]} data-label="Net profit:">{usd(s0.net_profit)}</td>
             <td class="num" data-label="Trades:">{int(s0.total_closed_trades)}</td>
             <td class="verdict">
               {(
@@ -99,20 +99,21 @@ function baselineBefore(variant: string, cutoff: string | null) {
     </tbody>
   </table>
 </div>
-<p class="rule muted">A setting only counts if it has at least {MIN_ELIGIBLE_TRADES} closed trades at 1 tick. The search objective is
-net profit at 1 tick <em>plus</em> any open trade at the end; the tables below show both.</p>
+<p class="rule muted">These are saved searches from the previous execution assumptions, with a minimum of {MIN_ELIGIBLE_TRADES} closed trades.
+Their original candidate and rejection labels are historical. The numbers shown here include commission only.
+Re-run selection and validation after the limit-entry updates; these are not newly ranked winners.</p>
 
 {candidates.map((r) => (
   <section class="candidate">
     <h3>{sessionLabel(r.variant)} candidate: {plainSettings(r.winner).join(", ")}</h3>
     <ScenarioTable scenarios={r.scenarios} objectiveNote caption={`F2 candidate, ${sessionLabel(r.variant)}`} />
     <CurveChart
-      title={`${sessionLabel(r.variant)} candidate vs. F1 baseline, 0 ticks`}
-      caption={`Month-end cumulative closed-trade P&L at 0 ticks (commission included). The candidate line covers the development interval only (before 2024). The baseline line is the F1 top setting over its full test period, cut to the same months for comparison.`}
+      title={`${sessionLabel(r.variant)} candidate vs. F1 baseline`}
+      caption={`Month-end cumulative closed-trade P&L after commission. The candidate line covers the development interval only (before 2024). The baseline line is the F1 top setting over its full test period, cut to the same months for comparison.`}
       series={[
-        { label: "Candidate, 0 ticks", tone: "long", points: r.curve_month_end_closed_pnl["0"] },
+        { label: "Candidate", tone: "long", points: r.curve_month_end_closed_pnl["0"] },
         {
-          label: "F1 baseline, 0 ticks",
+          label: "F1 baseline",
           tone: "faint",
           points: baselineBefore(r.variant, r.interval[1]),
         },

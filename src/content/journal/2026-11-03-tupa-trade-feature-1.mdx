@@ -1,7 +1,7 @@
 ---
 title: "Tupa Trade F1: the rules as written lose money"
 date: 2026-11-03
-summary: The first full test of my own method. All four settings lose money even with no slippage. The 26 October example trade was reproduced exactly.
+summary: The first full test of my own method. All four settings lose money after commission. The 26 October example trade was reproduced exactly.
 kind: result
 strategy: tupa-trade
 ---
@@ -12,8 +12,7 @@ written rules say.
 Then the full test: 16 years of 1-minute data, New York session only, four settings for the one open rule (how low
 the tested timeframe may go).
 
-**All four lose money, even before slippage.** The best one lost $14,149 over 858 trades at 0 ticks and $26,209 at
-2 ticks. It won 31% of its trades. With wins about 1.8 times the size of losses, it needed about 36% to break even.
+**All four lose money, after commission.** The best one lost $14,149 over 858 trades. It won 31% of its trades. With wins about 1.8 times the size of losses, it needed about 36% to break even.
 Only 5 of 17 years made money.
 
 Codex's review also found a bug in the Pine version: it never reset the one-trade-per-session rule, so in

@@ -175,12 +175,12 @@ def check_trades_match_summary(tf: pd.DataFrame, scen: dict, label: str) -> None
         raise ExportError(f"{label}: trades end at {last:.2f}, summary says {scen['net_profit']:.2f}")
 
 
-def monthly_curve(tf: pd.DataFrame, start: str, end: str) -> list[list]:
+def monthly_curve(tf: pd.DataFrame, start: str, end: str, timezone: str = "UTC") -> list[list]:
     """Month-end cumulative closed-trade P&L. Months without exits carry the previous value."""
-    exit_month = pd.to_datetime(tf["exit_time"], utc=True).dt.tz_localize(None).dt.to_period("M")
+    exit_month = pd.to_datetime(tf["exit_time"], utc=True).dt.tz_convert(timezone).dt.tz_localize(None).dt.to_period("M")
     last = tf.assign(month=exit_month).groupby("month")["cum_profit"].last()
-    months = pd.period_range(pd.Timestamp(start).tz_localize(None).to_period("M"),
-                             pd.Timestamp(end).tz_localize(None).to_period("M"), freq="M")
+    months = pd.period_range(pd.to_datetime(start, utc=True).tz_convert(timezone).tz_localize(None).to_period("M"),
+                             pd.to_datetime(end, utc=True).tz_convert(timezone).tz_localize(None).to_period("M"), freq="M")
     outside = last.index.difference(months)
     if len(outside):
         raise ExportError(f"trades exit outside the test period: {[str(m) for m in outside[:3]]}")
@@ -188,14 +188,21 @@ def monthly_curve(tf: pd.DataFrame, start: str, end: str) -> list[list]:
     return [[str(month), round(float(value), 2)] for month, value in zip(months, series, strict=True)]
 
 
-def period_table(tfs: dict[int, pd.DataFrame], scen: dict[int, dict], grain: str, label: str) -> dict:
+def period_table(tfs: dict[int, pd.DataFrame], scen: dict[int, dict], grain: str, label: str,
+                 timezone: str = "UTC") -> dict:
     """Net profit per exit period for 0, 1 and 2 ticks, from tvtester.metrics.by_period. Each scenario's periods
     must add up to its own summary (trade count and net profit), so nothing is lost or invented."""
     from tvtester import metrics
 
     nets: dict[int, dict[str, float]] = {}
     for k in SCENARIOS:
-        table = metrics.by_period(tfs[k], grain)
+        tf = tfs[k]
+        if timezone != "UTC":
+            # by_period buckets UTC calendar fields. Pass a copy with Malaysian wall-clock fields for grouping
+            # only; actual fill instants and the tester's UTC report/validation are unchanged.
+            local = pd.to_datetime(tf["exit_time"], utc=True).dt.tz_convert(timezone)
+            tf = tf.assign(exit_time=local.dt.tz_localize(None).dt.tz_localize("UTC"))
+        table = metrics.by_period(tf, grain)
         if int(table["trades"].sum()) != scen[k]["total_closed_trades"]:
             raise ExportError(f"{label} {grain} at {k} ticks: {int(table['trades'].sum())} trades, "
                               f"summary says {scen[k]['total_closed_trades']}")
@@ -319,6 +326,11 @@ class Exporter:
                 "key": key, "grain": grain,
                 **period_table(tfs, scen, grain, key),
             }
+        self.period_files[f"{key}/day-my"] = {
+            "export_version": EXPORT_VERSION, "generated_utc": self.generated_utc, "strategy": self.strategy,
+            "key": key, "grain": "day", "timezone": "Asia/Kuala_Lumpur",
+            **period_table(tfs, scen, "day", key, timezone="Asia/Kuala_Lumpur"),
+        }
         return period_table(tfs, scen, "year", key)
 
     def feature1(self) -> dict:
@@ -342,7 +354,7 @@ class Exporter:
                 scen[k] = self.scenario(summary, k)
                 tfs[k] = self.trades(vdir / f"trades_slippage{k}.csv")
                 check_trades_match_summary(tfs[k], scen[k], f"{v} at {k} ticks")
-                curves[k] = monthly_curve(tfs[k], scen[k]["period_start"], scen[k]["period_end"])
+                curves[k] = monthly_curve(tfs[k], scen[k]["period_start"], scen[k]["period_end"], timezone="Asia/Kuala_Lumpur")
             by_year = self.by_year(v)
             closed = sum(r["net_profit"] for r in by_year)
             if abs(closed - net0) > 0.05:
@@ -386,7 +398,7 @@ class Exporter:
             for k in SCENARIOS:
                 tfs[k] = self.trades(self.results / "replay" / run_id / f"trades_slippage{k}.csv")
                 check_trades_match_summary(tfs[k], scen[k], f"{run_id} at {k} ticks")
-                curves[k] = monthly_curve(tfs[k], scen[k]["period_start"], scen[k]["period_end"])
+                curves[k] = monthly_curve(tfs[k], scen[k]["period_start"], scen[k]["period_end"], timezone="Asia/Kuala_Lumpur")
             # Period tables only for candidates: rejected runs are listed, not drilled into (and not published).
             periods = self.periods(f"f2-{run_id}", tfs, scen) if candidates[run_id] else None
             runs.append({

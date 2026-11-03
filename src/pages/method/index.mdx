@@ -1,7 +1,7 @@
 ---
 layout: ../../layouts/MdxPage.astro
 title: How the testing works
-description: How the CL1! tester copies TradingView's Strategy Tester, the fixed costs, slippage, sessions and data limits, in plain English.
+description: How the CL1! tester copies TradingView's Strategy Tester, the fixed costs, sessions and data limits, in plain English.
 lede: The tester is like a flight simulator for a TradingView strategy. The price data is the weather recording, the strategy is the pilot, and the fill rules are the physics. Here is the physics.
 ---
 import Callout from "../../components/Callout.astro";
@@ -19,7 +19,9 @@ These match the Properties tab of a TradingView strategy, and they never change 
 
 <FixedRules />
 
-Commission is a fee per order. Slippage is a worse fill price. They are separate costs and shown separately.
+Every displayed result includes the $2.01 fee per order ($4.02 round trip).
+The site uses the existing baseline results without an added fill-price adjustment. Planned limit buy/sell entries
+will use the specified entry price when filled. The strategy updates and new tests are pending.
 Margin is not checked, so "margin calls: 0" in a report only means margin was switched off.
 
 ## How orders fill
@@ -30,13 +32,13 @@ Margin is not checked, so "margin calls: 0" in a report only means margin was sw
   tester assumes price went open → the nearer extreme → the other extreme → close. Stops and limits fill in that
   order.
 - **Gaps.** If a candle opens past a stop or limit, it fills at the open.
-- **Slippage.** Market and stop orders fill N ticks worse. Limit orders, like a profit target, never slip.
 - **One position at a time.** No adding to a trade.
 
 ## Sessions
 
 CL trades almost 24 hours, so "Asia", "London" and "New York" are not official. Each session open is the minute
-where volume jumps, measured on two years of CL data: 09:00 UTC+8 for Asia, 08:00 London, and 09:00 New York.
+where volume jumps, measured on two years of CL data: 09:00 MYT for Asia; 15:00 during UK summer / 16:00 during UK winter for London; and 21:00 during US summer /
+22:00 during US winter for New York. All display times use Malaysia time (MYT, UTC+8).
 Daylight saving time is handled for each city.
 
 ## One rule that is mine, not TradingView's

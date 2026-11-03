@@ -15,7 +15,7 @@ discussion (2026-10-31): SSR and a client-side SPA were rejected because the dat
 ## Users
 
 - **Primary reader: retail traders.** They know candles, stops, take profit and TradingView. They do not need a
-  candle explained, but they do need the method (fills, slippage, in-sample) explained in plain words.
+  candle explained, but they do need the method (fills, commission, in-sample) explained in plain words.
 - **The owner (Tupa).** Uses the site as a public journal of the research journey and shares links to it.
 
 ## Product Purpose
@@ -28,14 +28,16 @@ trust what the numbers do and do not claim.
 ## Positioning
 
 The results come from a backtester built to match the TradingView Strategy Tester on CL1! 1m, with fixed and
-published costs, separate slippage scenarios, an independent review and replication by Codex, and honest labels
+published costs, baseline results after commission, an independent review and replication by Codex, and honest labels
 (in-sample, best of N). Failed ideas are published too, not only winners.
 
 ## Operating Context
 
 - Content source: the Python tester in the parent folder writes `results/<strategy>/` (CSV, JSON, JSONL) and
   `docs/strategies/<strategy>/` (Markdown, PNG). A Python export step turns these into JSON for the site.
-- The site only displays numbers. It never recomputes metrics, so it cannot drift from `docs/ENGINE.md`.
+- The public site only displays exported numbers. It never recomputes metrics, so it cannot drift from
+  `docs/ENGINE.md`. The private localhost chart replays the tester configuration and verifies fills against
+  saved trades before displaying them.
 - Explanatory prose is written by hand (MDX) and kept separate from generated numbers, so rerunning a test never
   overwrites the explanation.
 - Features (roadmap renumbered by the owner 2026-11-01): F1 (TradingView-style test), F2 (optimization), F3 (stress
@@ -46,11 +48,17 @@ published costs, separate slippage scenarios, an independent review and replicat
 ## Capabilities and Constraints
 
 - Public, no authentication or authorization.
-- **Candlestick visuals use fake or illustrative data only.** Real Databento market data must never be published.
-- **Disclaimers on every results page:** in-sample, best of N where optimized, slippage scenario labels, not
+- Display all chart, execution and daily result times in Malaysia time (Asia/Kuala_Lumpur, MYT, UTC+8).
+  Daily results group by the Malaysian exit date; original tester timestamps and session rules remain intact.
+- **Public candlestick visuals use fake or illustrative data only.** The owner-requested localhost development
+  exception shows real historical one-minute CL prices with verified simulated fills, stop/target paths and
+  strategy indicators when a daily result is selected. It uses the 0-tick baseline only, with no selector.
+  Real Databento market data must never be published without separate redistribution authorization; published
+  daily results retain their profit list without real-price charts.
+- **Disclaimers on every results page:** in-sample, best of N where optimized, execution assumptions, not
   financial advice.
-- Fixed test properties shown as-is: $50,000 capital, 1 contract, $2.01 per order ($4.02 round trip), slippage
-  0 ticks plus separate 1 and 2 tick scenarios. Slippage is never called commission.
+- Fixed test properties shown as-is: $50,000 capital, 1 contract, $2.01 per order ($4.02 round trip), no added fill-price adjustment in the web display. Planned limit buy/sell entry updates are pending; existing
+  results must not be presented as tests of those future rules.
 - CL only. MCL is never shown or suggested.
 - Feature 2 numbers come from the development interval (before 2024-01-01). 2024+ is reserved, not clean
   out-of-sample.
@@ -74,10 +82,11 @@ published costs, separate slippage scenarios, an independent review and replicat
 
 ## Product Principles
 
-1. **Honest over impressive.** Every number carries its label: in-sample, best of N, slippage scenario.
+1. **Honest over impressive.** Every number carries its label: in-sample, best of N, execution assumptions.
 2. **Explain the process, not only the result.** A reader should understand why a rule exists.
 3. **Plain English first.** If a retail trader would stumble on a sentence, rewrite it.
-4. **Display, never compute.** The tester is the single source of truth for numbers.
+4. **Display exported results.** The tester is the single source of truth for numbers; private localhost charts
+   use its replay and verify fills against saved trades.
 5. **The journey counts.** Failed strategies and dead ends are first-class entries.
 
 ## Accessibility & Inclusion

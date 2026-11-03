@@ -3,8 +3,8 @@
 import { STAGES } from "../lib/stages";
 const stages = [
   { name: "Write it twice", text: "Each strategy is written in Python for the tester and in Pine for TradingView, so any trade can be checked on a real chart.", state: "done" },
-  { name: `${STAGES.f1.name} (${STAGES.f1.tag})`, text: "Run every combination of settings over 16 years of 1-minute data. Show the best one at 0, 1 and 2 ticks of slippage.", state: "done" },
-  { name: `${STAGES.f2.name} (${STAGES.f2.tag})`, text: "Write the guess down first. Search only pre-2024 data, score at 1 tick, and log every try.", state: "done" },
+  { name: `${STAGES.f1.name} (${STAGES.f1.tag})`, text: "Run every combination of settings over 16 years of 1-minute data. Show the best result after commission.", state: "done" },
+  { name: `${STAGES.f2.name} (${STAGES.f2.tag})`, text: "Write the guess down first. Search only pre-2024 data, log every try, and review the results.", state: "done" },
   { name: "Independent review", text: "Codex reviews the code, then rebuilds headline results with its own engine. A result only counts when the trades match.", state: "done" },
   { name: `${STAGES.f3.name} (${STAGES.f3.tag})`, text: "Re-run the search year by year on the same pre-2024 data, and ask whether the winner beats the best of its lucky tries. Rules for passing are written first.", state: "done" },
   { name: `${STAGES.f4.name} (${STAGES.f4.tag})`, text: "Only for a result that passes F3: would it pass a Topstep 50K evaluation, with its loss limits and size caps, better than random entries would?", state: "pending" },

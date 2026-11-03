@@ -293,11 +293,16 @@ def test_real_export_writes_period_files_for_f1_and_candidates_only(tmp_path, mo
     expected |= {f"f2-{r}" for r, is_candidate in candidates.items() if is_candidate}
     written = {p.name for p in (tmp_path / "public" / "fair_price_reversal").iterdir()}
     assert written == expected
+    for key in expected:
+        assert (tmp_path / "public" / "fair_price_reversal" / key / "day-my.json").exists()
     for run in data["features"]["f2"]["runs"]:
         assert (run["periods_year"] is not None) == candidates[run["run_id"]]
     for path in (tmp_path / "public" / "fair_price_reversal").rglob("*.json"):
         doc = json.loads(path.read_text())
-        assert doc["grain"] == path.stem and doc["export_version"] == ew.EXPORT_VERSION
+        assert doc["grain"] == ("day" if path.stem == "day-my" else path.stem)
+        assert doc["export_version"] == ew.EXPORT_VERSION
+        if path.stem == "day-my":
+            assert doc["timezone"] == "Asia/Kuala_Lumpur"
         assert doc["generated_utc"] == data["generated_utc"] and doc["strategy"] == "fair_price_reversal"
         assert all(len(doc["net"][k]) == len(doc["periods"]) for k in ("0", "1", "2"))
         ew.check_publication(doc)

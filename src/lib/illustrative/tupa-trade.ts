@@ -1,7 +1,8 @@
 // Synthetic teaching candles only. These do not reproduce a real trading day.
 import type { Candle, Step, Story } from "./types";
 
-const START = Date.UTC(2001, 0, 8, 9, 0) / 1000;
+// Synthetic January session: 09:00 New York = 14:00 UTC = 22:00 Malaysia.
+const START = Date.UTC(2001, 0, 8, 14, 0) / 1000;
 const price = (ticks: number) => Number((72 + ticks / 100).toFixed(2));
 
 // OHLC in ticks above 72.00. Authored to show a higher low, a new swing high,
@@ -83,7 +84,7 @@ export const steps: Step[] = [
   },
   {
     title: "The target closes this example trade",
-    text: "Price reaches 72.26 before the stop: a 25-tick gain before costs in this made-up example. A trade can also end at the stop or the 14:30 New York session close. One winning illustration says nothing about the strategy's overall results below.",
+    text: "Price reaches 72.26 before the stop: a 25-tick gain before costs in this made-up example. A trade can also end at the stop or the session close: 02:30 MYT during US summer, 03:30 during US winter, on the following day. One winning illustration says nothing about the strategy's overall results below.",
     until: candles.length,
     markers: [
       { index: IDX.fill, position: "aboveBar", shape: "arrowDown", text: "Sell" },

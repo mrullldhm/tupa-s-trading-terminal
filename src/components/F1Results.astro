@@ -22,7 +22,7 @@ const plabel = (k: string) => paramLabels[k] ?? k;
     return (
       <section id={`panel-f1-${k}`} role="tabpanel" tabindex="0" aria-labelledby={`tab-f1-${k}`} hidden={i !== 0} class="panel">
         <p class="params">
-          <span class="muted">Best of {int(v.grid_size)} settings at 0 ticks:</span>{" "}
+          <span class="muted">Best of {int(v.grid_size)} settings:</span>{" "}
           {Object.entries(v.params).filter(([p]) => p !== "session").map(([p, val]) => (
             <code>{plabel(p)} {targetLabel(String(val))}</code>
           ))}
@@ -30,14 +30,12 @@ const plabel = (k: string) => paramLabels[k] ?? k;
         <p class="period muted">
           Tested {date(s0.period_start)} to {date(s0.period_end)}. In-sample: the settings were picked on this same data.
         </p>
-        <ScenarioTable scenarios={v.scenarios} caption={`F1, ${sessionLabel(k)} session, top combination at 0, 1 and 2 ticks`} />
+        <ScenarioTable scenarios={v.scenarios} caption={`F1, ${sessionLabel(k)} session, top combination, commission included`} />
         <CurveChart
           title={`${sessionLabel(k)}: cumulative closed-trade P&L`}
-          caption="Month-end values of closed-trade profit, one line per slippage scenario. Each scenario is its own test run. Swings inside a month and open trades are not shown, so read drawdown from the table, not from this chart."
+          caption="Month-end values of closed-trade profit after commission. Swings inside a month and open trades are not shown, so read drawdown from the table, not from this chart."
           series={[
-            { label: "0 ticks", tone: "ink", points: v.curve_month_end_closed_pnl["0"] },
-            { label: "1 tick", tone: "dim", points: v.curve_month_end_closed_pnl["1"] },
-            { label: "2 ticks", tone: "faint", points: v.curve_month_end_closed_pnl["2"] },
+            { label: "Net profit", tone: "ink", points: v.curve_month_end_closed_pnl["0"] },
           ]}
         />
         <PeriodTables strategy={strategy} dataKey={`f1-${k}`} year={v.periods_year} label={`F1, ${sessionLabel(k)} session, top combination`} />

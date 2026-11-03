@@ -1,19 +1,19 @@
 ---
 layout: ../../layouts/MdxPage.astro
 title: How to read the results
-description: What each number on a results page means, and what it does not mean. In-sample, best of N, slippage, drawdown and more.
+description: What each number on a results page means, and what it does not mean. In-sample, best of N, drawdown and more.
 lede: A backtest number is only as honest as its label. These are the labels used on every results page, and what they mean in plain words.
 crumbs:
   - { href: /method/, label: Method }
 ---
-## The three stages
+## The research stages
 
-Every strategy goes through the same three stages, in order. A tick on a stage means it is done, not that the
+Every strategy goes through the same five stages, in order. A tick on a stage means it is done, not that the
 strategy passed it.
 
-- **F1, test every setting.** Every combination of settings runs over the full history. The best one at 0 ticks
-  is shown, then rerun at 1 and 2 ticks of slippage.
-- **F2, narrow search.** A guess is written down first, then searched on data before 2024 only, scored at 1 tick.
+- **F1, test every setting.** Every combination of settings runs over the full history. The best one
+  is shown after commission.
+- **F2, narrow search.** A guess is written down first, then searched on data before 2024 only. Saved searches need re-evaluation after the limit-entry updates.
   Every run is logged, including the failures.
 - **F3, stress the search.** Still on data before 2024. Re-run the F2 search each January using only the years
   before it, trade its pick for that year, and add up the years (walk-forward). Then check how often a search
@@ -41,30 +41,31 @@ Data from 1 January 2024 on is **reserved**: F2 searches never use it. But the s
 F1, which used all the data, and an early check also touched 2024+. So reserved data is less contaminated,
 not untouched. Each strategy's Evidence page lists the known exceptions.
 
-## Slippage scenarios
+## Execution assumptions and commission
 
-- **0 ticks** still pays commission: $4.02 per round trip is in every number.
-- **1 tick and 2 ticks** are separate test runs, not a simple subtraction. Trade counts can differ slightly
-  between them, so each scenario shows its own count.
-- Only market and stop orders slip. A trade that exits at its limit target slips once, not twice.
+The site displays the existing baseline results, with $4.02 commission per round trip and no added fill-price
+adjustment. The planned update is to use limit buy/sell entries at the specified price when filled. Current
+results still use the saved strategy rules; the limit-entry versions have not been tested yet.
 
 ## Net profit and the search objective
 
-**Net profit** is the sum of all closed trades. The F2 search scored settings on net profit at 1 tick
-**plus** the value of any trade still open at the end. Usually there is none and the two are the same; when they
-differ, both are shown.
+**Net profit** is the sum of all closed trades after commission. Open P&L is the value of any trade still open
+at the end, shown separately. The saved F2 searches used previous execution assumptions for selection. Their
+historical verdicts are not a fresh ranking of the displayed baseline results.
 
 ## The P&L charts
 
-The charts show **cumulative closed-trade profit, sampled at the end of each month**. They do not show swings
+The charts show **cumulative closed-trade profit, sampled at the end of each Malaysian calendar month**. They do not show swings
 inside a month or open trades. Do not read drawdown off the chart.
 
-## Year, month, week and day tables
+## Daily results and trade charts
 
-These show net profit at 0, 1 and 2 ticks, grouped by the date each trade **closed**, in UTC. UTC days are not
-CL trading days: a trade that closes at 9 pm New York time already counts on the next UTC day, and a week runs
-Monday to Sunday. Most days hold one trade, so a day row is close to a single trade's result. Like everything else, these
-tables are in-sample.
+Daily results group net profit after commission by the Malaysian date each trade **closed**, latest first.
+All chart times and execution records use **Malaysia time (MYT, UTC+8)**. A trade that closes at 18:30 UTC
+appears at 02:30 MYT on the following day. Malaysia does not change clocks for daylight saving.
+
+The local trade chart includes the whole selected trade, even when its entry was on an earlier day.
+These are in-sample backtest fills, not live executions.
 
 ## Drawdown
 

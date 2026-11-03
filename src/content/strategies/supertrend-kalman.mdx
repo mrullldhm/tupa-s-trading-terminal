@@ -5,23 +5,23 @@ order: 2
 dataKey: supertrend_kalman
 pine: strategies/supertrend_kalman.pine
 stage: tested
-verdict: No edge at 2 ticks in the F1 test. The New York RVI candidate passed the year-by-year search check but failed the luck check in F3.
+verdict: Results include commission only. Limit-entry strategy updates and new search validation are pending.
 features:
   f1: done
   f2: done
-  f3: done
+  f3: not-started
   f4: not-started
   f5: not-started
 reviews:
   - { id: R6, kind: plan, label: "Plan reviewed", date: 2026-10-31 }
   - { id: R7, kind: code, label: "Code reviewed", date: 2026-10-31 }
-  - { id: R8, kind: replication, label: "Replicated: All hours F1 result, 0 and 1 tick", date: 2026-10-31 }
+  - { id: R8, kind: replication, label: "Replicated: All hours F1 result, baseline", date: 2026-10-31 }
   - { id: R9, kind: code, label: "F2 search plan and code reviewed", date: 2026-10-31 }
-  - { id: R10, kind: replication, label: "Replicated: NY F2 candidate, 0 and 1 tick", date: 2026-10-31 }
+  - { id: R10, kind: replication, label: "Replicated: NY F2 candidate, baseline", date: 2026-10-31 }
   - { id: R11, kind: code, label: "F2 search audited: works the same for any strategy", date: 2026-10-31 }
   - { id: R12, kind: plan, label: "F3 plan, rules and code reviewed", date: 2026-11-01 }
   - { id: R13, kind: replication, label: "Replicated: every F3 pick, PBO and DSR; one 2015 test year rerun", date: 2026-11-01 }
-updated: 2026-11-01
+updated: 2026-11-03
 ---
 import AnnotatedChart from "../../components/AnnotatedChart.astro";
 import { story } from "../../lib/illustrative/supertrend-kalman";
@@ -46,6 +46,9 @@ volatility filter, and how the trade exits. Click through the steps below to see
 
 ## The rules
 
+These are the rules behind the saved results. Entries will be updated to limit buy/sell at the planned price;
+that strategy change has not been tested yet.
+
 - **15-minute candles.** Built from the 1-minute bars. A candle's values are used only once it is complete: the
   decision is made on the first 1-minute bar of the next candle, and the order fills one minute later.
 - **Entry signal** (a setting): Supertrend flips to the trade side; or price crosses the ATR trail while
@@ -59,18 +62,16 @@ volatility filter, and how the trade exits. Click through the steps below to see
 - **Hours.** Four versions: all hours, or only inside the Asia, London or New York session (closed at the session
   end).
 
-Same fixed properties as every test: $50,000, 1 contract, $2.01 commission per order, results at 0, 1 and 2 ticks
-of slippage. [How the tester works](/method/).
+Same fixed properties as every test: $50,000, 1 contract, $2.01 commission per order, results after commission. [How the tester works](/method/).
 
 ## Test every setting (F1)
 
 1,728 combinations for each of the four versions (6,912 in all), on 16 years of 1-minute data. Below is the
-best one of each version, rerun at 1 and 2 ticks.
+best one of each version, with commission included.
 
 <Callout tone="honest" title="The honest result">
-  <p>No version survives 2 ticks of slippage. All hours, London and New York stay above zero at 1 tick; Asia does
-  not. The all-hours winner would have lost more than the whole $50,000 account on the way (max drawdown 102%), and
-  its ten best trades made 79% of its profit.</p>
+  <p>These are the best settings found on the full history, with commission included. Picking the best of
+  1,728 settings for each version can overstate what the rules will earn on new data.</p>
 </Callout>
 
 <F1Results strategy="supertrend_kalman" paramLabels={{ trigger: "entry", vol: "volatility filter", exit: "exit", rr: "target R", swing: "swing bars", trail_mult: "trail ATR ×", st_factor: "Supertrend factor", kalman_q: "Kalman q" }} />
@@ -91,50 +92,21 @@ Exit rules do not change the picture. In All hours and New York, the two biggest
 fixed stop and target. All hours: 0 of 427. New York: the best gained $40 over 16 years. In All hours, every
 breakeven and trailing family cut net profit sharply, and some turned it negative. Asia and London improved
 slightly. The best London rule (breakeven at half the target plus a 1-minute EMA(9) trail, target removed) added
-$2,440 at 0 ticks and $2,900 at 1 tick over 16 years, and Asia still loses at 1 tick. Those gains are the best of
+$2,440 after commission over 16 years. Those gains are the best of
 428 tries on the same data. They are about the size that picking the best of many rules can produce by luck. They
 were found on the full history, including the reserved 2024+ years, so they cannot be checked there.
 
 ## Search for a better filter (F2)
 
-Before any search, I wrote down the rules a result must pass to count as a candidate. It had to make money at
-1 **and** 2 ticks, at least two thirds of its nearby settings had to make money too, and no single year could
-supply more than half of its profit. The main guess was the same as for Fair Price Reversal: trades with a small
-stop lose the most once slippage is added.
-
-The search used data before 2024 only and scored every setting on its profit at 1 tick.
+The saved search used data before 2024. Every run is listed below. These are historical selections from the
+previous execution assumptions, shown with commission only. Selection and validation need a fresh run after
+the planned limit-entry updates.
 
 <F2Runs strategy="supertrend_kalman" />
 
-### What this means
-
-The stop-size guess was right in its strongest form. In the all-hours version, skipping every trade with a stop
-smaller than 100 ticks turned a loss at 2 ticks into a large profit. But more than half of that profit came from
-2022 alone, so the rule written before the search rejects it. A stop of 100 ticks mostly happens when oil is very
-volatile, so the filter is really a bet on volatile years.
-
-The guided search found an even bigger all-hours number: +$90,347 at 2 ticks. It is the clearest failure of
-all. 2022 alone made 93% of its profit, and half of the 14 years lost money. Six changed settings fitted one
-year of crude oil.
-
-New York is the only candidate, and it is a small one. The New York baseline already made money at 1 tick before
-2024. The filter only raises its own RVI threshold from 50 to 55. Codex rebuilt it independently and every trade
-matched. **None of this shows a tradable edge yet.**
-
 ## Stress the search (F3)
 
-F3 takes the New York candidate and asks whether it survives the way it was found. The rules for passing were
-written down before the run. Codex independently recomputed every yearly pick and the two main scores (PBO and
-DSR) from the saved results, and re-ran the 2015 test year with its own engine: same profit, same trades.
-
 <F3Results strategy="supertrend_kalman" />
-
-### What this means
-
-This one came closest. Run blind each January, the search picked the candidate in 7 of the 10 test years and made
-money at 1 and 2 ticks, with exactly the 7 profitable years (at 1 tick) the rule needs. But its Sharpe ratio is below what the luckiest of 200 tries would
-reach, so it fails the second check, and both must pass. The New York baseline carries the result; the RVI filter
-adds little. It does not go on to F4.
 
 ## Prop challenge (F4)
 

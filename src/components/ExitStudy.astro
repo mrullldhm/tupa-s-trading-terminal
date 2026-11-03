@@ -1,6 +1,6 @@
 ---
 // Exit study (breakeven / trailing stop / time exit), copied from the tester's exits output by the exporter.
-// Display only: the winners, their slippage reruns and the counts are all tester numbers.
+// Display only: the baseline winners and the counts are all tester numbers.
 import Badge from "./Badge.astro";
 import Callout from "./Callout.astro";
 import Pending from "./Pending.astro";
@@ -47,8 +47,7 @@ const beats = (v: ExitVariant, role: string): string =>
 <Callout tone="honest" title="Read this first">
   <p>This is in-sample. Each version is the best of {int(total)} exit rules, and its F1 settings are frozen, so only
   the exit changes. Those settings were picked on the full F1 data, and the test uses the same data, including the
-  reserved 2024+ years. The winners cannot be validated on 2024+. The 1 and 2 tick columns rerun the same winner;
-  they are not new tests.</p>
+  reserved 2024+ years. The winners cannot be validated on 2024+.</p>
 </Callout>
 
 {variants.map(([key, v]) => (
@@ -62,9 +61,7 @@ const beats = (v: ExitVariant, role: string): string =>
             <th scope="col">Family</th>
             <th scope="col">Best rule</th>
             <th scope="col" class="num">Best of</th>
-            <th scope="col" class="num">Net profit, 0 ticks</th>
-            <th scope="col" class="num">1 tick</th>
-            <th scope="col" class="num">2 ticks</th>
+            <th scope="col" class="num">Net profit</th>
             <th scope="col" class="num">Trades</th>
             <th scope="col" class="num">% profitable</th>
             <th scope="col" class="num">Profit factor</th>
@@ -85,8 +82,6 @@ const beats = (v: ExitVariant, role: string): string =>
                 </td>
                 <td class="num">{int(w.best_of)}</td>
                 <td class:list={["num", tone(s["0"].net_profit)]}>{usd(s["0"].net_profit, { cents: false })}</td>
-                <td class:list={["num", tone(s["1"].net_profit)]}>{usd(s["1"].net_profit, { cents: false })}</td>
-                <td class:list={["num", tone(s["2"].net_profit)]}>{usd(s["2"].net_profit, { cents: false })}</td>
                 <td class="num">{int(s["0"].total_closed_trades)}</td>
                 <td class="num">{pct(s["0"].percent_profitable)}</td>
                 <td class="num">{num(s["0"].profit_factor, 2)}</td>
@@ -99,12 +94,12 @@ const beats = (v: ExitVariant, role: string): string =>
       </table>
     </div>
     <p class="note">{int(v.positive_objective)} of {int(v.rules_total)} rules ended above $0. Trades, % profitable, profit
-    factor and drawdown are at 0 ticks.</p>
+    factor and drawdown include commission.</p>
   </section>
 ))}
 
 <p class="note foot">Net profit is closed trades. Rules were ranked on net profit plus any open position at the end,
-at 0 ticks, so a losing position left open could not hide. "Best of" is how many rules that row was picked from.
+so a losing position left open could not hide. "Best of" is how many rules that row was picked from.
 <strong>Unverified:</strong> swing-pivot and Parabolic SAR trailing use Python copies of TradingView's
 <span class="mono">ta.pivotlow</span> and <span class="mono">ta.sar</span> that have not yet been checked against a
 TradingView export.</p>
@@ -119,7 +114,7 @@ TradingView export.</p>
   }
   /* Eleven columns: scroll sideways instead of squeezing the rule text to one word a line. */
   table.data {
-    min-width: 62rem;
+    min-width: 52rem;
   }
   .rule {
     min-width: 13rem;

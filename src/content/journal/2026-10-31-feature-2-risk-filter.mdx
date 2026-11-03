@@ -1,24 +1,16 @@
 ---
-title: "F2 search: a cost filter, not an edge (yet)"
+title: "F2 search: testing entry filters"
 date: 2026-10-31
-summary: Searching filters on pre-2024 data found that skipping small-stop trades helps in New York and London. Still in-sample.
+summary: A record of the pre-2024 filter search. Selection and validation need updating for planned limit entries.
 kind: result
 strategy: fair-price-reversal
 ---
-The F1 test (every setting) said the problem was costs. So before searching, I wrote down one main guess: trades with a small stop
-lose the most at 1 tick, because $20 of slippage is a big share of a small stop.
+The search tried 1,500 settings across three sessions on data before 2024. It tested whether entry filters,
+including a minimum stop size, could improve the strategy. Every run remains listed on the
+[strategy page](/strategies/fair-price-reversal/#search-for-a-better-filter-f2).
 
-The search used only data before 2024 and scored every setting on its profit **at 1 tick**. It tried 1,500
-settings across the three sessions. Six runs, every one listed on the [strategy page](/strategies/fair-price-reversal/#search-for-a-better-filter-f2) with its verdict.
+The saved selections used previous execution assumptions. The site now shows their baseline results after
+commission. Candidate and rejection labels are historical; selection and validation need a fresh run after
+the planned limit-entry updates.
 
-The guess held. In New York and London, the winner was the same simple rule: skip trades whose stop is smaller
-than about 30 ticks. Nearby values also worked. London went from −$13,754 to +$32,197 at 1 tick on the development
-data. New York went from +$2,423 to +$49,297. Codex rebuilt the New York result independently and every trade
-matched.
-
-Why it is not an edge yet:
-- It was picked on the same data it is reported on, from 1,500 tries.
-- The starting settings came from F1, which saw all data up to 2026. An early check also touched 2024+.
-- 58% of London's profit came from 2022, a very volatile year.
-
-Next is F3, validation on unseen data: walk-forward testing and the reserved 2024+ data.
+The settings remain in-sample, and F1 already used data through 2026 to pick the starting settings.

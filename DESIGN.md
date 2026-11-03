@@ -165,7 +165,7 @@ components:
 
 A research journal that behaves like a quiet instrument panel. The grammar is borrowed from graphite.com: a near-black ground, off-white ink that steps down through alpha instead of through new greys, 1px low-alpha hairlines, product shown inside a bezelled frame, glowing white line art, and a light primary button with a faint iridescent rim. The first screen leads with "jump to a strategy": headline and two actions on the left, a glowing candle sculpture on the right, and the strategy terminal rising from the fold tilted, then straightening as you scroll.
 
-The system is night mode only (`color-scheme: dark`, theme-color `#070707`). There is no light theme and none is planned. Density is calm: wide gaps, long measures capped at about 73 characters (`--measure: 50ch`), data in tables and mono. Trust is part of the look. Labels such as in-sample, best of N, slippage scenario and "Illustrative prices" are components, not footnotes.
+The system is night mode only (`color-scheme: dark`, theme-color `#070707`). There is no light theme and none is planned. Density is calm: wide gaps, long measures capped at about 73 characters (`--measure: 50ch`), data in tables and mono. Trust is part of the look. Labels such as in-sample, best of N, execution assumptions and "Illustrative prices" are components, not footnotes.
 
 **Key Characteristics:**
 - Monochrome world; the only hues are desaturated long (mint), short (rose) and amber (caution).
@@ -272,27 +272,34 @@ Same node-and-line vocabulary at smaller scale: Review or Replication badge, mon
 Segmented strip in Panel with ring; selected tab Panel 3 with ring and top highlight; arrow, Home and End keys; panels server-rendered and toggled via `hidden`.
 
 ### Tables (ScenarioTable, F1/F2 results, `table.data`)
-In a `.table-scroll` well (Raise, 1px line, 10px). 0.9rem, header row Panel with ink-3 labels, 1px row rules, numeric columns right aligned in tabular mono. Slippage scenarios are separate rows or columns labelled 0, 1, 2 ticks. Below 640px ScenarioTable shows short values for the eye but keeps the full values in the accessibility tree (visually hidden, never `display: none`), and keeps every row hint and the drawdown % (as a second line): honesty labels are never dropped on mobile.
+In a `.table-scroll` well (Raise, 1px line, 10px). 0.9rem, header row Panel with ink-3 labels, 1px row rules, numeric columns right aligned in tabular mono. Display only the baseline result after commission, with one result column. Below 640px ScenarioTable shows short values for the eye but keeps the full values in the accessibility tree (visually hidden, never `display: none`), and keeps every row hint and the drawdown % (as a second line): honesty labels are never dropped on mobile.
 
 ### Period tables (F1 sessions, F2 candidates)
-`PeriodTables`: one "Year by year" disclosure with net profit at 0, 1 and 2 ticks side by side (whole dollars, sign
-and colour, a dash for "no trade closed"), capped at 640px so the eye does not travel. Inside it, "Show month by
-month" appears; opening it reveals "Show week by week", then "Show day by day". Closing a level closes everything
-under it. Month, week and day rows are fetched on first open (`/data/<strategy>/<key>/<grain>.json`), checked
-against the page's export version, then cached; the toggle reads "Loading…" while busy and a failed load says why
-and offers "Try … again". Fetched levels sit in 440px scroll wells with sticky headers and a row count. Without
-JavaScript only the year table shows.
+`PeriodTables`: a daily-only list, latest first, with one baseline net-profit column after commission (whole
+dollars, sign and colour). The latest 30 days are server-rendered; "Show earlier days" adds 30 at a time from the
+daily export after checking its version and generation date. Days group trades by their Malaysian exit date (MYT, UTC+8) and omit
+days with no closed trades. There is no year/month/week drill-down or execution-scenario selector. The list has
+sticky headers, a row count and a 620px scroll well; without JavaScript the latest 30 days remain readable.
+Loading earlier days disables the button and names the loading state; a failure explains why and leaves it
+available to retry.
+
+On localhost development only, selecting a day expands one inline real historical CL one-minute chart;
+selecting it again collapses it, and selecting another day closes the previous chart. Opening removes the list's
+height cap. The replay uses the 0-tick baseline and checks simulated fills against saved trades. It shows
+entry/exit markers, working stop and target paths (including breakeven/trailing when active), strategy indicators,
+a full text legend and MYT execution prices in a table. Dates and execution timestamps stay on one line; wide
+numeric tables scroll horizontally. "Show candle and indicator values" supplies the chart's numeric alternative,
+and "Strategy settings and replay notes" explains the configuration. Loading and error messages appear in place
+with a "Try chart again" control. Label the chart "Real historical CL prices" and "Backtest fills, not live
+executions", with Malaysia time (MYT, UTC+8) and in-sample context. The public static site retains the daily profit list; real-price
+charts require separate redistribution authorization before publication.
 
 ### At a glance (strategy page head)
-Compact `table.data` under the verdict: F1 best net profit per session at 0, 1 and 2 ticks, with an amber In-sample badge and a "Best of N settings" badge, plus links to the F1 and F2 sections and to How to read. It exists so the 1-tick result is on the first screen next to the 0-tick one. Display only.
+Compact `table.data` under the verdict: F1 best net profit per session after commission, with an amber In-sample badge and a "Best of N settings" badge, plus links to the F1 and F2 sections and to How to read. It places the baseline result beside its in-sample and best-of labels. Display only.
 
 ### F3 results (stress the search)
-`F3Results`, one block per candidate: heading plus a pass/fail badge ("Does not go on to F4"), a check table in two
-row groups (the search procedure, the candidate's luck check) with result, need and a Pass/Fail badge per row, an
-SVG year strip (1 tick, mint up / rose down, signed short labels, dashed outline for a cash year, inside a 560px
-minimum scroll well on phones), then two disclosures: the year table (picked setting, 0/1/2 ticks, the frozen
-candidate in a faint in-sample column) and the sensitivities, titled as unable to turn a fail into a pass. Check
-tables keep a 38rem minimum and scroll sideways rather than squeeze labels.
+`F3Results` shows a re-test pending state while the saved stress tests use previous execution assumptions.
+Fresh selection and validation are required after the planned limit-entry updates.
 
 ### Breadcrumbs
 `Crumbs`: `nav` + `ol`, "/" separators drawn in CSS, the current page as the last, unlinked item with `aria-current="page"`.
@@ -301,10 +308,10 @@ tables keep a 38rem minimum and scroll sideways rather than squeeze labels.
 TradingView Lightweight Charts on a transparent background inside a Frame. Axes mono 11px at 55% ink; grid 3.5% and 5% white; scale borders 8%; crosshair 25% white with Panel 3 labels. Candles are monochrome: up = hollow (#0c0c0d body, #f2f2f2 outline), down = grey (#8b8b91). Price lines use ink, dim, long (#8fd4c1) or short (#e7a39d) with labels; curves are ink 2px, dim and faint dashed, and long. Annotated chart steps through the idea with markers, a Step N of M count and dot nav (26 x 40 hit areas, 40px prev/next; only the step text is a live region). Every CurveChart has a collapsed "Show the numbers" table of the exported month-end points as its text alternative. The chart library is fetched only when a chart nears the viewport (`charts.client.ts` boots, `charts.render.ts` draws); a failed load says so in place. Grids that hold a chart use `minmax(0, 1fr)`, never a bare `1fr` or an implicit column, or the canvas keeps its old width after a rotate. The hero sculpture is white line art with four fading echo layers and a caption saying it is illustrative.
 
 ### F3Pending and FixedRules
-F3Pending is a dashed-border, hatched block with a clock tile and a heading, "Not built yet" by default (F2Runs reuses it as "Not run yet" when a strategy has no search). FixedRules is a spec strip of definition terms (capital, size, cost, slippage) separated by vertical hairlines, ink values over ink-3 terms.
+F3Pending is a dashed-border, hatched block with a clock tile and a heading, "Not built yet" by default (F2Runs reuses it as "Not run yet" when a strategy has no search). FixedRules is a spec strip of definition terms (capital, size, cost, entry plan) separated by vertical hairlines, ink values over ink-3 terms.
 
 ### Honesty labels
-Part of the vocabulary: any chart with invented prices carries the amber flask label "Illustrative prices, not real market data"; every result carries in-sample, best of N where optimized, and its slippage scenario; owner rules that differ from TradingView are labelled as such.
+Part of the vocabulary: any chart with invented prices carries the amber flask label "Illustrative prices, not real market data"; every result carries in-sample, best of N where optimized, and its execution assumptions; owner rules that differ from TradingView are labelled as such.
 
 ### Motion
 One authored motion: the strategy terminal on the home page starts at `rotateX(26deg) scale(0.92) translateY(30px)`, opacity .55, 1.5px blur, origin bottom centre, inside a 1800px perspective stage, and untilts linearly with scroll (`animation-timeline: view()`, range `entry 0% cover 42%`). It is wrapped in `@supports (animation-timeline: view())` and `@media (min-width: 900px) and (prefers-reduced-motion: no-preference)`. Use longhand animation properties, and keep `animation-timeline` and `animation-range` in a separate, doubled selector (`.tilt.tilt`), because minifiers fold the timeline into the shorthand and Chrome drops it. Everything else is a 0.2 to 0.3s state transition (ease-out `cubic-bezier(0.16, 1, 0.3, 1)`); reduced motion collapses all durations to 0.01ms.
@@ -318,7 +325,7 @@ One authored motion: the strategy terminal on the home page starts at `rotateX(2
 - **Do** use Geist Mono with tabular numerals for numbers, ids and chart text, and right-align numeric columns.
 - **Do** put product views in a Frame bezel, and charts inside it.
 - **Do** attach the amber "Illustrative prices, not real market data" label to any chart with invented prices.
-- **Do** show honesty labels (in-sample, best of N, slippage scenario) as Badges or Callouts next to the numbers they qualify.
+- **Do** show honesty labels (in-sample, best of N, execution assumptions) as Badges or Callouts next to the numbers they qualify.
 - **Do** show unbuilt work as dashed or hatched with "Not built yet".
 
 ### Don't:

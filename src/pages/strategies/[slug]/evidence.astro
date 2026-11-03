@@ -16,7 +16,6 @@ const { entry, key } = Astro.props;
 const data = strategyData(key);
 const f1 = data.features.f1;
 const f2 = data.features.f2;
-const f3 = data.features.f3;
 const verdicts = F2_VERDICTS[key] ?? {};
 const toc = [
   { depth: 2, slug: "protocol", text: "Protocol" },
@@ -38,14 +37,11 @@ const toc = [
     <ul>
       <li><strong>F1:</strong> {f1.grid_size.join(", ")} settings per session, each run over the full data
       ({date(Object.values(f1.variants)[0].scenarios["0"].period_start)} to {date(Object.values(f1.variants)[0].scenarios["0"].period_end)}).
-      The winner is the highest net profit at 0 ticks, then rerun at 1 and 2 ticks.</li>
+      The winner has the highest net profit after commission.</li>
       {f2 && <li><strong>F2:</strong> development data only (before 1 Jan 2024). Hypotheses, objective and trial budget were
-      written down before the first run. Objective: net profit plus open P&amp;L at 1 tick, with at least {MIN_ELIGIBLE_TRADES}
-      closed trades. {int(f2.total_trials)} search trials in total, {int(f2.total_engine_evaluations)} engine runs logged.</li>}
-      {f3 ? <li><strong>F3:</strong> development data only (before 1 Jan 2024), with the pass rules written
-      before the runs. {f3.runs.length} candidate{f3.runs.length === 1 ? "" : "s"}, {int(f3.total_engine_runs)} engine runs logged.
-      {f3.runs.map((r) => <span class="f3run">{sessionLabel(r.variant)}: {r.verdict.advance ? "goes on to F4" : `does not go on (search check ${r.verdict.procedure ? "passed" : "failed"}, luck check ${r.verdict.candidate ? "passed" : "failed"})`}.</span>)}</li>
-      : <li><strong>F3:</strong> not run yet.</li>}
+      written down before the first run. These saved searches used the previous execution assumptions and a minimum of {MIN_ELIGIBLE_TRADES}
+      closed trades. Their selections need re-evaluation after the limit-entry updates. {int(f2.total_trials)} search trials in total, {int(f2.total_engine_evaluations)} engine runs logged.</li>}
+      <li><strong>F3:</strong> re-test pending after the limit-entry updates. Saved verdicts use the previous execution assumptions.</li>
       <li><strong>F4</strong> (prop challenge) and <strong>F5</strong> (final check on reserved data): not built yet.</li>
     </ul>
 
@@ -70,7 +66,7 @@ const toc = [
         <table class="data">
           <caption class="sr-only">All F2 runs</caption>
           <thead>
-            <tr><th scope="col">Run</th><th scope="col" class="num">Trials</th><th scope="col" class="num">Eligible</th><th scope="col" class="num">Engine runs</th><th scope="col" class="num">Net 0 / 1 / 2 ticks</th><th scope="col">Verdict</th></tr>
+            <tr><th scope="col">Run</th><th scope="col" class="num">Trials</th><th scope="col" class="num">Eligible</th><th scope="col" class="num">Engine runs</th><th scope="col" class="num">Net profit</th><th scope="col">Verdict</th></tr>
           </thead>
           <tbody>
             {f2.runs.map((r) => (
@@ -79,7 +75,7 @@ const toc = [
                 <td class="num">{int(r.trials)}{r.duplicates > 0 && <span class="sub">{r.duplicates} repeats</span>}</td>
                 <td class="num">{int(r.eligible)}</td>
                 <td class="num">{int(r.evaluations)}</td>
-                <td class="num">{(["0", "1", "2"] as const).map((k, i) => <><span class={tone(r.scenarios[k].net_profit)}>{usd(r.scenarios[k].net_profit, { cents: false })}</span>{i < 2 && <br />}</>)}</td>
+                <td class="num">{(["0"] as const).map((k) => <><span class={tone(r.scenarios[k].net_profit)}>{usd(r.scenarios[k].net_profit, { cents: false })}</span></>)}</td>
                 <td><Badge tone={verdicts[r.run_id]?.verdict === "candidate" ? "done" : "rejected"}>{verdicts[r.run_id]?.verdict ?? "none"}</Badge></td>
               </tr>
             ))}
@@ -88,8 +84,7 @@ const toc = [
       </div>
     )}
     {f2 ? (
-      <p>"Eligible" means the trial had at least {MIN_ELIGIBLE_TRADES} closed trades. Each trial runs the engine at 0, 1 and 2 ticks, and
-      neighbour checks add more runs, so engine runs are about three times the trials.</p>
+      <p>"Eligible" means the trial had at least {MIN_ELIGIBLE_TRADES} closed trades. The logged engine-run count includes reruns and neighbour checks under the previous test rules.</p>
     ) : (
       <p>No F2 search has run yet. The only runs so far are the F1 settings on the strategy page.</p>
     )}
@@ -104,7 +99,7 @@ const toc = [
       <table class="data src">
         <thead><tr><th scope="col">File</th><th scope="col">SHA-256</th></tr></thead>
         <tbody>
-          {data.sources.map((s) => <tr><td class="mono">{s.path}</td><td class="mono">{s.sha256.slice(0, 16)}…</td></tr>)}
+          {data.sources.filter((s) => !/slippage[12]/.test(s.path)).map((s) => <tr><td class="mono">{s.path}</td><td class="mono">{s.sha256.slice(0, 16)}…</td></tr>)}
         </tbody>
       </table>
     </div>

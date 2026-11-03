@@ -1,6 +1,5 @@
 ---
-// Top-of-page summary: the F1 best net profit per session at each slippage scenario, so the 1-tick reality sits
-// next to the 0-tick number from the first screen. Displays exported numbers only.
+// Top-of-page summary of exported baseline net profit after commission, per session.
 import Badge from "./Badge.astro";
 import { strategyData, sessionLabel, SESSION_ORDER } from "../lib/data";
 import { F2_VERDICTS } from "../data/verdicts";
@@ -16,9 +15,7 @@ const verdicts = F2_VERDICTS[strategy] ?? {};
 const f2Runs = f2?.runs ?? [];
 const candidates = f2Runs.filter((r) => verdicts[r.run_id]?.verdict === "candidate").length;
 const ticks = [
-  { k: "0", label: "0 ticks" },
-  { k: "1", label: "1 tick" },
-  { k: "2", label: "2 ticks" },
+  { k: "0", label: "Net profit" },
 ] as const;
 ---
 {keys.length > 0 && (
@@ -32,10 +29,10 @@ const ticks = [
     </div>
     <div class="table-scroll">
       <table class="data">
-        <caption class="sr-only">F1 best setting per session: net profit at 0, 1 and 2 ticks of slippage</caption>
+        <caption class="sr-only">F1 best setting per session: net profit after commission</caption>
         <thead>
           <tr>
-            <th scope="col">Net profit, F1 best</th>
+            <th scope="col">Session, F1 best</th>
             {ticks.map((t) => <th scope="col" class="num">{t.label}</th>)}
           </tr>
         </thead>
@@ -53,8 +50,8 @@ const ticks = [
       </table>
     </div>
     <p class="g-foot">
-      Picked at 0 ticks, then rerun with slippage.{f1Href && <> <a href={f1Href}>Full F1 results</a></>}
-      {f2Runs.length > 0 && <> · F2 search: {candidates} of {f2Runs.length} runs are candidates, still in-sample.
+      Commission included. Existing strategy rules; limit-entry updates are pending.{f1Href && <> <a href={f1Href}>Full F1 results</a></>}
+      {f2Runs.length > 0 && <> · F2 search: {candidates} of {f2Runs.length} runs were candidates under the previous test rules, still in-sample.
       {f2Href && <> <a href={f2Href}>See every run</a></>}</>}
       {" "}· <a href="/method/how-to-read/">How to read these numbers</a>
     </p>
