@@ -1,0 +1,29 @@
+---
+title: "Tupa Trade: my own method, written down and coded"
+date: 2026-11-03
+summary: Turning how I trade by hand into rules a tester can run. A top-down swing reading, a 1-minute structure break and a stop-limit order. No results yet.
+kind: milestone
+strategy: tupa-trade
+---
+The first two strategies came from other people's indicators. This one is mine: the way I trade crude oil by hand,
+using only swing highs and lows.
+
+Writing it down was the hard part. I walked through 26 October one timeframe at a time, from the daily down to
+1 minute, and answered one question at a time about what I was really doing. Each answer became a rule. Some
+answers changed what I thought I did: for example, the 1-hour chart did not need to be in a downtrend for that
+short. Only the 15-minute and 5-minute charts did.
+
+The rules ask for an order type the tester did not have: the **stop-limit**. It waits for price to touch the
+break point, then sells at a limit price. The tester now supports it, with the rule written down in the engine
+document. That rule is not yet checked against TradingView.
+
+What exists now:
+
+- The strategy in code, plus a Pine v6 twin for TradingView.
+- A test that checks the code against a second, line-by-line copy of the Pine script on synthetic data. The two
+  agree on every trade.
+- A test on real data that must reproduce the 26 October trade exactly before any other result counts.
+
+What comes next: the first full run, then Codex's review and replication, as with every strategy. Some rules are
+still open, such as how to choose the timeframe being tested when more than one qualifies. The test will try a few
+answers, and the results will say they are in-sample and the best of those tries.

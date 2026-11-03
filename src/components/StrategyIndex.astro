@@ -8,7 +8,8 @@ interface Props { interactiveHeading?: string }
 const { interactiveHeading = "Strategies" } = Astro.props;
 const all = (await getCollection("strategies")).sort((a, b) => a.data.order - b.data.order);
 const tested = all.filter((s) => s.data.stage === "tested").length;
-const planned = all.length - tested;
+const building = all.filter((s) => s.data.stage === "building").length;
+const planned = all.length - tested - building;
 ---
 <div class="terminal" data-strategy-index>
   <aside class="side">
@@ -16,6 +17,7 @@ const planned = all.length - tested;
     <ul class="filters" aria-labelledby="filter-h">
       <li><button type="button" data-filter="all" aria-pressed="true"><span>All strategies</span><span class="mono">{all.length}</span></button></li>
       <li><button type="button" data-filter="tested" aria-pressed="false"><span>Tested</span><span class="mono">{tested}</span></button></li>
+      <li><button type="button" data-filter="building" aria-pressed="false"><span>In development</span><span class="mono">{building}</span></button></li>
       <li><button type="button" data-filter="planned" aria-pressed="false"><span>Planned</span><span class="mono">{planned}</span></button></li>
     </ul>
     <p class="side-h market-h">Market</p>
@@ -28,7 +30,7 @@ const planned = all.length - tested;
     </div>
     <ul class="rows">
       {all.map((s) => {
-        const href = s.data.stage === "tested" ? `/strategies/${s.id}/` : undefined;
+        const href = s.data.stage !== "planned" ? `/strategies/${s.id}/` : undefined;
         const El = href ? "a" : "div";
         return (
           <li data-stage={s.data.stage}>
@@ -45,7 +47,7 @@ const planned = all.length - tested;
                 ))}
               </div>
               <p class="verdict">{s.data.verdict}</p>
-              <span class="go">{href ? <Icon name="arrow-right" /> : <Badge tone="pending">Planned</Badge>}</span>
+              <span class="go">{s.data.stage === "building" && <Badge tone="pending">In development</Badge>}{href ? <Icon name="arrow-right" /> : <Badge tone="pending">Planned</Badge>}</span>
             </El>
           </li>
         );

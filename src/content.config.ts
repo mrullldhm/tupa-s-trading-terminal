@@ -13,7 +13,8 @@ const strategies = defineCollection({
     dataKey: z.string().optional(),
     source: z.object({ label: z.string(), url: z.url() }).optional(),
     pine: z.string().optional(),
-    stage: z.enum(["tested", "planned"]),
+    // building = code written, results not in yet: it has a page but no numbers
+    stage: z.enum(["tested", "building", "planned"]),
     verdict: z.string(),
     features: z.object({ f1: status, f2: status, f3: status, f4: status.default("not-started"), f5: status.default("not-started") }),
     reviews: z

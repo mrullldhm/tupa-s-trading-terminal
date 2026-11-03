@@ -9,7 +9,7 @@ import { F2_VERDICTS } from "../../../data/verdicts";
 import { usd, int, date, tone } from "../../../lib/format";
 
 export async function getStaticPaths() {
-  const all = await getCollection("strategies", (s) => s.data.stage === "tested");
+  const all = await getCollection("strategies", (s) => s.data.stage !== "planned");
   return all.flatMap((entry) => (entry.data.dataKey ? [{ params: { slug: entry.id }, props: { entry, key: entry.data.dataKey } }] : []));
 }
 const { entry, key } = Astro.props;

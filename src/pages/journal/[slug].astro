@@ -15,7 +15,7 @@ const strategy = entry.data.strategy ? await getEntry("strategies", entry.data.s
 // A typo in frontmatter must fail the build, not silently drop the link.
 if (entry.data.strategy && !strategy) throw new Error(`journal/${entry.id}: unknown strategy "${entry.data.strategy}"`);
 // Planned strategies have no page yet, so they are named but not linked.
-const strategyHref = strategy?.data.stage === "tested" ? `/strategies/${strategy.id}/` : undefined;
+const strategyHref = strategy && strategy.data.stage !== "planned" ? `/strategies/${strategy.id}/` : undefined;
 const kind = { milestone: "Milestone", result: "Result", "dead-end": "Dead end", review: "Review" } as const;
 ---
 <Base title={entry.data.title} description={entry.data.summary}>

@@ -1,0 +1,107 @@
+---
+title: Tupa Trade
+summary: My own price-action method. Read the swing structure from the daily down to 5 minutes, then enter on a 1-minute structure break with a stop-limit order.
+order: 3
+stage: building
+verdict: Rules written down and coded, with a Pine v6 twin. No test results yet.
+features:
+  f1: in-progress
+  f2: not-started
+  f3: not-started
+  f4: not-started
+  f5: not-started
+reviews: []
+updated: 2026-11-03
+---
+import Callout from "../../components/Callout.astro";
+import Pending from "../../components/Pending.astro";
+
+<Callout tone="warn" title="In development">
+  <p>This page describes the rules only. The code exists, but the test has not run yet, so there are no results
+  here. Nothing on this page says the method works.</p>
+</Callout>
+
+## The idea
+
+This is how I trade by hand, written down so the tester can check it. It uses **no indicators**, only swing points:
+the highs and lows where price turned.
+
+Price always moves from a swing low to a swing high and back. So after a swing low, the next swing must be a swing
+high, and it can only be one of two things: a **higher high (HH)** or a **lower high (LH)**. After a swing high, the
+next swing is a **higher low (HL)** or a **lower low (LL)**. At every moment there are only two outcomes, and the
+trade comes from reading which one price is choosing right now.
+
+## Swing points
+
+- A candle is a **swing high** when the candle before it is not higher (equal is allowed) and the candle after it
+  is strictly lower. A swing low is the mirror. So a swing is only known one candle later.
+- Equal counts as a break: a high equal to the last swing high is a HH, a low equal to the last swing low is a LL.
+- Two swing highs with no swing low between them: only the higher one stays. Same for lows.
+- A swing is **confirmed** one candle late, but it is only **real** once the opposite swing has formed after it.
+  Until then it is a **candidate** and can still be replaced.
+
+## Top-down reading
+
+I read the same chart on six timeframes: daily, 4 hours, 1 hour, 15 minutes, 5 minutes and 1 minute. Only closed
+candles count. The 4-hour candles start at 18:00 New York time, like the CME trading day.
+
+- **Downtrend** on a timeframe: its last higher low (HL) has been touched. **Uptrend:** its last lower high (LH)
+  has been touched.
+- The **tested timeframe** is the one with a candidate swing. For a short, that is a candidate swing low. The
+  worst case for a short is that this low holds and price builds a swing high from it.
+- **Short bias:** every timeframe below the tested one, down to 5 minutes, is already in a downtrend. Each lower
+  timeframe that breaks down makes the worst case less likely.
+- Longs are the exact mirror.
+
+## The entry: a 1-minute structure break
+
+With a short bias, I wait for the 1-minute chart to turn from up to down:
+
+- The last 1-minute swing low is a higher low, and a swing high has formed after it.
+- When price **touches** that higher low, structure has broken (a market structure shift). That level is the
+  **break point**.
+- The order is a **stop-limit**: it wakes up when price touches the break point, then sells at the limit price.
+
+| Item | Rule |
+|---|---|
+| Stop loss | Exactly at the last 1-minute swing high |
+| Maximum risk | 25 ticks ($250 for one contract, before costs). If the stop is further away, the sell limit moves up toward it so the risk is exactly 25 ticks |
+| Take profit | 25 ticks from the fill |
+| Unfilled limit | Cancelled when the next 1-minute swing high forms |
+| Session | New York only, 09:00 to 14:30 New York time. One trade per session. An open trade is closed at the end |
+
+## One example: 26 October 2026
+
+The rules came from walking through real days with my charts. On 26 October:
+
+- The 1-hour chart had a candidate higher low. The worst case for a short was that it would hold.
+- The 15-minute and 5-minute charts had both already touched their last higher low, so both were in a downtrend.
+- On the 1-minute chart, price touched the last higher low. The stop (the 1-minute swing high) was 26 ticks away,
+  more than the 25-tick limit. So the sell limit sat 1 tick above the break point, which made the risk exactly 25
+  ticks.
+- A few minutes later price touched the break point and the order filled. The take profit was hit the next
+  minute: +25 ticks, which is $250 minus $4.02 commission.
+
+This is one hand-picked day that I used to write the rules, so it proves nothing about the method. The test must
+reproduce this trade before any of its other numbers are trusted.
+
+## What is still open
+
+- How to choose the tested timeframe when several timeframes have a candidate swing. For now the code takes the
+  lowest one, and the F1 test tries four settings for how low it may go: 15 minutes, 1 hour, 4 hours or daily.
+- Whether the daily trend should override everything else. Not coded yet.
+- A take profit larger than 25 ticks. No rule yet.
+
+## How the test handles stop-limit orders
+
+The tester had no stop-limit orders before this strategy. They now follow one rule. When price touches the trigger,
+the order becomes a limit order. It can still fill later in the same candle if price comes back to the limit. A
+limit fill never gets slippage. This rule has not been checked against TradingView yet. The first check is whether
+TradingView takes the 26 October trade at the same minute and price.
+
+## Test every setting (F1)
+
+<Pending heading="Waiting for the first run">
+  The code and its Pine v6 twin are written and pass their tests on synthetic data. The real 16-year run, Codex's
+  review and the replication come next. Results will appear here.
+</Pending>

@@ -10,7 +10,7 @@ import { repoFile } from "../../../lib/site";
 import { date } from "../../../lib/format";
 
 export async function getStaticPaths() {
-  const all = await getCollection("strategies", (s) => s.data.stage === "tested");
+  const all = await getCollection("strategies", (s) => s.data.stage !== "planned");
   return all.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 const { entry } = Astro.props;
@@ -35,7 +35,7 @@ const stageHref = (n: 1 | 2) => {
       <p class="links">
         {d.source && <a href={d.source.url} rel="noopener">{d.source.label} <Icon name="arrow-up-right" size={13} /></a>}
         {pine && <a href={pine} rel="noopener">Pine v6 twin <Icon name="arrow-up-right" size={13} /></a>}
-        <a href={`/strategies/${entry.id}/evidence/`}>Evidence and run history</a>
+        {d.dataKey && <a href={`/strategies/${entry.id}/evidence/`}>Evidence and run history</a>}
         <span class="muted">Updated {date(d.updated)}</span>
       </p>
     </div>
