@@ -2,6 +2,7 @@
 // recomputes them.
 import fpr from "../data/strategies/fair_price_reversal.json";
 import skm from "../data/strategies/supertrend_kalman.json";
+import tupa from "../data/strategies/tupa_trade.json";
 import { SCENARIO_KEYS, isPeriodTable, type PeriodTable } from "./periods";
 
 export type Scenario = {
@@ -120,6 +121,7 @@ export const MIN_ELIGIBLE_TRADES = 300; // docs/OPTIMIZE.md: a trial counts only
 const all: Record<string, StrategyData> = {
   fair_price_reversal: fpr as unknown as StrategyData,
   supertrend_kalman: skm as unknown as StrategyData,
+  tupa_trade: tupa as unknown as StrategyData,
 };
 
 export function strategyData(key: string): StrategyData {

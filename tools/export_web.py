@@ -271,7 +271,10 @@ class Exporter:
     def __init__(self, strategy: str):
         self.strategy = strategy
         # Parameter allowlist: only the strategy's declared grid parameters (definitions only, no results).
-        self.param_keys = tuple(importlib.import_module(f"strategies.{strategy}").GRID)
+        module = importlib.import_module(f"strategies.{strategy}")
+        self.param_keys = tuple(module.GRID)
+        # F1 result document: README.md, or the module's DOC when README.md is the strategy's spec (tupa_trade)
+        self.f1_doc = getattr(module, "DOC", "README.md")
         self.results = ROOT / "results" / strategy
         self.docs = ROOT / "docs" / "strategies" / strategy
         self.sources: dict[str, str] = {}
@@ -306,7 +309,7 @@ class Exporter:
         return tf
 
     def by_year(self, variant: str) -> list[dict]:
-        return parse_by_year(self.read(self.docs / "README.md").read_text(), variant)
+        return parse_by_year(self.read(self.docs / self.f1_doc).read_text(), variant)
 
     def periods(self, key: str, tfs: dict[int, pd.DataFrame], scen: dict[int, dict]) -> dict:
         """Year table for the main JSON; month, week and day tables queued as fetched files."""

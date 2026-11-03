@@ -50,11 +50,18 @@ const toc = [
     </ul>
 
     <h2 id="exposure">Exposure to reserved data</h2>
-    <p>Reserved means "not used to pick settings". These are the known exceptions, copied from the run ledger:</p>
-    <ul>
-      {f2?.lineage.map((n) => <li>{n}</li>)}
-      {f2?.manual_looks.map((m) => <li><span class="mono">{date(m.time_utc)}</span> · {m.evaluations} engine runs · {m.note}</li>)}
-    </ul>
+    {f2 ? (
+      <>
+        <p>Reserved means "not used to pick settings". These are the known exceptions, copied from the run ledger:</p>
+        <ul>
+          {f2.lineage.map((n) => <li>{n}</li>)}
+          {f2.manual_looks.map((m) => <li><span class="mono">{date(m.time_utc)}</span> · {m.evaluations} engine runs · {m.note}</li>)}
+        </ul>
+      </>
+    ) : (
+      <p>Reserved means "not used to pick settings". No F2 search has run yet, but the F1 test above already used
+      every year, 2024+ included, to pick its best setting.</p>
+    )}
     <p>So 2024+ is reserved, but it is not a clean out-of-sample test. F3 never reads it; F5 will, once, and has to count this.</p>
 
     <h2 id="runs">Every run</h2>
@@ -80,8 +87,12 @@ const toc = [
         </table>
       </div>
     )}
-    <p>"Eligible" means the trial had at least {MIN_ELIGIBLE_TRADES} closed trades. Each trial runs the engine at 0, 1 and 2 ticks, and
-    neighbour checks add more runs, so engine runs are about three times the trials.</p>
+    {f2 ? (
+      <p>"Eligible" means the trial had at least {MIN_ELIGIBLE_TRADES} closed trades. Each trial runs the engine at 0, 1 and 2 ticks, and
+      neighbour checks add more runs, so engine runs are about three times the trials.</p>
+    ) : (
+      <p>No F2 search has run yet. The only runs so far are the F1 settings on the strategy page.</p>
+    )}
 
     <h2 id="reviews">Reviews</h2>
     <ReviewTrail reviews={entry.data.reviews} />

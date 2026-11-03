@@ -1,0 +1,24 @@
+---
+title: "Tupa Trade F1: the rules as written lose money"
+date: 2026-11-03
+summary: The first full test of my own method. All four settings lose money even with no slippage. The 26 October example trade was reproduced exactly.
+kind: result
+strategy: tupa-trade
+---
+The first check was the example I built the rules from: the 26 October short. The tester took it at the same
+minute and price and made the same 25 ticks, and Codex got the same with its own code. So the code does what the
+written rules say.
+
+Then the full test: 16 years of 1-minute data, New York session only, four settings for the one open rule (how low
+the tested timeframe may go).
+
+**All four lose money, even before slippage.** The best one lost $14,149 over 858 trades at 0 ticks and $26,209 at
+2 ticks. It won 31% of its trades. With wins about 1.8 times the size of losses, it needed about 36% to break even.
+Only 5 of 17 years made money.
+
+Codex's review also found a bug in the Pine version: it never reset the one-trade-per-session rule, so in
+TradingView it would have stopped after the first trade. That is fixed. A second finding, about 2010 data with bars
+during the daily break, is fixed in the code and waiting for Codex's recheck.
+
+This tests the rules as I wrote them down, not the way I trade by hand. The next step is to put the coded trades
+next to how I would have traded the same days and find where they differ.

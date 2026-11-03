@@ -2,24 +2,23 @@
 title: Tupa Trade
 summary: My own price-action method. Read the swing structure from the daily down to 5 minutes, then enter on a 1-minute structure break with a stop-limit order.
 order: 3
-stage: building
-verdict: Rules written down and coded, with a Pine v6 twin. No test results yet.
+dataKey: tupa_trade
+pine: strategies/tupa_trade.pine
+stage: tested
+verdict: Loses money even before slippage. The best of 4 settings won 31% of its trades; with a 25-tick target and a stop of up to 25 ticks it needs far more.
 features:
-  f1: in-progress
+  f1: done
   f2: not-started
   f3: not-started
   f4: not-started
   f5: not-started
-reviews: []
+reviews:
+  - { id: R19, kind: code, label: "Code reviewed; Pine session-reset bug fixed", date: 2026-11-03 }
+  - { id: R19, kind: replication, label: "Replicated: the 26 Oct trade and the F1 result, 0, 1 and 2 ticks", date: 2026-11-03 }
 updated: 2026-11-03
 ---
 import Callout from "../../components/Callout.astro";
-import Pending from "../../components/Pending.astro";
-
-<Callout tone="warn" title="In development">
-  <p>This page describes the rules only. The code exists, but the test has not run yet, so there are no results
-  here. Nothing on this page says the method works.</p>
-</Callout>
+import F1Results from "../../components/F1Results.astro";
 
 ## The idea
 
@@ -82,15 +81,9 @@ The rules came from walking through real days with my charts. On 26 October:
 - A few minutes later price touched the break point and the order filled. The take profit was hit the next
   minute: +25 ticks, which is $250 minus $4.02 commission.
 
-This is one hand-picked day that I used to write the rules, so it proves nothing about the method. The test must
-reproduce this trade before any of its other numbers are trusted.
-
-## What is still open
-
-- How to choose the tested timeframe when several timeframes have a candidate swing. For now the code takes the
-  lowest one, and the F1 test tries four settings for how low it may go: 15 minutes, 1 hour, 4 hours or daily.
-- Whether the daily trend should override everything else. Not coded yet.
-- A take profit larger than 25 ticks. No rule yet.
+This is one hand-picked day that I used to write the rules, so it proves nothing about the method. The test had to
+reproduce this trade before any of its other numbers were trusted, and it did: same minute, same prices, same
+result, in my tester and in Codex's own code.
 
 ## How the test handles stop-limit orders
 
@@ -101,7 +94,36 @@ TradingView takes the 26 October trade at the same minute and price.
 
 ## Test every setting (F1)
 
-<Pending heading="Waiting for the first run">
-  The code and its Pine v6 twin are written and pass their tests on synthetic data. The real 16-year run, Codex's
-  review and the replication come next. Results will appear here.
-</Pending>
+The open question of how low the tested timeframe may go became the one setting: 15 minutes, 1 hour, 4 hours or
+daily. All four ran over 16 years of 1-minute data, New York session only. Below is the best one, rerun at 1 and 2
+ticks.
+
+<Callout tone="honest" title="The honest result">
+  <p>All four settings lose money, even with no slippage. The best one (the tested timeframe can only be the daily)
+  lost $14,149 over 858 trades at 0 ticks, and $26,209 at 2 ticks. It won 31% of its trades. With wins of about
+  $239 and losses of about $132, it would need to win about 36% just to break even before slippage. Longs and shorts
+  lost about the same.</p>
+</Callout>
+
+<F1Results strategy="tupa_trade" paramLabels={{ t_min: "lowest tested timeframe" }} />
+
+### What this means
+
+As coded, these rules have no edge on CL. The other three settings traded more often (2,000 to 4,100 trades) and
+lost more ($32,852 to $34,158 at 0 ticks), so more trades did not help. Only 5 of the 17 years made money, none by
+much.
+
+These numbers test the rules as written down, not the trader. If my hand trading uses judgement the rules do not
+capture yet, it is missing here. Before calling the method dead, the next step is to compare the coded trades with
+how I would have traded the same days, and find the gap.
+
+Codex rebuilt the 26 October trade and the whole F1 result with its own code and got the same numbers. Its review
+also found a bug in the Pine version (it stopped trading after the first trade), now fixed. It does not prove
+TradingView gives the same numbers: only a TradingView export of the Pine version can do that.
+
+## What is still open
+
+- How to choose the tested timeframe when several timeframes have a candidate swing. For now the code takes the
+  lowest one, and the F1 test tries four settings for how low it may go: 15 minutes, 1 hour, 4 hours or daily.
+- Whether the daily trend should override everything else. Not coded yet.
+- A take profit larger than 25 ticks. No rule yet.
