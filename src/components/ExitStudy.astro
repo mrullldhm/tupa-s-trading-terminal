@@ -18,7 +18,7 @@ const FAMILY_LABEL: Record<string, string> = {
   be_time: "Breakeven, by time",
   trail_frac: "Trail a fraction of T",
   trail_atr: "Trail by ATR",
-  trail_swing: "Trail at swing pivot",
+  trail_swing: "Trail at fixed owner swing",
   trail_step: "Step ratchet",
   trail_close: "Trail from best close",
   trail_ema: "Trail at EMA",
@@ -100,9 +100,9 @@ const beats = (v: ExitVariant, role: string): string =>
 
 <p class="note foot">Net profit is closed trades. Rules were ranked on net profit plus any open position at the end,
 so a losing position left open could not hide. "Best of" is how many rules that row was picked from.
-<strong>Unverified:</strong> swing-pivot and Parabolic SAR trailing use Python copies of TradingView's
-<span class="mono">ta.pivotlow</span> and <span class="mono">ta.sar</span> that have not yet been checked against a
-TradingView export.</p>
+<strong>TradingView comparison pending:</strong> swing trailing uses the fixed owner swing definition in
+<span class="mono">indicators/structure_swings.pine</span>; Parabolic SAR uses
+<span class="mono">ta.sar</span>. Their Python twins still need comparison with a TradingView export.</p>
 </>}
 <style>
   .variant {

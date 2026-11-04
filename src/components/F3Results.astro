@@ -1,8 +1,37 @@
 ---
 import Pending from "./Pending.astro";
+import Callout from "./Callout.astro";
+import { strategyData, sessionLabel } from "../lib/data";
+import { usd, num } from "../lib/format";
 interface Props { strategy: string }
+const { strategy } = Astro.props;
+const runs = strategyData(strategy).features.f3?.runs ?? [];
 ---
-<Pending heading="Re-test pending">
-  The saved stress tests used the previous execution assumptions. Re-run the search and its stress tests after
-  the limit-entry updates before deciding whether a candidate goes on to F4.
-</Pending>
+{!runs.length ? <Pending heading="Re-test pending">
+  Validation using the fixed owner swings is not complete yet. Historical validation does not establish
+  whether a current candidate can advance to F4.
+</Pending> : <>
+  <Callout title="Validation with fixed owner swings">
+    <p>Development data before 2024 only. Each year re-selects from the same 200 random filter configurations
+    using earlier years. Advancement requires positive walk-forward profit, at least 7 of 10 positive years,
+    PBO ≤ 0.5 and deflated Sharpe probability ≥ 0.95. The starting F1 settings used the full history.</p>
+  </Callout>
+  <div class="table-scroll"><table class="data">
+    <caption>Current-rule validation, commission included with no added slippage</caption>
+    <thead><tr><th scope="col">Session</th><th scope="col" class="num">Walk-forward net</th><th scope="col" class="num">Positive years</th><th scope="col" class="num">PBO</th><th scope="col" class="num">DSR</th><th scope="col">Advance to F4</th></tr></thead>
+    <tbody>{runs.map((r) => <tr>
+      <th scope="row">{sessionLabel(r.variant)}</th>
+      <td class="num">{usd(r.wfo_total["0"])}</td>
+      <td class="num">{r.positive_folds} / {r.fold_years.length}</td>
+      <td class="num">{num(r.pbo.primary.pbo)}</td>
+      <td class="num">{num(r.dsr.primary.dsr)}</td>
+      <td>{r.verdict.advance ? "Yes" : "No"}</td>
+    </tr>)}</tbody>
+  </table></div>
+  {runs.map((r) => <details>
+    <summary>{sessionLabel(r.variant)}: yearly walk-forward results</summary>
+    <div class="table-scroll"><table class="data"><thead><tr><th scope="col">Year</th><th scope="col">Selected configuration</th><th scope="col" class="num">Net profit</th><th scope="col" class="num">Trades</th></tr></thead>
+      <tbody>{r.folds.map((f) => <tr><th scope="row">{f.year}</th><td>{f.picked ?? "No eligible configuration"}</td><td class="num">{usd(f.net0)}</td><td class="num">{f.trades ?? 0}</td></tr>)}</tbody>
+    </table></div>
+  </details>)}
+</>}

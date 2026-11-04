@@ -1,7 +1,6 @@
 // Types and lookups for the JSON written by tools/export_web.py. The site displays these numbers; it never
 // recomputes them.
 import fpr from "../data/strategies/fair_price_reversal.json";
-import skm from "../data/strategies/supertrend_kalman.json";
 import tupa from "../data/strategies/tupa_trade.json";
 import { SCENARIO_KEYS, isPeriodTable, type PeriodTable } from "./periods";
 
@@ -116,6 +115,7 @@ export type StrategyData = {
   export_version: number;
   generated_utc: string;
   strategy: string;
+  swing_rule: { source: string; sha256: string };
   features: {
     f1: { variants: Record<string, F1Variant>; grid_size: number[]; objectives: MetricObjective[] };
     f2: {
@@ -134,11 +134,10 @@ export type StrategyData = {
 };
 
 export const EXPORT_VERSION = 4;
-export const MIN_ELIGIBLE_TRADES = 300; // docs/OPTIMIZE.md: a trial counts only with 300+ closed trades at 1 tick
+export const MIN_ELIGIBLE_TRADES = 300; // docs/OPTIMIZE.md: a trial counts only with 300+ closed trades
 
 const all: Record<string, StrategyData> = {
   fair_price_reversal: fpr as unknown as StrategyData,
-  supertrend_kalman: skm as unknown as StrategyData,
   tupa_trade: tupa as unknown as StrategyData,
 };
 
@@ -156,6 +155,10 @@ function checkShape(key: string, d: StrategyData) {
   const bad = (msg: string) => {
     throw new Error(`${key}: malformed export, ${msg}; re-run npm run export`);
   };
+  if (d.swing_rule?.source !== "indicators/structure_swings.pine"
+      || d.swing_rule.sha256 !== "162bba6a226acdcc518042b100f7ff33186501479dd4d0634be1c48a70f5be13") {
+    bad("the mandatory owner swing source is missing or changed");
+  }
   const variants = Object.entries(d.features?.f1?.variants ?? {});
   if (!variants.length) bad("features.f1.variants is empty");
   for (const [v, x] of variants) {

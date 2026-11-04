@@ -1,0 +1,32 @@
+---
+title: "One swing rule, regenerated results"
+date: 2026-11-04
+summary: Every strategy and research stage now uses the fixed owner swing definition. Results have been regenerated with limit entries and commission only.
+kind: result
+---
+Fair Price Reversal and Tupa Trade use only the owner swing definition in `indicators/structure_swings.pine`.
+The same rule applies to entry structure, swing trailing, feature searches, validation and charts. Swing
+detection is never optimized. A swing confirms at the next candle close, alternates with the opposite type,
+and follows the owner's equality, replacement and outside-candle ordering rules.
+
+The regenerated F1 net-profit references, after commission with no added slippage, are:
+
+| Strategy / session | Net profit | Closed trades |
+|---|---:|---:|
+| Fair Price Reversal / Asia | −$6,418.68 | 1,634 |
+| Fair Price Reversal / London | +$11,712.66 | 1,967 |
+| Fair Price Reversal / New York | +$60,180.72 | 4,664 |
+| Tupa Trade / New York | −$13,547.10 | 855 |
+
+These are in-sample selections. F1 also has separate winners for 13 metrics.
+
+Six F2 searches used 1,500 trials with fixed swings. The three random-filter candidates were validated:
+**none advances to F4**. New York passed the procedure checks but missed the deflated Sharpe threshold;
+London and Asia also failed the walk-forward profit requirement. The wider searches remain exploratory.
+
+The exit study tested 396 rules per session. Swing trailing used exactly the same owner swings as entry
+structure. No exit rule beat the baseline in London or New York; Asia's best exit still lost money.
+
+[Fair Price Reversal results](/strategies/fair-price-reversal/feature-1/),
+[Tupa Trade results](/strategies/tupa-trade/feature-1/),
+[validation results](/strategies/fair-price-reversal/feature-3/).

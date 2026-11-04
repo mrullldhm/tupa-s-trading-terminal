@@ -79,7 +79,7 @@ Generate fresh full-grid results without replacing the historical reports, then 
 ```bash
 cd ..
 .venv/bin/python -m tvtester.cli test tupa_trade --output-tag metrics --jobs 1
-# Repeat for fair_price_reversal and supertrend_kalman as needed.
+# Repeat for fair_price_reversal as needed.
 # --min-trades 30 and --ruin-loss 25000 declare selection eligibility and the estimated ruin loss threshold.
 cd web
 npm run export
@@ -113,3 +113,6 @@ The normal `npm run export` retains its F1–F5 role; it does not overwrite thes
 
 F0 reports include commission, current execution assumptions, the exact interval, source hashes and an
 in-sample label. A profitable baseline alone does not establish a tradable edge or TradingView parity.
+
+All strategies, tests, features and swing exits use only `../indicators/structure_swings.pine`.
+There is no tunable swing setting. Web replays and teaching charts must follow that same rule.

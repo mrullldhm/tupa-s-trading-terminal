@@ -16,18 +16,20 @@ import SessionTable from "../../components/SessionTable.astro";
 
 ## The rules
 
-These are the rules behind the saved results. Entries will be updated to limit buy/sell at the planned price;
-that strategy change has not been tested yet.
+These rules use the owner's mandatory swing definition in `indicators/structure_swings.pine`.
+Every strategy and research feature uses this definition; swing detection cannot be adjusted.
 
-The signal is the indicator's own logic, unchanged. The trade rules are mine, because the indicator only draws
-signals and never trades.
-
+- **Swings.** One candle on each side: `left high <= centre high` and `right high < centre high`, with lows mirrored.
+  Confirm only at the right candle close. Swings alternate; a same-type candidate replaces the newest only if
+  at least as extreme (equal: later). Outside candles follow their 1-minute extreme order, using the indicator's
+  open-distance fallback when necessary. Equal highs are HH, equal lows LL. No reset at contract rolls.
 - **Fair price.** The body (open to close) of the candle just before the session opens.
 - **Setup window.** Starts at the session open. Price must move beyond the body by at least a set multiple of
   ATR(14). ATR is a measure of normal candle size.
 - **Long signal.** After a move down, a lower swing high forms. A candle then closes above that swing high while
   still below the body. Shorts are the mirror image. At most one long and one short per session per day.
-- **Entry.** A market order at the next candle's open, only when no trade is open.
+- **Entry.** A limit at the signal close, working from the next candle, only when flat. A waiting entry expires
+  at a one-minute close if that candle reached its planned target and it is still unfilled.
 - **Stop.** The most extreme price of the move away, fixed when the signal fires.
 - **Target.** One of four choices, tested as a setting: the near body edge, the far body edge, 1R or 2R. R is
   the distance from the signal close to the stop.

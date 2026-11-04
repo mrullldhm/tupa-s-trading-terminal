@@ -6,15 +6,8 @@ export const targetLabel = (v: string) => TARGET[v] ?? v;
 const ASSIGN: Record<string, (v: string) => string> = {
   atr_mult: (v) => `move of ${v} × ATR`,
   window: (v) => `${v}-minute setup window`,
-  swing: (v) => `swing of ${v} bars`,
+  swing: () => "fixed owner swings",
   target: (v) => `${targetLabel(v)} target`,
-  trigger: (v) => ({ st: "Supertrend flip entry", trail: "ATR-trail cross entry", both: "Supertrend + trail agree entry" })[v] ?? `trigger ${v}`,
-  vol: (v) => (v === "none" ? "no volatility filter" : v === "rvi" ? "RVI on the trade side" : v.startsWith("stop_atr:") ? `stop at most ${v.slice(9)} × ATR14` : v.startsWith("atr_ratio:") ? `ATR14 / ATR100 at most ${v.slice(10)}` : v),
-  exit: (v) => ({ fixed: "fixed stop + target", trail: "stop trails the ATR line", flip: "exit on a Supertrend flip" })[v] ?? `exit ${v}`,
-  rr: (v) => `${v}R target`,
-  trail_mult: (v) => `ATR trail × ${v}`,
-  st_factor: (v) => `Supertrend factor ${v}`,
-  kalman_q: (v) => `Kalman q ${v}`,
 };
 
 const FILTER: Record<string, { min: (v: string) => string; max: (v: string) => string }> = {

@@ -8,7 +8,7 @@ interface Props {
 }
 const { story } = Astro.props;
 const { steps } = story;
-// One legend entry per indicator; Supertrend has two tones (up / down) under one name.
+// One legend entry per indicator.
 const legend = [...new Set((story.overlays ?? []).map((o) => o.label))].map((label) => ({
   label,
   tones: (story.overlays ?? []).filter((o) => o.label === label).map((o) => o.tone),

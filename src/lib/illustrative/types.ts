@@ -5,7 +5,7 @@ export type Candle = { time: number; open: number; high: number; low: number; cl
 export type Tone = "ink" | "dim" | "long" | "short";
 
 // An indicator line drawn over the candles. One value per candle; null = no line at that candle (warm-up or the
-// other side of a Supertrend flip).
+// a temporarily unavailable value).
 export type Overlay = { key: string; label: string; tone: Tone; values: (number | null)[] };
 
 export type Step = {

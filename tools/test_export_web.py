@@ -201,13 +201,12 @@ def test_real_export_publishes_only_allowed_fields(tmp_path, monkeypatch):
     for variant in data["features"]["f1"]["variants"].values():
         assert set(variant["params"]) == grid_keys
     f3 = data["features"]["f3"]
-    assert f3 is None or {r["tag"] for r in f3["runs"]} <= {"ny_filters_random_net1_s1_n200",
-                                                          "london_filters_random_net1_s1_n200"}
+    assert f3 is None or all("_filters_random_net0_s1_n200" in r["tag"] for r in f3["runs"])
     for r in (f3 or {}).get("runs", []):
         assert set(r["params"]) <= grid_keys
         assert r["verdict"]["advance"] == (r["verdict"]["procedure"] and r["verdict"]["candidate"])
-        assert len(r["folds"]) == 10 and all(set(f) <= {"year", "trial", "picked", "train_obj", "net0", "net1",
-                                                         "net2", "trades1", "cand1"} for f in r["folds"])
+        assert len(r["folds"]) == 10 and all(set(f) <= {"year", "trial", "picked", "train_obj", "net0", "trades",
+                                                         "candidate"} for f in r["folds"])
     assert data["features"]["f4"] is None and data["features"]["f5"] is None
 
 
@@ -291,6 +290,8 @@ def test_real_export_writes_period_files_for_f1_and_candidates_only(tmp_path, mo
     candidates = ew.read_candidates(ew.VERDICTS.read_text(), "fair_price_reversal")
     expected = {f"f1-{v}" for v in data["features"]["f1"]["variants"]}
     expected |= {f"f2-{r}" for r, is_candidate in candidates.items() if is_candidate}
+    for variant in data["features"]["f1"]["variants"].values():
+        expected |= {r["data_key"] for r in (variant.get("metric_selection") or {}).get("reports", {}).values()}
     written = {p.name for p in (tmp_path / "public" / "fair_price_reversal").iterdir()}
     assert written == expected
     for key in expected:
@@ -304,7 +305,7 @@ def test_real_export_writes_period_files_for_f1_and_candidates_only(tmp_path, mo
         if path.stem == "day-my":
             assert doc["timezone"] == "Asia/Kuala_Lumpur"
         assert doc["generated_utc"] == data["generated_utc"] and doc["strategy"] == "fair_price_reversal"
-        assert all(len(doc["net"][k]) == len(doc["periods"]) for k in ("0", "1", "2"))
+        assert all(len(doc["net"][k]) == len(doc["periods"]) for k in map(str, ew.SCENARIOS))
         ew.check_publication(doc)
 
 
@@ -340,7 +341,7 @@ def test_walk_forward_pick_labels_reject_unlisted_fields(label):
 
 def test_walk_forward_pick_labels_accept_filters_and_declared_params():
     assert ew.check_picked("anchor_body_atr >= 0.3, risk_ticks <= 32", ()) == "anchor_body_atr >= 0.3, risk_ticks <= 32"
-    assert ew.check_picked("swing=3, risk_ticks >= 30", ("swing",)) == "swing=3, risk_ticks >= 30"
+    assert ew.check_picked("swing=1, risk_ticks >= 30", ("swing",)) == "swing=1, risk_ticks >= 30"
 
 
 def fake_scenario(k, net, open_pnl=0.0):
@@ -439,3 +440,12 @@ def test_exits_rejects_a_wrong_overall_or_ledger_best(tmp_path, monkeypatch):
     (tmp_path / "ledger.jsonl").write_text("\n".join(json.dumps(e) for e in ledger) + "\n")
     with pytest.raises(ew.ExportError, match="ledger closing event"):
         exits_exporter(tmp_path, monkeypatch).feature_exits()
+
+
+def test_alternative_swing_settings_cannot_be_published():
+    with pytest.raises(ew.ExportError, match="fixed"):
+        ew.check_params({"swing": 3})
+    with pytest.raises(ew.ExportError, match="adjustable"):
+        ew.check_params({"trail": "swing", "trail_x": 2})
+    with pytest.raises(ew.ExportError, match="fixed"):
+        ew.check_picked("swing=3", ("swing",))

@@ -73,7 +73,7 @@ export default function localTradeReplay() {
           if (req.method !== "GET") return send(405, { error: "Use GET." });
           if (url.pathname.endsWith("/status")) return send(200, { available: true });
           const { strategy, key, day, generated } = Object.fromEntries(url.searchParams);
-          if (!["fair_price_reversal", "supertrend_kalman", "tupa_trade"].includes(strategy) ||
+          if (!["fair_price_reversal", "tupa_trade"].includes(strategy) ||
               !/^f(?:[12]|1m)-[a-z0-9_-]{1,100}$/.test(key ?? "") || !/^\d{4}-\d{2}-\d{2}$/.test(day ?? "") ||
               !generated) {
             return send(400, { error: "Choose a valid strategy, result and Malaysian day." });

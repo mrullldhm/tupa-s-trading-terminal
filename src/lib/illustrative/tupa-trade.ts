@@ -1,3 +1,4 @@
+import { ownerSwings } from "./owner-swings.ts";
 // Synthetic teaching candles only. These do not reproduce a real trading day.
 import type { Candle, Step, Story } from "./types";
 
@@ -112,6 +113,9 @@ function check() {
   for (const i of [IDX.high, IDX.stop]) {
     assert(candles[i - 1].high <= candles[i].high && candles[i + 1].high < candles[i].high, "invalid swing high");
   }
+  const states = ownerSwings(candles);
+  for (const i of [IDX.low, IDX.hl]) assert(states[i + 1].lowIndex === i, "owner swing low was dropped");
+  for (const i of [IDX.high, IDX.stop]) assert(states[i + 1].highIndex === i, "owner swing high was dropped");
   assert(candles[IDX.hl].low > candles[IDX.low].low, "not a higher low");
   assert(candles[IDX.hl].low === LEVELS.break && candles[IDX.stop].high === LEVELS.stop, "incorrect structure levels");
   assert(Math.round((LEVELS.stop - LEVELS.entry) * 100) === 25, "risk must be 25 ticks");

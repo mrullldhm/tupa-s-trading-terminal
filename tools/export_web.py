@@ -51,7 +51,7 @@ ALL_FIELDS = (
 )
 EXIT_FAMILIES = ("be_touch", "be_close", "be_time", "trail_frac", "trail_atr", "trail_swing", "trail_step",
                  "trail_close", "trail_ema", "trail_sar", "both", "time_exit")
-EXIT_RULES = 428  # the declared exit-study grid (tvtester.exits.study_rules); older runs had 330
+EXIT_RULES = 396  # fixed owner swings; older adjustable-pivot runs are superseded
 SIDE_FIELDS = ("net_profit", "total_closed_trades", "percent_profitable", "profit_factor")
 # These percentages use initial capital, never an instrument price.
 ALLOWED_PCT_KEYS = {"max_equity_drawdown_pct", "max_equity_runup_pct", "net_profit_pct"}
@@ -81,10 +81,14 @@ def check_params(value) -> None:
     if not isinstance(value, dict):
         raise ExportError("params must be a flat str-to-scalar mapping")
     for key, scalar in value.items():
+        if key == "swing" and scalar != 1:
+            raise ExportError("swing detection is fixed by indicators/structure_swings.pine; swing must be 1")
         if (not isinstance(key, str) or forbidden_key(key)
                 or type(scalar) not in (str, int, float, bool, type(None))
                 or (type(scalar) is float and not math.isfinite(scalar))):
             raise ExportError(f"invalid params key or scalar: {key!r}")
+    if value.get("trail") == "swing" and value.get("trail_x", 0) != 0:
+        raise ExportError("owner swing trailing has no adjustable strength; trail_x must be 0")
 
 
 def check_filters(value) -> None:
@@ -94,7 +98,7 @@ def check_filters(value) -> None:
         if not isinstance(entry, list) or len(entry) != 3:
             raise ExportError("each filter must be a list of exactly 3 values")
         feature, operator, threshold = entry
-        # Includes the committed features and supertrend features without allowing arbitrary structures.
+        # Includes the declared strategy features without allowing arbitrary structures.
         if (not isinstance(feature, str) or not re.fullmatch(r"[a-z_]+", feature)
                 or forbidden_key(feature) or not isinstance(operator, str) or operator not in {"min", "max"}
                 or type(threshold) not in (int, float) or not math.isfinite(threshold)):
@@ -109,6 +113,8 @@ def check_picked(label: str, param_keys) -> str:
         if not m or forbidden_key(m.group(1)) or ("=" in p and "<" not in p and ">" not in p
                                                    and m.group(1) not in param_keys):
             raise ExportError(f"unexpected walk-forward pick label: {label!r}")
+        if m.group(1) == "swing" and p not in ("swing=1", "swing=1.0"):
+            raise ExportError("walk-forward labels cannot change the fixed owner swing definition")
     return label
 
 
@@ -277,6 +283,8 @@ def parse_by_year(report: str, variant: str) -> list[dict]:
 
 class Exporter:
     def __init__(self, strategy: str):
+        if strategy not in ("fair_price_reversal", "tupa_trade"):
+            raise ExportError("Only fair_price_reversal and tupa_trade may be published")
         self.strategy = strategy
         # Parameter allowlist: only the strategy's declared grid parameters (definitions only, no results).
         module = importlib.import_module(f"strategies.{strategy}")
@@ -444,6 +452,9 @@ class Exporter:
             if e["run_id"] in searches:
                 raise ExportError(f"ledger has two search entries for {e['run_id']}")
             searches[e["run_id"]] = e
+        from tvtester.experiment import EXECUTION_VERSION
+        searches = {run_id: e for run_id, e in searches.items()
+                    if json.loads(self.read(self.results / "search" / run_id / "run.json").read_text()).get("execution_version") == EXECUTION_VERSION}
         candidates = read_candidates(self.read(VERDICTS).read_text(), self.strategy)
         unjudged = sorted(set(searches) - set(candidates))
         if unjudged:
@@ -487,7 +498,8 @@ class Exporter:
                                             if not e["kind"].startswith("validate")),
             "manual_looks": [{"time_utc": e["time_utc"], "evaluations": e["evaluations"], "note": e["note"]}
                              for e in ledger if e["kind"] == "manual"],
-            "lineage": [e["note"] for e in ledger if e["kind"] == "lineage"],
+            "lineage": [importlib.import_module(f"strategies.{self.strategy}").LINEAGE,
+                        *["Historical ledger: " + e["note"] for e in ledger if e["kind"] == "lineage"]],
         }
 
     def feature3(self) -> dict | None:
@@ -502,6 +514,13 @@ class Exporter:
         runs = []
         for tag in tags:
             d = base / tag
+            done = [e for e in ledger if e["kind"] == "validate" and e.get("tag") == tag]
+            if not done:
+                continue  # Interrupted attempts are preserved locally, never published as completed validation.
+            from tvtester.experiment import EXECUTION_VERSION
+            meta = json.loads(self.read(d / "run.json").read_text())
+            if meta.get("execution_version") != EXECUTION_VERSION:
+                continue
             verdict = json.loads(self.read(d / "verdict.json").read_text())
             pbo = json.loads(self.read(d / "pbo.json").read_text())
             dsr = json.loads(self.read(d / "dsr.json").read_text())
@@ -576,7 +595,7 @@ class Exporter:
                                                        if e["kind"].startswith("validate"))}
 
     def complete_exit_run(self) -> tuple[str, list[Path], dict[str, dict]] | None:
-        """Newest exit-study run that is complete: every variant directory has a summary, a 428-row grid and a
+        """Newest exit-study run that is complete: every variant directory has a summary, a current-rule grid and a
         closing `exit_study` ledger event. Older formats (330 rules) and interrupted runs are skipped."""
         base = self.results / "exits"
         ledger_path = self.results / "ledger.jsonl"
@@ -598,7 +617,7 @@ class Exporter:
     def feature_exits(self) -> dict | None:
         """Exit study (breakeven / trailing stop / time exit) from results/<s>/exits/<run_id>/<variant>/. Copied from
         summary.json and grid.csv; the counts are tallies of the grid's own objective column. None until a complete
-        428-rule run exists."""
+        396-rule run exists."""
         found = self.complete_exit_run()
         if not found:
             return None
@@ -652,10 +671,12 @@ class Exporter:
         return {"run_id": run_id, "variants": variants}
 
     def run(self) -> Path:
+        swing_source = self.read(ROOT / "indicators" / "structure_swings.pine")
         data = {
             "export_version": EXPORT_VERSION,
             "generated_utc": self.generated_utc,
             "strategy": self.strategy,
+            "swing_rule": {"source": "indicators/structure_swings.pine", "sha256": sha256(swing_source)},
             "features": {"f1": self.feature1(), "f2": self.feature2(), "f3": self.feature3(), "f4": None,
                          "f5": None, "exits": self.feature_exits()},
         }

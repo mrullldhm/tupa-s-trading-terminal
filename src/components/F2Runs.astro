@@ -54,7 +54,7 @@ function baselineBefore(variant: string, cutoff: string | null) {
   it is <strong>not</strong> a clean out-of-sample test.</p>
   <p>Each result is the best of its run ({trialSizes} tries). Across all sessions the search tried{" "}
   {int(f2.total_trials)} settings ({perSessionText}), on top of the {f1GridText}-setting F1 grids. That
-  took{" "}{int(f2.total_engine_evaluations)} engine runs in total (including reruns and checks).</p>
+  took{" "}{int(f2.total_engine_evaluations)} engine runs in the local ledger, including historical work, reruns and checks.</p>
 </Callout>
 
 <div class="table-scroll runs">
@@ -99,9 +99,8 @@ function baselineBefore(variant: string, cutoff: string | null) {
     </tbody>
   </table>
 </div>
-<p class="rule muted">These are saved searches from the previous execution assumptions, with a minimum of {MIN_ELIGIBLE_TRADES} closed trades.
-Their original candidate and rejection labels are historical. The numbers shown here include commission only.
-Re-run selection and validation after the limit-entry updates; these are not newly ranked winners.</p>
+<p class="rule muted">These searches use the fixed owner swings and limit entries, with at least {MIN_ELIGIBLE_TRADES} closed trades for eligibility.
+Commission is included with no added slippage. Candidate labels identify configurations for research validation.</p>
 
 {candidates.map((r) => (
   <section class="candidate">

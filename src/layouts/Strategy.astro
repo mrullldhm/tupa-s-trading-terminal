@@ -16,6 +16,7 @@ const next = pages[current + 1];
       <Crumbs items={[{ href: "/strategies/", label: "Strategies" }, ...(section === "overview" ? [] : [{ href: `/strategies/${entry.id}/`, label: entry.data.title }])]} current={section === "overview" ? entry.data.title : title} />
       <h1>{section === "overview" ? entry.data.title : title}</h1>
       <p class="intro">{section === "overview" ? entry.data.summary : entry.data.title + " · CL1! · 1-minute bars"}</p>
+      <p>Fixed owner swings at every stage. Swing detection is never optimized.</p>
     </header>
     <nav class="strategy-nav" aria-label={`${entry.data.title} sections`}>
       <p>Strategy sections</p>

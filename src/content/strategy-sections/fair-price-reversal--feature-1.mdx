@@ -16,14 +16,11 @@ import SessionTable from "../../components/SessionTable.astro";
 
 ## Test every setting (F1)
 
-This stage runs every combination of four settings (192 in total) for each session over 16 years of 1-minute data,
-then selects separate winners for 13 metrics. Use the selector to compare profit, win rate, risk and trade excursions.
-The previous net-profit report remains available as a historical reference.
+This stage runs all 64 combinations of setup window, ATR move threshold and target for each session,
+then selects separate winners for 13 metrics. Swing detection is fixed by `indicators/structure_swings.pine`
+and is never searched. All results use limit entries and include commission with no added slippage.
 
-<Callout tone="honest" title="Previous net-profit result">
-  <p>In the previous run, the best of 192 settings made money in every session after commission. These settings were picked on
-  the same data shown here. This is an in-sample result, not evidence of a live trading edge.</p>
-</Callout>
+These settings were selected on the same historical data shown here; the results are in-sample.
 
-<F1Results strategy="fair_price_reversal" paramLabels={{ window: "window (min)", atr_mult: "ATR multiple", swing: "swing bars", target: "target" }} />
+<F1Results strategy="fair_price_reversal" paramLabels={{ window: "window (min)", atr_mult: "ATR multiple", swing: "owner swing (fixed)", target: "target" }} />
 

@@ -8,12 +8,12 @@ source:
   url: https://www.luxalgo.com/library/indicator/9-29-et-fair-price-reversal/
 pine: strategies/fair_price_reversal.pine
 stage: tested
-verdict: Results include commission only. Limit-entry strategy updates and new search validation are pending.
+verdict: Regenerated with fixed owner swings and limit entries; commission included, no added slippage.
 features:
   f0: done
   f1: done
   f2: done
-  f3: not-started
+  f3: done
   f4: not-started
   f5: not-started
 reviews:
@@ -23,7 +23,7 @@ reviews:
   - { id: R6, kind: replication, label: "Replicated: NY F2 candidate, baseline", date: 2026-10-31 }
   - { id: R12, kind: plan, label: "F3 plan, rules and code reviewed", date: 2026-11-01 }
   - { id: R13, kind: replication, label: "Replicated: every F3 pick, PBO and DSR", date: 2026-11-01 }
-updated: 2026-11-03
+updated: 2026-11-04
 ---
 import AnnotatedChart from "../../components/AnnotatedChart.astro";
 import { story } from "../../lib/illustrative/fair-price-reversal";

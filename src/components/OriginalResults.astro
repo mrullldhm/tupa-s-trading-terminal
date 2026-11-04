@@ -17,12 +17,11 @@ const { strategy } = Astro.props;
 const files = import.meta.glob<{ default: OriginalRun }>("../data/original/*.json", { eager: true });
 const data = files[`../data/original/${strategy}.json`]?.default;
 const summary = data?.scenarios["0"];
-const primaryCount = strategy === "fair_price_reversal" ? 6 : strategy === "supertrend_kalman" ? 11 : 4;
+const primaryCount = strategy === "fair_price_reversal" ? 5 : 4;
 const primaryInputs = data?.inputs.slice(0, primaryCount) ?? [];
 const extraInputs = data?.inputs.slice(primaryCount) ?? [];
 const explanations: Record<string, string> = {
-  fair_price_reversal: "New York session; a 60-minute setup window; ATR(14) with a 1× move-away threshold; swing strength 2; target at the near edge of the anchor candle body.",
-  supertrend_kalman: "All hours; entry on a Supertrend flip; no volatility filter; fixed stop and 2R target; swing strength 3; Supertrend factor 3 and ATR length 10; Kalman q 0.01. The source ATR trail multiple is 2, but trailing exits are off.",
+  fair_price_reversal: "New York session; a 60-minute setup window; ATR(14) with a 1× move-away threshold; fixed owner swings; target at the near edge of the anchor candle body.",
   tupa_trade: "New York session only; the lowest eligible tested timeframe is 1 hour; a 25-tick take profit and maximum initial risk of 25 ticks ($250 before fees). One filled trade per session.",
 };
 ---
@@ -36,7 +35,7 @@ const explanations: Record<string, string> = {
   </Callout>
   {data && summary ? <>
     <h2>Original inputs</h2>
-    <p>These values are copied from the current Pine twin. {strategy === "supertrend_kalman" && "The volatility filter threshold and ATR trail multiple are inactive with these defaults."}</p>
+    <p>These values are copied from the current Pine twin.</p>
     <div class="table-scroll"><table class="data">
       <caption class="sr-only">Current Pine default inputs for Feature 0</caption>
       <thead><tr><th scope="col">Setting</th><th scope="col">Original value</th></tr></thead>

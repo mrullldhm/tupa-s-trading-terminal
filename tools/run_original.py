@@ -30,10 +30,7 @@ from tvtester.experiment import EXECUTION_VERSION
 # including inactive ones, so the page states every input rather than only grid axes.
 INPUTS = {
     "fair_price_reversal": dict(session="sessionInput", window="windowInput", atr_len="atrLengthInput",
-                                atr_mult="atrMultInput", swing="swingInput", target="targetInput"),
-    "supertrend_kalman": dict(hours="hoursInput", trigger="triggerInput", vol="volInput", exit="exitInput",
-                              rr="rrInput", swing="swingInput", trail_mult="trailMult", kalman_q="kalmanQ",
-                              st_factor="stFactor", atr_len="atrLen"),
+                                atr_mult="atrMultInput", target="targetInput"),
     "tupa_trade": dict(t_min="tMinInput", tp="tpTicks", max_risk="maxRisk"),
 }
 
@@ -83,7 +80,8 @@ def main():
     public_trades = exporter.trades(out / "trades_slippage0.csv")
     check_trades_match_summary(public_trades, scenario, "F0")
     source_paths = [pine_path, ROOT / "strategies" / f"{key}.py", out / "configuration.json", out / "summary.json",
-                    out / "trades_slippage0.csv", ROOT / "data" / "manifest.json"]
+                    out / "trades_slippage0.csv", ROOT / "data" / "manifest.json",
+                    ROOT / "indicators" / "structure_swings.pine", ROOT / "tvtester" / "swings.py"]
     data = {"strategy": key, "generated_utc": datetime.now(UTC).isoformat(),
             "execution_version": EXECUTION_VERSION, "params": strategy.params, "inputs": inputs,
             "scenarios": {"0": scenario},

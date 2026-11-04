@@ -1,7 +1,7 @@
 {
   "strategy": "tupa_trade",
-  "generated_utc": "2026-11-04T06:51:11.511420+00:00",
-  "execution_version": "limit-close-tp-expiry-v1",
+  "generated_utc": "2026-11-04T15:08:00.210982+00:00",
+  "execution_version": "limit-close-tp-expiry-owner-swings-v2",
   "params": {
     "t_min": "1h",
     "tp": 25,
@@ -882,11 +882,11 @@
     },
     {
       "path": "results/tupa_trade/original/configuration.json",
-      "sha256": "714defb41fe68cb79f8106a523be0a289e6c813a85acb4f32f44ca8d96b63cd3"
+      "sha256": "a7e73462ec0de4b55d88b7bf06444b410656a4399f60f3a30a29e8f8218f9eec"
     },
     {
       "path": "results/tupa_trade/original/summary.json",
-      "sha256": "4ce01a0106bbb96793c65e1b601b8b0ef7c48ad483465f97431b1a5d29dc60d2"
+      "sha256": "5dc499bfbd60237f168b632d8af1f892daeb7aad626a85a8ca0f8452f4f5f263"
     },
     {
       "path": "results/tupa_trade/original/trades_slippage0.csv",
@@ -895,6 +895,14 @@
     {
       "path": "data/manifest.json",
       "sha256": "26e361363ed0779be1bd893c7166e2a11d7d0c2f50bd53d1bf99a562c86d0349"
+    },
+    {
+      "path": "indicators/structure_swings.pine",
+      "sha256": "162bba6a226acdcc518042b100f7ff33186501479dd4d0634be1c48a70f5be13"
+    },
+    {
+      "path": "tvtester/swings.py",
+      "sha256": "eb704ccb11d659a023bf1fae2ba085ac854b7d9745c9abd71bbc659fdd8d0098"
     }
   ]
 }

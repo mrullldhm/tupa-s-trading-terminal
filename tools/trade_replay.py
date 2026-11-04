@@ -26,7 +26,7 @@ from tvtester import engine, ta
 from tvtester.config import DEFAULT, TICK
 from tvtester.data import Bars, load_bars
 
-STRATEGIES = {"fair_price_reversal", "supertrend_kalman", "tupa_trade"}
+STRATEGIES = {"fair_price_reversal", "tupa_trade"}
 CACHE = None
 # Small, private in-memory cache. Never exported into the public site.
 DAY_CACHE = OrderedDict()
@@ -209,42 +209,15 @@ def replay(request):
                 upper.append(top); lower.append(bottom)
         add_line("Anchor body high", upper, "#b8b8bd")
         add_line("Anchor body low", lower, "#85858c")
-        for high, label, values in ((True, "Confirmed swing high", bars.h), (False, "Confirmed swing low", bars.l)):
-            pivot_key = ("replay-pivots", strategy.params["swing"], high)
-            if pivot_key not in bars.cache:
-                pivots = ta.buffer_pivots(values, strategy.params["swing"], high)
-                valid = np.flatnonzero(np.isfinite(pivots))
-                bars.cache[pivot_key] = pivots, valid
-            pivots, valid = bars.cache[pivot_key]
-            at = np.searchsorted(valid, indices, side="right") - 1
-            out = [pivots[valid[k]] if k >= 0 else None for k in at]
-            add_line(label, out, "#b8b8bd" if high else "#85858c")
+        from tvtester.swings import minute_swing_series
+        owner = minute_swing_series(bars)
+        add_line("Confirmed swing high", owner["last_high"][lo:hi], "#b8b8bd")
+        add_line("Confirmed swing low", owner["last_low"][lo:hi], "#85858c")
         atr_key = ("replay-atr", strategy.params["atr_len"])
         if atr_key not in bars.cache:
             bars.cache[atr_key] = ta.shift(ta.atr(bars.h, bars.l, bars.c, strategy.params["atr_len"]), 1)
         atr = bars.cache[atr_key]
         add_line("ATR (previous bar, dollars)", atr[lo:hi], "#b8b8bd", 1)
-    elif request["strategy"] == "supertrend_kalman":
-        m = module.m15(bars)
-        display_key = ("replay-display", request["strategy"], strategy.params["st_factor"],
-                       strategy.params["atr_len"], strategy.params["kalman_q"])
-        if display_key not in bars.cache:
-            st, _ = ta.supertrend(m["h"], m["l"], m["c"], strategy.params["st_factor"], strategy.params["atr_len"])
-            kalman, _ = ta.kalman_trend(m["c"] * TICK, strategy.params["kalman_q"])
-            bars.cache[display_key] = st, kalman
-        st, kalman = bars.cache[display_key]
-        j = strategy.prev[lo:hi]
-        for label, values, color, ticks in (("M15 Supertrend", st, "#b8b8bd", True),
-                                             ("M15 ATR trail", strategy.ind["tr_stop"], "#8fd4c1", True),
-                                             ("M15 Kalman", kalman, "#f9f9f9", False),
-                                             ("M15 swing high", strategy.ind["sw_hi"], "#85858c", True),
-                                             ("M15 swing low", strategy.ind["sw_lo"], "#85858c", True)):
-            add_line(label, [values[k] if k >= 0 else None for k in j], color, ticks=ticks)
-        for pane, (label, key) in enumerate((("Kalman slope", "k_slope"), ("ATR14 (dollars)", "atr14"),
-                                             ("ATR100 (dollars)", "atr100"), ("RVI", "rvi"), ("Efficiency ratio", "er")), 1):
-            add_line(label, [strategy.ind[key][k] if k >= 0 else None for k in j], "#b8b8bd", pane,
-                     ticks=key in ("atr14", "atr100"))
-        payload["notes"].append("M15 indicators use the last completed bucket, aligned to the one-minute decision bar. No developing M15 values are shown.")
     else:
         from tvtester.swings import NONE
         m = strategy.m1

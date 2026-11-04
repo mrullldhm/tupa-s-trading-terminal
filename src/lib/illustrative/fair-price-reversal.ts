@@ -3,6 +3,7 @@
 // a wrong picture.
 
 import type { Candle, Step, Story } from "./types.ts";
+import { ownerSwings } from "./owner-swings.ts";
 
 const TICK = 0.01;
 const r = (p: number) => Number((Math.round(p / TICK) * TICK).toFixed(2));
@@ -62,11 +63,15 @@ function build(): Candle[] {
   const pin = (i: number, c: Partial<Candle>) => (out[i] = { ...out[i], ...c });
   pin(m(8, 59), { open: 72.38, high: 72.59, low: 72.35, close: 72.56 }); // anchor: body 72.38 .. 72.56
   pin(m(9, 24), { low: 71.86 }); // excursion low
-  pin(m(9, 31), { high: 72.03 }); // lower swing high (strict pivot, 3 bars each side)
+  pin(m(9, 31), { high: 72.03 }); // lower swing high (fixed owner rule)
   for (const d of [-3, -2, -1, 1, 2, 3]) {
     const i = m(9, 31) + d;
     pin(i, { high: Math.min(out[i].high, 72.01) });
   }
+  // Establish the preceding alternating high, then keep the confirmed lower high
+  // current until the break. Equal right highs do not create extra swing highs.
+  pin(m(9, 29), { high: 72.10 });
+  for (let i = m(9, 32); i < m(9, 41); i++) pin(i, { high: 72.02 });
   pin(m(9, 41), { open: 71.99, high: 72.1, low: 71.98, close: 72.08 }); // MSS long signal
   pin(m(9, 42), { open: 72.08, high: 72.12, low: 72.05, close: 72.1 }); // entry bar
   for (let i = m(9, 0); i <= m(10, 30); i++) {
@@ -100,7 +105,7 @@ export const IDX = {
   open: m(9, 0),
   low: m(9, 24),
   swing: m(9, 31),
-  swingConfirmed: m(9, 34),
+  swingConfirmed: m(9, 32),
   signal: m(9, 41),
   entry: m(9, 42),
   exit: m(10, 11),
@@ -129,8 +134,8 @@ export const steps: Step[] = [
   },
   {
     title: "A lower swing high forms",
-    text: "The bounce stalls and makes a swing high: a candle whose high is above the three candles on each side. It is only confirmed three candles later, so the test waits for that too.",
-    until: IDX.swingConfirmed,
+    text: "The bounce stalls and makes a swing high: a candle whose high is at least the previous high and strictly above the next high. It confirms when the next candle closes. Swings alternate; a later same-type extreme can replace the newest swing.",
+    until: IDX.swingConfirmed + 1,
     markers: [{ index: IDX.swing, position: "aboveBar", shape: "arrowDown", text: "Swing high" }],
     lines: [
       { price: LEVELS.bodyBottom, label: "Body bottom", tone: "dim" },
@@ -148,8 +153,8 @@ export const steps: Step[] = [
     ],
   },
   {
-    title: "Enter on the next open, with stop and target",
-    text: "The order fills at the next candle's open, like TradingView. The stop goes at the lowest low of the move. This example uses the near target: the body bottom.",
+    title: "Place the entry limit, with stop and target",
+    text: "The buy limit is placed at the signal close and starts working on the next candle. Here it fills at that candle's open at the same price. The stop goes at the lowest low of the move. This example uses the near target: the body bottom.",
     until: IDX.entry + 4,
     markers: [{ index: IDX.entry, position: "belowBar", shape: "arrowUp", text: "Buy" }],
     lines: [
@@ -184,7 +189,9 @@ function check() {
   const low = Math.min(...c.slice(IDX.open, IDX.signal + 1).map((x) => x.low));
   if (low !== LEVELS.low || c[IDX.low].low !== low) fail("excursion low");
   const s = c[IDX.swing].high;
-  for (let d = 1; d <= 3; d++) if (!(c[IDX.swing - d].high < s && c[IDX.swing + d].high < s)) fail("swing pivot");
+  const state = ownerSwings(c)[IDX.swingConfirmed];
+  if (state.highIndex !== IDX.swing || state.high !== s) fail("owner swing confirmation");
+  if (state.prevHigh === null || s >= state.prevHigh) fail("owner lower high");
   for (let i = IDX.swing + 1; i < IDX.signal; i++) if (c[i].close > s) fail("early break");
   if (!(c[IDX.signal].close > s && c[IDX.signal].close < LEVELS.bodyBottom)) fail("signal close");
   if (c[IDX.entry].open !== LEVELS.entry) fail("entry at next open");
