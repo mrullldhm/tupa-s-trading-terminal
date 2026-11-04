@@ -1,0 +1,162 @@
+---
+import type { MetricObjective, MetricSelection } from "../lib/data";
+import { usd, num, pct, int, date, tone } from "../lib/format";
+import CurveChart from "./CurveChart.astro";
+import PeriodTables from "./PeriodTables.astro";
+import { targetLabel } from "../lib/labels";
+
+interface Props {
+  strategy: string; session: string; objectives: MetricObjective[];
+  selection?: MetricSelection | null; paramLabels?: Record<string, string>;
+}
+const { strategy, session, objectives, selection, paramLabels = {} } = Astro.props;
+const id = `metrics-${strategy}-${session.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+const format = (o: MetricObjective, v: number | null | undefined) => {
+  if (v == null) return "—";
+  if (o.unit === "usd") return usd(v, { sign: ["net_profit", "expectancy"].includes(o.key) });
+  if (o.unit === "count") return int(v);
+  if (o.unit === "percent") return o.key === "risk_of_ruin" && v >= 0 && v < 0.0001 ? "<0.0001%" : pct(v, o.key === "risk_of_ruin" ? 4 : 2);
+  return `${num(v, 3)}${o.unit === "r" ? " R" : ""}`;
+};
+const initial = objectives[0]?.key;
+const initialOrder = selection?.winners[initial]?.order;
+---
+<section class="metric-explorer" data-metric-explorer aria-labelledby={`${id}-heading`}>
+  <div class="metric-heading">
+    <h3 id={`${id}-heading`}>Best settings by metric</h3>
+    <span class="muted">{objectives.length} separate rankings</span>
+  </div>
+  <p class="intro">Choose what matters to you. Each metric selects its own settings from the same grid; one setting can win more than one ranking.</p>
+  {selection ? (
+    <p class="context">Best of {int(selection.grid_size)} settings · At least {int(selection.min_trades)} closed trades · In-sample<br />
+      {date(selection.period_start)}–{date(selection.period_end)} · Limit entries · Commission included · No added slippage</p>
+  ) : (
+    <p class="pending">These saved results ranked net profit only. The 13-metric run is pending for this session. The historical net-profit report is below.</p>
+  )}
+  <div class="metric-control">
+    <label for={`${id}-select`}>Optimize for</label>
+    <select id={`${id}-select`} data-metric-select aria-controls={`${id}-detail`}>
+      {objectives.map(o => <option value={o.key}>{o.label} · {o.direction === "max" ? "highest" : "lowest"}</option>)}
+    </select>
+  </div>
+  <div id={`${id}-detail`} class="metric-detail" aria-live="polite" aria-atomic="true">
+    {objectives.map((o, i) => {
+      const w = selection?.winners[o.key];
+      return <div data-metric={o.key} data-order={w?.order ?? ""} hidden={i !== 0}>
+        <p class="goal"><strong>{o.label}</strong><span>{o.direction === "max" ? "Higher is better" : "Lower is better"}</span></p>
+        <p class="definition">{o.definition}</p>
+        {o.key === "risk_of_ruin" && <p class="definition">Loss threshold: {usd(selection?.ruin_loss ?? 25000, { sign: false })} from starting capital. An estimate under a model, not a prediction.</p>}
+        {w ? <p class="selection"><strong class="mono">{format(o, w.value)}</strong> · Setting #{w.order} · {int(w.total_closed_trades)} trades · Best of {int(w.eligible)} eligible settings</p>
+          : <p class="empty">{selection ? "No eligible winner. No setting has a defined value and enough closed trades for this metric." : "Waiting for a new run. Historical values are not substituted."}</p>}
+      </div>;
+    })}
+  </div>
+  <details class="comparison">
+    <summary>Compare all {objectives.length} metric winners</summary>
+    <div class="table-scroll">
+      <table class="data">
+        <caption class="sr-only">Separate best settings for each metric, {session}. All selections are in-sample.</caption>
+        <thead><tr><th scope="col">Metric</th><th scope="col" class="num">Best value</th><th scope="col" class="num">Setting</th><th scope="col" class="num">Trades</th></tr></thead>
+        <tbody>{objectives.map(o => {
+          const w = selection?.winners[o.key];
+          return <tr data-comparison={o.key} aria-current={o.key === initial ? "true" : undefined}>
+            <th scope="row"><button type="button" data-choose-metric={o.key}>{o.label}<span>{o.direction === "max" ? "Maximize" : "Minimize"}</span></button></th>
+            <td class="num">{w ? format(o, w.value) : selection ? "No eligible value" : "Pending"}</td>
+            <td class="num">{w ? `#${w.order}` : "—"}</td><td class="num">{w ? int(w.total_closed_trades) : "—"}</td>
+          </tr>;
+        })}</tbody>
+      </table>
+    </div>
+  </details>
+  {Object.entries(selection?.reports ?? {}).map(([order, report]) => {
+    const winner = Object.values(selection!.winners).find(w => String(w?.order) === order)!;
+    const s = report.scenarios["0"];
+    return <section data-winner={order} hidden={Number(order) !== initialOrder} class="winner-report" aria-label={`Setting ${order} results`}>
+      <h4>Setting #{order}</h4>
+      <p class="params">{Object.entries(report.params).map(([key, val]) => <code>{paramLabels[key] ?? key} {targetLabel(String(val))}</code>)}</p>
+      <div class="table-scroll">
+        <table class="data">
+          <caption>All metrics for this setting · {int(s.total_closed_trades)} closed trades</caption>
+          <thead><tr><th scope="col">Metric</th><th scope="col" class="num">This setting</th><th scope="col">Grid ranking</th></tr></thead>
+          <tbody>{objectives.map(o => <tr>
+            <th scope="row">{o.label}{["mae", "mfe"].includes(o.key) && <span class="hint">Average of per-trade maximum excursions</span>}</th>
+            <td class:list={["num", ["net_profit", "expectancy", "r_multiple"].includes(o.key) && tone(winner.metrics[o.key])]}>{format(o, winner.metrics[o.key])}</td>
+            <td class="standing">{selection?.winners[o.key]?.order === Number(order) ? "Best" : "—"}</td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+      <p class="context">R standard deviation: {num(winner.r_stddev, 3)} R · R consistency (mean / standard deviation): {num(winner.r_consistency, 3)}.<br />
+        Undefined values show a dash. Selecting for a risk metric can still choose a losing setting. MFE measures unrealized opportunity.</p>
+      <CurveChart title={`Setting #${order}: cumulative closed-trade P&L`}
+        caption="Month-end closed-trade profit after commission. Open positions and swings inside a month are excluded; drawdown comes from the table."
+        series={[{ label: "Net profit", tone: "ink", points: report.curve_month_end_closed_pnl["0"] }]} />
+      <PeriodTables strategy={strategy} dataKey={report.data_key} year={report.periods_year} label={`Setting #${order}, ${session}`} />
+    </section>;
+  })}
+  <p class="context">Each winner was selected on the data shown. These are separate objectives, not a combined score or proof of a tradable edge. Ties use net profit, then profit factor, then grid order.</p>
+  <noscript><p class="context">Enable JavaScript to switch metric reports. The comparison table remains available.</p></noscript>
+</section>
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>("[data-metric-explorer]")) {
+    const select = root.querySelector<HTMLSelectElement>("[data-metric-select]")!;
+    const choose = () => {
+      let order = "";
+      root.querySelectorAll<HTMLElement>("[data-metric]").forEach(detail => {
+        detail.hidden = detail.dataset.metric !== select.value;
+        if (!detail.hidden) order = detail.dataset.order ?? "";
+      });
+      root.querySelectorAll<HTMLElement>("[data-winner]").forEach(report => { report.hidden = report.dataset.winner !== order; });
+      root.querySelectorAll<HTMLElement>("[data-comparison]").forEach(row => {
+        if (row.dataset.comparison === select.value) row.setAttribute("aria-current", "true");
+        else row.removeAttribute("aria-current");
+      });
+    };
+    select.addEventListener("change", choose);
+    root.querySelectorAll<HTMLButtonElement>("[data-choose-metric]").forEach(button => {
+      button.addEventListener("click", () => {
+        select.value = button.dataset.chooseMetric!;
+        choose(); select.focus({ preventScroll: true });
+        select.scrollIntoView({ block: "nearest" });
+      });
+    });
+  }
+</script>
+<style>
+  .metric-explorer { min-width: 0; }
+  .metric-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1rem; }
+  .metric-heading h3 { font-size: 1.5rem; }
+  .metric-heading span, .context { font-size: 0.8125rem; color: var(--ink-2); }
+  .intro, .pending, .definition { max-width: 70ch; color: var(--ink-2); font-size: 0.9375rem; margin-top: 0.75rem; }
+  .context { margin-top: 0.75rem; max-width: 75ch; }
+  .pending { padding: 1rem; background: var(--panel); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--line-2) inset; }
+  .metric-control { display: grid; gap: 0.5rem; margin-top: 1.5rem; max-width: 32rem; }
+  label { font-size: 0.875rem; color: var(--ink); font-weight: 500; }
+  select { width: 100%; min-height: 44px; padding: 0.65rem 0.75rem; border: 1px solid var(--line-2); border-radius: 9px; color: var(--ink); background: var(--panel-2); font: 0.9375rem var(--font); cursor: pointer; }
+  select:hover { background: var(--panel-3); }
+  select:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .metric-detail { padding-block: 1.25rem; }
+  .goal { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.25rem 1rem; }
+  .goal strong { font-weight: 500; }
+  .goal span, .hint { font-size: 0.8125rem; color: var(--ink-2); }
+  .selection, .empty { margin-top: 0.75rem; color: var(--ink-2); font-size: 0.875rem; }
+  .selection strong { color: var(--ink); font-weight: 500; }
+  .empty { color: var(--amber); }
+  .comparison { margin-block: 0.25rem 1.5rem; }
+  summary { cursor: pointer; padding-block: 0.75rem; font-size: 0.9375rem; }
+  .comparison .table-scroll { margin-top: 0.75rem; }
+  [data-choose-metric] { text-align: left; border: 0; background: none; color: var(--ink-2); font: inherit; cursor: pointer; padding: 0.35rem 0; min-height: 44px; }
+  [data-choose-metric]:hover, [aria-current] [data-choose-metric] { color: var(--ink); text-decoration: underline; text-underline-offset: 0.2em; }
+  [data-choose-metric] span, .hint { display: block; font-size: 0.75rem; font-weight: 400; }
+  [aria-current] { background: var(--panel-2); }
+  .winner-report { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; border-top: 1px solid var(--line-2); padding-top: 1.5rem; margin-top: 1.5rem; }
+  .winner-report h4 { font-size: 1.125rem; }
+  .params { display: flex; flex-wrap: wrap; gap: 0.4rem; font-size: 0.875rem; }
+  caption { text-align: left; padding: 0.75rem; color: var(--ink-2); font-size: 0.8125rem; }
+  .standing { font-size: 0.8125rem; color: var(--ink-2); }
+  .metric-explorer :global(th[scope="row"]) { white-space: normal; min-width: 12rem; }
+  @media (max-width: 640px) {
+    .metric-explorer :global(table.data) { font-size: 0.8125rem; }
+    .metric-explorer :global(th), .metric-explorer :global(td) { padding: 0.6rem 0.5rem; }
+    select { font-size: 1rem; }
+  }
+</style>

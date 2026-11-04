@@ -50,6 +50,24 @@ export type F1Variant = {
   scenarios: Scenarios;
   curve_month_end_closed_pnl: Record<"0", Curve>;
   periods_year: PeriodTable;
+  reference_historical?: boolean;
+  metric_selection?: MetricSelection | null;
+};
+
+export type MetricObjective = {
+  key: string; label: string; direction: "min" | "max";
+  unit: "usd" | "percent" | "ratio" | "count" | "r"; definition: string;
+};
+export type MetricWinner = {
+  order: number; value: number; eligible: number; params: Record<string, string | number>;
+  metrics: Record<string, number | null>; total_closed_trades: number;
+  r_stddev: number | null; r_consistency: number | null;
+};
+export type MetricReport = Omit<F1Variant, "grid_size" | "metric_selection"> & { data_key: string; source_dir: string };
+export type MetricSelection = {
+  metric_version: number; execution_version: string; min_trades: number; ruin_loss: number; grid_size: number;
+  period_start: string; period_end: string; objectives: MetricObjective[];
+  winners: Record<string, MetricWinner | null>; reports: Record<string, MetricReport>;
 };
 
 export type F2Run = {
@@ -99,7 +117,7 @@ export type StrategyData = {
   generated_utc: string;
   strategy: string;
   features: {
-    f1: { variants: Record<string, F1Variant>; grid_size: number[] };
+    f1: { variants: Record<string, F1Variant>; grid_size: number[]; objectives: MetricObjective[] };
     f2: {
       runs: F2Run[];
       total_trials: number;
@@ -146,6 +164,20 @@ function checkShape(key: string, d: StrategyData) {
       if (!Array.isArray(x.curve_month_end_closed_pnl?.[k])) bad(`f1.${v} has no curve for scenario "${k}"`);
     }
     if (!isPeriodTable(x.periods_year)) bad(`f1.${v}.periods_year is malformed`);
+    const selection = x.metric_selection;
+    if (selection) {
+      if (selection.objectives.length !== 13 || selection.metric_version !== 1) bad(`f1.${v} metric definitions are incomplete`);
+      for (const o of selection.objectives) {
+        if (!(o.key in selection.winners)) bad(`f1.${v} is missing objective ${o.key}`);
+        const w = selection.winners[o.key];
+        if (!w) continue;
+        const r = selection.reports[String(w.order)];
+        if (!Number.isFinite(w.value) || w.total_closed_trades < selection.min_trades || !r?.scenarios?.["0"]
+            || !Array.isArray(r.curve_month_end_closed_pnl?.["0"]) || !isPeriodTable(r.periods_year)) {
+          bad(`f1.${v}.${o.key} has an invalid winner report`);
+        }
+      }
+    }
   }
   for (const r of d.features.f2?.runs ?? []) {
     for (const k of SCENARIO_KEYS) if (!r.scenarios?.[k]) bad(`f2 run ${r.run_id} has no scenario "${k}"`);

@@ -3,6 +3,7 @@ import Tabs from "./Tabs.astro";
 import ScenarioTable from "./ScenarioTable.astro";
 import CurveChart from "./CurveChart.astro";
 import PeriodTables from "./PeriodTables.astro";
+import MetricWinners from "./MetricWinners.astro";
 import { strategyData, sessionLabel, SESSION_ORDER } from "../lib/data";
 import { int, date } from "../lib/format";
 import { targetLabel } from "../lib/labels";
@@ -21,6 +22,13 @@ const plabel = (k: string) => paramLabels[k] ?? k;
     const s0 = v.scenarios["0"];
     return (
       <section id={`panel-f1-${k}`} role="tabpanel" tabindex="0" aria-labelledby={`tab-f1-${k}`} hidden={i !== 0} class="panel">
+        <MetricWinners strategy={strategy} session={sessionLabel(k)} objectives={f1.objectives}
+          selection={v.metric_selection} paramLabels={paramLabels} />
+        <details class="historical">
+        <summary>{v.reference_historical !== false ? "Historical net-profit reference" : "Net-profit reference across all settings"}</summary>
+        <p class="period muted">{v.reference_historical !== false
+          ? "This saved report predates the multi-metric run and the recent entry-rule updates."
+          : "The highest net-profit setting before applying the minimum trade count used in the separate metric rankings."}</p>
         <p class="params">
           <span class="muted">Best of {int(v.grid_size)} settings:</span>{" "}
           {Object.entries(v.params).filter(([p]) => p !== "session").map(([p, val]) => (
@@ -39,6 +47,7 @@ const plabel = (k: string) => paramLabels[k] ?? k;
           ]}
         />
         <PeriodTables strategy={strategy} dataKey={`f1-${k}`} year={v.periods_year} label={`F1, ${sessionLabel(k)} session, top combination`} />
+        </details>
       </section>
     );
   })}
@@ -61,4 +70,7 @@ const plabel = (k: string) => paramLabels[k] ?? k;
     max-width: var(--measure);
     font-size: 0.875rem;
   }
+  .historical { border-top: 1px solid var(--line); padding-top: 1rem; }
+  .historical summary { cursor: pointer; padding-block: 0.75rem; font-size: 0.9375rem; color: var(--ink-2); }
+  .historical > * + * { margin-top: 1.25rem; }
 </style>

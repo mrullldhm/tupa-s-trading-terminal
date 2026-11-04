@@ -10,6 +10,7 @@ const { strategy, f1Href, f2Href } = Astro.props;
 const { f1, f2 } = strategyData(strategy).features;
 const keys = SESSION_ORDER.filter((k) => k in f1.variants);
 const grids = [...new Set(keys.map((k) => f1.variants[k].grid_size))];
+const historical = keys.every(k => f1.variants[k].reference_historical !== false);
 const gridText = grids.length === 1 ? int(grids[0]) : grids.map(int).join(" / ");
 const verdicts = F2_VERDICTS[strategy] ?? {};
 const f2Runs = f2?.runs ?? [];
@@ -21,7 +22,7 @@ const ticks = [
 {keys.length > 0 && (
   <section class="glance" aria-labelledby="glance-h">
     <div class="g-head">
-      <h2 id="glance-h">At a glance</h2>
+      <h2 id="glance-h">{historical ? "Historical net-profit reference" : "Net-profit reference"}</h2>
       <p class="labels">
         <Badge tone="warn" icon="flask">In-sample</Badge>
         <Badge>Best of {gridText} settings</Badge>
@@ -50,7 +51,7 @@ const ticks = [
       </table>
     </div>
     <p class="g-foot">
-      Commission included. Existing strategy rules; limit-entry updates are pending.{f1Href && <> <a href={f1Href}>Full F1 results</a></>}
+      Commission included. {historical ? "These saved results use the previous rules." : "The unconstrained net-profit winner for each session; see the full reports for execution assumptions."}{f1Href && <> <a href={f1Href}>Explore the 13 metric rankings</a></>}
       {f2Runs.length > 0 && <> · F2 search: {candidates} of {f2Runs.length} runs were candidates under the previous test rules, still in-sample.
       {f2Href && <> <a href={f2Href}>See every run</a></>}</>}
       {" "}· <a href="/method/how-to-read/">How to read these numbers</a>

@@ -23,6 +23,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
+from dataclasses import asdict
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
@@ -334,6 +335,8 @@ class Exporter:
         return period_table(tfs, scen, "year", key)
 
     def feature1(self) -> dict:
+        from tvtester.objectives import OBJECTIVES
+        from tvtester.experiment import EXECUTION_VERSION
         variants = {}
         grid_sizes = set()
         for vdir in sorted(p for p in self.results.iterdir() if (p / "summary.json").exists()):
@@ -361,10 +364,72 @@ class Exporter:
                 raise ExportError(f"{v}: by-year sum {closed:.2f} != net profit {net0:.2f}")
             check_year_matches_report(tfs[0], by_year, v)
             variants[v] = {"params": params, "grid_size": len(grid), "scenarios": scen,
-                           "curve_month_end_closed_pnl": curves, "periods_year": self.periods(f"f1-{v}", tfs, scen)}
+                           "curve_month_end_closed_pnl": curves, "periods_year": self.periods(f"f1-{v}", tfs, scen),
+                           "reference_historical": summary.get("execution_version") != EXECUTION_VERSION,
+                           "metric_selection": self.metric_selection(v, vdir)}
         if not variants:
             raise ExportError("no feature-1 variants found")
-        return {"variants": variants, "grid_size": sorted(grid_sizes)}
+        return {"variants": variants, "grid_size": sorted(grid_sizes), "objectives": [asdict(o) for o in OBJECTIVES]}
+
+    def metric_selection(self, variant: str, legacy_dir: Path) -> dict | None:
+        """Publish tester-selected winners only after checking each against its grid, summary and trades."""
+        from tvtester.objectives import OBJECTIVES, METRIC_VERSION, selection
+        from tvtester.experiment import EXECUTION_VERSION
+
+        paths = [p / "metric_winners.json" for p in (self.results / "metrics" / variant, legacy_dir)]
+        paths = [p for p in paths if p.exists()]
+        if not paths:
+            return None  # Historical net-only grids cannot supply the missing metrics.
+        path = max(paths, key=lambda p: p.stat().st_mtime_ns)
+        base = path.parent
+        saved = json.loads(self.read(path).read_text())
+        if saved.get("metric_version") != METRIC_VERSION or saved.get("execution_version") != EXECUTION_VERSION:
+            raise ExportError(f"{variant}: metric winners use outdated definitions or execution; rerun F1")
+        if saved.get("objectives") != [asdict(o) for o in OBJECTIVES]:
+            raise ExportError(f"{variant}: metric winner definitions differ from the tester")
+        grid = pd.read_csv(self.read(base / "grid.csv"))
+        if saved.get("grid_size") != len(grid):
+            raise ExportError(f"{variant}: metric selection grid size differs from the grid")
+        if grid["order"].duplicated().any():
+            raise ExportError(f"{variant}: duplicate grid order")
+        expected = selection(grid, self.param_keys, saved["min_trades"], saved["ruin_loss"])
+        reports = {}
+        for objective in OBJECTIVES:
+            key = objective.key
+            w, e = saved["winners"].get(key), expected["winners"][key]
+            if (w is None) != (e is None):
+                raise ExportError(f"{variant}: {key} eligibility differs from the grid")
+            if w is None:
+                continue
+            if (w["order"] != e["order"] or w["params"] != e["params"] or w["eligible"] != e["eligible"]
+                    or w["total_closed_trades"] != e["total_closed_trades"]
+                    or not math.isclose(w["value"], e["value"], rel_tol=1e-10, abs_tol=1e-10)):
+                raise ExportError(f"{variant}: {key} winner differs from the grid")
+            for metric, value in e["metrics"].items():
+                actual = w["metrics"].get(metric)
+                if ((actual is None) != (value is None)
+                        or value is not None and not math.isclose(actual, value, rel_tol=1e-10, abs_tol=1e-10)):
+                    raise ExportError(f"{variant}: {key}/{metric} differs from the grid")
+            order = str(w["order"])
+            if order in reports:
+                continue
+            folder = base / "metric_winners" / f"order_{order}"
+            summary = json.loads(self.read(folder / "summary.json").read_text())
+            if summary.get("execution_version") != saved["execution_version"]:
+                raise ExportError(f"{variant}: {key} execution version differs from selection")
+            s = self.scenario(summary, 0)
+            if (s["period_start"] != saved["period_start"] or s["period_end"] != saved["period_end"]
+                    or s["total_closed_trades"] != w["total_closed_trades"]
+                    or not math.isclose(s["net_profit"], w["metrics"]["net_profit"], abs_tol=0.0001)):
+                raise ExportError(f"{variant}: {key} summary differs from selection")
+            trades = self.trades(folder / "trades_slippage0.csv")
+            check_trades_match_summary(trades, s, f"{variant}/{key}")
+            data_key = f"f1m-{variant}-{order}"
+            reports[order] = {"params": w["params"], "data_key": data_key,
+                              "source_dir": str(folder.relative_to(ROOT)), "scenarios": {"0": s},
+                              "curve_month_end_closed_pnl": {"0": monthly_curve(trades, s["period_start"], s["period_end"], timezone="Asia/Kuala_Lumpur")},
+                              "periods_year": self.periods(data_key, {0: trades}, {0: s})}
+        return {**saved, "reports": reports}
 
     def feature2(self) -> dict | None:
         ledger_path = self.results / "ledger.jsonl"

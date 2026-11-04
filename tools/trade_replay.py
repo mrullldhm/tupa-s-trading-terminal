@@ -12,6 +12,7 @@ import hashlib
 import importlib
 import json
 import math
+import re
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -44,7 +45,20 @@ def source_config(request):
     if request["generated"] != doc["generated_utc"]:
         raise ValueError("Results changed. Reload this page.")
     module = importlib.import_module(f"strategies.{name}")
-    if key.startswith("f1-"):
+    if key.startswith("f1m-"):
+        match = re.fullmatch(r"f1m-([a-z_]+)-(\d+)", key)
+        if not match:
+            raise ValueError("Unknown metric result series.")
+        variant, order = match.groups()
+        row = doc["features"]["f1"]["variants"].get(variant)
+        report = ((row or {}).get("metric_selection") or {}).get("reports", {}).get(order)
+        if report is None:
+            raise ValueError("This setting has no exported result.")
+        params = {**module.VARIANTS[variant], **report["params"]}
+        row = report
+        filters = []
+        folder = ROOT / report["source_dir"]
+    elif key.startswith("f1-"):
         variant = key[3:]
         row = doc["features"]["f1"]["variants"].get(variant)
         if row is None:

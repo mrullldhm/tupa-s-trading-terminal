@@ -40,7 +40,7 @@ published costs, baseline results after commission, an independent review and re
   saved trades before displaying them.
 - Explanatory prose is written by hand (MDX) and kept separate from generated numbers, so rerunning a test never
   overwrites the explanation.
-- Features (roadmap renumbered by the owner 2026-11-01): F1 (TradingView-style test), F2 (optimization), F3 (stress
+- Features (roadmap renumbered by the owner 2026-11-01): F1 (TradingView-style test with 13 separate metric winners), F2 (optimization), F3 (stress
   test of the F2 search: walk-forward re-selection, PBO, deflated Sharpe; development interval only) exist. F4
   (Topstep 50K prop challenge) and F5 (the one check on reserved 2024+ data) are not built; the site keeps a
   pending slot for each that updates once it exists.
@@ -57,8 +57,11 @@ published costs, baseline results after commission, an independent review and re
   daily results retain their profit list without real-price charts.
 - **Disclaimers on every results page:** in-sample, best of N where optimized, execution assumptions, not
   financial advice.
-- Fixed test properties shown as-is: $50,000 capital, 1 contract, $2.01 per order ($4.02 round trip), no added fill-price adjustment in the web display. Planned limit buy/sell entry updates are pending; existing
-  results must not be presented as tests of those future rules.
+- Fixed test properties shown as-is: $50,000 capital, 1 contract, $2.01 per order ($4.02 round trip).
+  New multi-metric F1 runs use limit entries with no added slippage; each run declares its interval,
+  eligibility (default 30 closed trades) and estimated ruin loss threshold (default $25,000).
+  Historical net-profit reports use previous rules and remain separately labelled. A session with no fresh
+  multi-metric run stays pending; historical values must never be substituted as new-rule results.
 - CL only. MCL is never shown or suggested.
 - Feature 2 numbers come from the development interval (before 2024-01-01). 2024+ is reserved, not clean
   out-of-sample.

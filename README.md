@@ -67,3 +67,28 @@ Missing data, changed exports, and fill mismatches show an error with a retry co
 Real prices are served only to loopback requests with a localhost Host and same-origin browser requests. The endpoint
 is not included in the static build, and prices are never written to `public/` or `dist/`. Published pages retain
 the daily P&L list. Public real-price charts remain pending confirmation that redistribution is permitted.
+
+## Feature 1 metric rankings
+
+The F1 section keeps the Graphite design and offers 13 separate objectives through a native metric selector.
+It shows the selected settings, all their metrics, an all-winners comparison, month-end closed P&L and daily
+results. Distinct objectives can share the same winning setting. All figures come from the tester.
+
+Generate fresh full-grid results without replacing the historical reports, then export:
+
+```bash
+cd ..
+.venv/bin/python -m tvtester.cli test tupa_trade --output-tag metrics --jobs 1
+# Repeat for fair_price_reversal and supertrend_kalman as needed.
+# --min-trades 30 and --ruin-loss 25000 declare selection eligibility and the estimated ruin loss threshold.
+cd web
+npm run export
+npm run check
+npm run build
+```
+
+The exporter uses the newest `metric_winners.json` from `results/<strategy>/metrics/<variant>/` or the default
+variant directory and checks the winners against
+their grids, summaries and trade totals. Missing multi-metric runs are visibly pending; the historical report
+stays in a disclosure. No old grid is presented as a new-rule result. Metric daily results use Malaysia time,
+and their verified real-price charts are available only on localhost, like the existing daily results.

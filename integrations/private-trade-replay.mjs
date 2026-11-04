@@ -74,7 +74,7 @@ export default function localTradeReplay() {
           if (url.pathname.endsWith("/status")) return send(200, { available: true });
           const { strategy, key, day, generated } = Object.fromEntries(url.searchParams);
           if (!["fair_price_reversal", "supertrend_kalman", "tupa_trade"].includes(strategy) ||
-              !/^f[12]-[a-z0-9_-]{1,100}$/.test(key ?? "") || !/^\d{4}-\d{2}-\d{2}$/.test(day ?? "") ||
+              !/^f(?:[12]|1m)-[a-z0-9_-]{1,100}$/.test(key ?? "") || !/^\d{4}-\d{2}-\d{2}$/.test(day ?? "") ||
               !generated) {
             return send(400, { error: "Choose a valid strategy, result and Malaysian day." });
           }
