@@ -1,0 +1,17 @@
+---
+strategy: tupa-trade
+section: what-is-still-open
+title: "What is still open"
+order: 7
+---
+import Callout from "../../components/Callout.astro";
+import F1Results from "../../components/F1Results.astro";
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/tupa-trade";
+
+## What is still open
+
+- How to choose the tested timeframe when several timeframes have a candidate swing. For now the code takes the
+  lowest one, and the F1 test tries four settings for how low it may go: 15 minutes, 1 hour, 4 hours or daily.
+- Whether the daily trend should override everything else. Not coded yet.
+- A take profit larger than 25 ticks. No rule yet.

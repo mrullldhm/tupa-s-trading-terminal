@@ -10,6 +10,7 @@ pine: strategies/fair_price_reversal.pine
 stage: tested
 verdict: Results include commission only. Limit-entry strategy updates and new search validation are pending.
 features:
+  f0: done
   f1: done
   f2: done
   f3: not-started
@@ -44,87 +45,4 @@ The original was made for Nasdaq futures. Here the same idea runs on **CL1!**, f
 three CL session opens instead of 9:30 ET. Click through the steps below to see one trade from start to finish.
 
 <AnnotatedChart story={story} />
-
-## The rules
-
-These are the rules behind the saved results. Entries will be updated to limit buy/sell at the planned price;
-that strategy change has not been tested yet.
-
-The signal is the indicator's own logic, unchanged. The trade rules are mine, because the indicator only draws
-signals and never trades.
-
-- **Fair price.** The body (open to close) of the candle just before the session opens.
-- **Setup window.** Starts at the session open. Price must move beyond the body by at least a set multiple of
-  ATR(14). ATR is a measure of normal candle size.
-- **Long signal.** After a move down, a lower swing high forms. A candle then closes above that swing high while
-  still below the body. Shorts are the mirror image. At most one long and one short per session per day.
-- **Entry.** A market order at the next candle's open, only when no trade is open.
-- **Stop.** The most extreme price of the move away, fixed when the signal fires.
-- **Target.** One of four choices, tested as a setting: the near body edge, the far body edge, 1R or 2R. R is
-  the distance from the signal close to the stop.
-- **Session end.** Any open trade is closed at the flat time: the close order is sent on the candle before, so it
-  fills at the flat minute's open (or the next open if that candle is missing).
-
-<SessionTable />
-
-Every test uses the same fixed properties: $50,000 starting capital, 1 contract, $2.01 commission per order
-($4.02 for a round trip). Results include commission only. One tick on CL is
-$10 per contract. [How the tester works](/method/) explains every fill rule.
-
-## Test every setting (F1)
-
-This stage runs every combination of four settings (192 in total) for each session over 16 years of 1-minute data,
-then selects separate winners for 13 metrics. Use the selector to compare profit, win rate, risk and trade excursions.
-The previous net-profit report remains available as a historical reference.
-
-<Callout tone="honest" title="Previous net-profit result">
-  <p>In the previous run, the best of 192 settings made money in every session after commission. These settings were picked on
-  the same data shown here. This is an in-sample result, not evidence of a live trading edge.</p>
-</Callout>
-
-<F1Results strategy="fair_price_reversal" paramLabels={{ window: "window (min)", atr_mult: "ATR multiple", swing: "swing bars", target: "target" }} />
-
-## Exit study: breakeven and trailing stop
-
-Here the entry and the first stop stay exactly as F1 found them, and only the exit changes. **T** is the target
-distance: how far the profit target sits from the entry. The study tried breakeven by touch, by close and by time;
-trailing stops that follow a fraction of T, an ATR line, the last swing pivot, a step ratchet, the best close, an
-EMA or Parabolic SAR; combinations with three declared breakevens; and a plain time exit. Stops move at each
-1-minute close and work from the next bar.
-
-<ExitStudy strategy="fair_price_reversal" />
-
-### What this means
-
-In Asia and New York no exit rule beat the plain fixed stop and target. In London only 2 of 427 rules did,
-the best by about $2,800 over 16 years. Breakeven rules reduced New York profit from $42,476 to between
-$11,714 and $23,988 after commission. These are the best of many tries on the same data.
-
-## Search for a better filter (F2)
-
-The saved search used data before 2024. Every run is listed below. These are historical selections from the
-previous execution assumptions, shown with commission only. Selection and validation need a fresh run after
-the planned limit-entry updates.
-
-<F2Runs strategy="fair_price_reversal" reservedLook/>
-
-## Stress the search (F3)
-
-<F3Results strategy="fair_price_reversal" />
-
-## Prop challenge (F4)
-
-<Pending>
-  F4 asks whether a result would pass a Topstep 50K evaluation: a $3,000 target before a $2,000 trailing loss
-  limit, flat by 3:10 PM Chicago time, at most 3 CL contracts. It only runs on a result that passes F3, and it
-  will be compared with random entries under the same rules, because a fixed target and floor can be passed by
-  luck. Nothing here has reached it yet.
-</Pending>
-
-## Final check on reserved data (F5)
-
-<Pending>
-  One run of the frozen strategy and prop rules on the 2024+ data, used once and never tuned on. That data is
-  "reserved", not clean: F1 already picked its starting settings with it.
-</Pending>
 

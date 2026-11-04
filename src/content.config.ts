@@ -16,7 +16,7 @@ const strategies = defineCollection({
     // building = code written, results not in yet: it has a page but no numbers
     stage: z.enum(["tested", "building", "planned"]),
     verdict: z.string(),
-    features: z.object({ f1: status, f2: status, f3: status, f4: status.default("not-started"), f5: status.default("not-started") }),
+    features: z.object({ f0: status.default("not-started"), f1: status, f2: status, f3: status, f4: status.default("not-started"), f5: status.default("not-started") }),
     reviews: z
       .array(z.object({ id: z.string(), kind: z.enum(["code", "replication", "plan"]), label: z.string(), date: z.coerce.date() }))
       .default([]),
@@ -35,4 +35,9 @@ const journal = defineCollection({
   }),
 });
 
-export const collections = { strategies, journal };
+const strategySections = defineCollection({
+  loader: glob({ pattern: "**/*.mdx", base: "./src/content/strategy-sections" }),
+  schema: z.object({ strategy: z.string(), section: z.string(), title: z.string(), order: z.number() }),
+});
+
+export const collections = { strategies, strategySections, journal };

@@ -1,7 +1,6 @@
 ---
-import Crumbs from "../../../components/Crumbs.astro";
 import { getCollection } from "astro:content";
-import Doc from "../../../layouts/Doc.astro";
+import Strategy from "../../../layouts/Strategy.astro";
 import Badge from "../../../components/Badge.astro";
 import ReviewTrail from "../../../components/ReviewTrail.astro";
 import { strategyData, sessionLabel, MIN_ELIGIBLE_TRADES } from "../../../lib/data";
@@ -17,31 +16,20 @@ const data = strategyData(key);
 const f1 = data.features.f1;
 const f2 = data.features.f2;
 const verdicts = F2_VERDICTS[key] ?? {};
-const toc = [
-  { depth: 2, slug: "protocol", text: "Protocol" },
-  { depth: 2, slug: "exposure", text: "Exposure to reserved data" },
-  { depth: 2, slug: "runs", text: "Every run" },
-  { depth: 2, slug: "reviews", text: "Reviews" },
-  { depth: 2, slug: "sources", text: "Source files" },
-];
 ---
-<Doc title={`${entry.data.title}: evidence`} description={`Protocol, exposure history, every run and the reviews behind ${entry.data.title}.`} toc={toc}>
-  <Fragment slot="head">
-    <Crumbs items={[{ href: "/strategies/", label: "Strategies" }, { href: `/strategies/${entry.id}/`, label: entry.data.title }]} current="Evidence" />
-    <h1>Evidence and run history</h1>
-    <p class="lede">Everything behind the numbers on the strategy page: what was decided before testing, every
-    search run with its verdict, what touched the reserved data, and who checked what.</p>
-  </Fragment>
+<Strategy entry={entry} section="evidence" title="Evidence and run history" description={`Protocol, exposure history, every run and the reviews behind ${entry.data.title}.`}>
+  <p class="lede">The protocol, search history and reviews behind the strategy’s results.</p>
   <div class="prose wide">
     <h2 id="protocol">Protocol</h2>
     <ul>
+      <li><strong>F0:</strong> one configuration using the current Pine defaults, without a grid search. Its result and source hashes are on the <a href={`/strategies/${entry.id}/feature-0/`}>original settings page</a>.</li>
       <li><strong>F1:</strong> {f1.grid_size.join(", ")} settings per session, each run over the full data
       ({date(Object.values(f1.variants)[0].scenarios["0"].period_start)} to {date(Object.values(f1.variants)[0].scenarios["0"].period_end)}).
-      The winner has the highest net profit after commission.</li>
+      Current runs select separate winners for 13 metrics, each with its own eligibility rules. The historical reference selected the highest net profit after commission.</li>
       {f2 && <li><strong>F2:</strong> development data only (before 1 Jan 2024). Hypotheses, objective and trial budget were
       written down before the first run. These saved searches used the previous execution assumptions and a minimum of {MIN_ELIGIBLE_TRADES}
       closed trades. Their selections need re-evaluation after the limit-entry updates. {int(f2.total_trials)} search trials in total, {int(f2.total_engine_evaluations)} engine runs logged.</li>}
-      <li><strong>F3:</strong> re-test pending after the limit-entry updates. Saved verdicts use the previous execution assumptions.</li>
+      <li><strong>F3:</strong> {data.features.f3 ? "Re-test pending after the limit-entry updates. Saved verdicts use the previous execution assumptions." : "Not run yet for this strategy."}</li>
       <li><strong>F4</strong> (prop challenge) and <strong>F5</strong> (final check on reserved data): not built yet.</li>
     </ul>
 
@@ -86,7 +74,7 @@ const toc = [
     {f2 ? (
       <p>"Eligible" means the trial had at least {MIN_ELIGIBLE_TRADES} closed trades. The logged engine-run count includes reruns and neighbour checks under the previous test rules.</p>
     ) : (
-      <p>No F2 search has run yet. The only runs so far are the F1 settings on the strategy page.</p>
+      <p>No F2 search has run yet. Read <a href={`/strategies/${entry.id}/feature-0/`}>Feature 0’s fixed default configuration</a> and <a href={`/strategies/${entry.id}/feature-1/`}>Feature 1’s grid results</a> on their separate pages.</p>
     )}
 
     <h2 id="reviews">Reviews</h2>
@@ -104,7 +92,7 @@ const toc = [
       </table>
     </div>
   </div>
-</Doc>
+</Strategy>
 <style>
   .lede {
     margin-top: 1rem;

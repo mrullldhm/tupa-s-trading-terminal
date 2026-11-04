@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "export": "cd .. && .venv/bin/python web/tools/export_web.py fair_price_reversal && .venv/bin/python web/tools/export_web.py supertrend_kalman && .venv/bin/python web/tools/export_web.py tupa_trade",
+    "original": "cd .. && .venv/bin/python web/tools/run_original.py fair_price_reversal && .venv/bin/python web/tools/run_original.py supertrend_kalman && .venv/bin/python web/tools/run_original.py tupa_trade",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",

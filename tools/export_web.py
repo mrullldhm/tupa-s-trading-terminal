@@ -281,6 +281,7 @@ class Exporter:
         # Parameter allowlist: only the strategy's declared grid parameters (definitions only, no results).
         module = importlib.import_module(f"strategies.{strategy}")
         self.param_keys = tuple(module.GRID)
+        self.variant_keys = tuple(module.VARIANTS)
         # F1 result document: README.md, or the module's DOC when README.md is the strategy's spec (tupa_trade)
         self.f1_doc = getattr(module, "DOC", "README.md")
         self.results = ROOT / "results" / strategy
@@ -339,7 +340,9 @@ class Exporter:
         from tvtester.experiment import EXECUTION_VERSION
         variants = {}
         grid_sizes = set()
-        for vdir in sorted(p for p in self.results.iterdir() if (p / "summary.json").exists()):
+        # Other studies (such as original/) have their own summaries, not F1 grids.
+        variant_dirs = (self.results / v for v in self.variant_keys)
+        for vdir in sorted(p for p in variant_dirs if (p / "summary.json").exists()):
             v = vdir.name
             summary = json.loads(self.read(vdir / "summary.json").read_text())
             grid = pd.read_csv(self.read(vdir / "grid.csv"))

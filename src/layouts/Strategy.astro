@@ -1,0 +1,57 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Base from "./Base.astro";
+import Crumbs from "../components/Crumbs.astro";
+import { strategyPages } from "../lib/strategy-pages";
+interface Props { entry: CollectionEntry<"strategies">; section: string; title: string; description?: string }
+const { entry, section, title, description = entry.data.summary } = Astro.props;
+const pages = await strategyPages(entry.id);
+const current = pages.findIndex((p) => p.section === section);
+const previous = pages[current - 1];
+const next = pages[current + 1];
+---
+<Base title={`${entry.data.title} · ${title}`} description={description}>
+  <div class="wrap strategy-shell">
+    <header class="strategy-head">
+      <Crumbs items={[{ href: "/strategies/", label: "Strategies" }, ...(section === "overview" ? [] : [{ href: `/strategies/${entry.id}/`, label: entry.data.title }])]} current={section === "overview" ? entry.data.title : title} />
+      <h1>{section === "overview" ? entry.data.title : title}</h1>
+      <p class="intro">{section === "overview" ? entry.data.summary : entry.data.title + " · CL1! · 1-minute bars"}</p>
+    </header>
+    <nav class="strategy-nav" aria-label={`${entry.data.title} sections`}>
+      <p>Strategy sections</p>
+      <ul>{pages.map((p) => <li><a href={p.href} aria-current={p.section === section ? "page" : undefined}>{p.title}</a></li>)}</ul>
+    </nav>
+    <article class="strategy-body">
+      <slot />
+      <footer class="page-turn">
+        {previous ? <a href={previous.href}><span>Previous</span>{previous.title}</a> : <span />}
+        {next && <a href={next.href}><span>Next</span>{next.title}</a>}
+      </footer>
+    </article>
+  </div>
+</Base>
+<style>
+  .strategy-shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 0 3rem; padding-top: 3rem; }
+  .strategy-head { grid-column: 1 / -1; padding-bottom: 2rem; margin-bottom: 2rem; border-bottom: 1px solid var(--line); }
+  h1 { margin-top: 1rem; }
+  .intro { margin-top: 1rem; max-width: 65ch; color: var(--ink-2); font-size: 1.125rem; }
+  .strategy-nav { position: sticky; top: 100px; align-self: start; font-size: 0.875rem; }
+  .strategy-nav p { color: var(--ink-3); font-size: 0.8125rem; margin-bottom: 0.75rem; }
+  .strategy-nav ul { list-style: none; padding: 0; margin: 0; }
+  .strategy-nav a { display: flex; align-items: center; min-height: 44px; padding: 0.5rem 0.75rem; border-radius: 8px; text-decoration: none; color: var(--ink-2); }
+  .strategy-nav a:hover { background: var(--panel-2); color: var(--ink); }
+  .strategy-nav a[aria-current] { color: var(--ink); background: var(--panel-3); }
+  .strategy-body { min-width: 0; }
+  .strategy-body :global(.prose) { max-width: none; }
+  .strategy-body :global(.prose > p), .strategy-body :global(.prose > ul), .strategy-body :global(.prose > ol) { max-width: 65ch; }
+  .page-turn { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 1.5rem; }
+  .page-turn a { max-width: 48%; font-size: 0.9375rem; text-decoration: none; }
+  .page-turn a:last-child { text-align: right; }
+  .page-turn span { display: block; font-size: 0.8125rem; color: var(--ink-3); margin-bottom: 0.3rem; }
+  @media (max-width: 980px) {
+    .strategy-shell { grid-template-columns: minmax(0, 1fr); padding-top: 2rem; }
+    .strategy-nav { position: static; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line); }
+    .strategy-nav ul { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+    .strategy-nav a { box-shadow: 0 0 0 1px var(--line) inset; }
+  }
+</style>

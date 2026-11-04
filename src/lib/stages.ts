@@ -2,6 +2,7 @@
 // Roadmap renumbered 2026-11-01: F3 checks the F2 search on the same data, F4 is the Topstep 50K prop layer, F5 is
 // the one check on the reserved 2024+ data.
 export const STAGES = {
+  f0: { tag: "F0", name: "Test original settings", short: "original settings" },
   f1: { tag: "F1", name: "Test every setting", short: "every setting" },
   f2: { tag: "F2", name: "Narrow search", short: "narrow search" },
   f3: { tag: "F3", name: "Stress the search", short: "stress test" },

@@ -1,114 +1,35 @@
 ---
-import Crumbs from "../../../components/Crumbs.astro";
 import { getCollection, render } from "astro:content";
-import Doc from "../../../layouts/Doc.astro";
+import Strategy from "../../../layouts/Strategy.astro";
 import StatusChips from "../../../components/StatusChips.astro";
-import ReviewTrail from "../../../components/ReviewTrail.astro";
-import Icon from "../../../components/Icon.astro";
-import AtAGlance from "../../../components/AtAGlance.astro";
 import { repoFile } from "../../../lib/site";
 import { date } from "../../../lib/format";
-
 export async function getStaticPaths() {
-  const all = await getCollection("strategies", (s) => s.data.stage !== "planned");
-  return all.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+  return (await getCollection("strategies", (s) => s.data.stage !== "planned"))
+    .map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 const { entry } = Astro.props;
-const { Content, headings } = await render(entry);
+const { Content } = await render(entry);
 const d = entry.data;
 const pine = d.pine ? repoFile(d.pine) : null;
-const toc = [...headings, { depth: 2, slug: "reviews", text: "Reviews" }];
-// Stage sections are found by heading text, so both "F1 …" and older "Feature 1: …" headings link correctly.
-const stageHref = (n: 1 | 2) => {
-  const h = headings.find((x) => x.depth === 2 && new RegExp(`\\b(F${n}|Feature ${n})\\b`).test(x.text));
-  return h ? `#${h.slug}` : undefined;
-};
 ---
-<Doc title={d.title} description={`${d.title} on CL1! 1-minute: ${d.summary} ${d.verdict}`} toc={toc}>
-  <Fragment slot="head">
-    <Crumbs items={[{ href: "/strategies/", label: "Strategies" }]} current={d.title} />
-    <h1>{d.title}</h1>
-    <p class="summary">{d.summary}</p>
-    <div class="meta">
-      <StatusChips features={d.features} />
-      <p class="verdict"><strong>Verdict:</strong> {d.verdict}</p>
-      <p class="links">
-        {d.source && <a href={d.source.url} rel="noopener">{d.source.label} <Icon name="arrow-up-right" size={13} /></a>}
-        {pine && <a href={pine} rel="noopener">Pine v6 twin <Icon name="arrow-up-right" size={13} /></a>}
-        {d.dataKey && <a href={`/strategies/${entry.id}/evidence/`}>Evidence and run history</a>}
-        <span class="muted">Updated {date(d.updated)}</span>
-      </p>
-    </div>
-    {d.dataKey && <AtAGlance strategy={d.dataKey} f1Href={stageHref(1)} f2Href={stageHref(2)} />}
-  </Fragment>
-  <div class="prose wide">
-    <Content />
-    <h2 id="reviews">Reviews</h2>
-    <p>Codex reviews the code and, for headline results, rebuilds them with its own engine from the same data
-    without importing any of my code. A replication means the two engines agree trade for trade. It does
-    <strong>not</strong> prove TradingView gives the same numbers; only a TradingView export can do that.</p>
-    <ReviewTrail reviews={d.reviews} />
+<Strategy entry={entry} section="overview" title="Overview">
+  <div class="overview-meta">
+    <StatusChips features={d.features} />
+    <p class="muted"><strong>Research verdict:</strong> {d.verdict}</p>
+    <p class="muted">This verdict describes the existing research. Read Feature 0 for the original settings and its separate result.</p>
+    <p class="links">
+      {d.source && <a href={d.source.url} rel="noopener">{d.source.label}</a>}
+      {pine && <a href={pine} rel="noopener">Pine v6 twin</a>}
+      <span class="muted">Updated {date(d.updated)}</span>
+    </p>
+    <a class="start" href={`/strategies/${entry.id}/feature-0/`}>Start with Feature 0: original settings →</a>
   </div>
-</Doc>
+  <div class="prose"><Content /></div>
+</Strategy>
 <style>
-  .summary {
-    margin-top: 1rem;
-    font-size: 1.1875rem;
-    color: var(--ink-2);
-    max-width: 52ch;
-  }
-  .meta {
-    display: grid;
-    gap: 1rem;
-    margin-top: 1.75rem;
-  }
-  .verdict {
-    max-width: var(--measure);
-    color: var(--ink-2);
-  }
-  .verdict strong {
-    color: var(--ink);
-    font-weight: 550;
-  }
-  .links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem 1.5rem;
-    font-size: 0.875rem;
-  }
-  .links a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-  }
-  /* Data blocks inside the prose may run wider than the reading measure. */
-  .wide {
-    max-width: none;
-  }
-  .wide > :global(p),
-  .wide > :global(ul),
-  .wide > :global(ol),
-  .wide > :global(h2),
-  .wide > :global(h3) {
-    max-width: var(--measure);
-  }
-  .wide > :global(h2) {
-    padding-top: 2.5rem;
-    border-top: 1px solid var(--line);
-    margin-top: 4rem;
-  }
-  .wide > :global(h2:first-child) {
-    border-top: 0;
-    padding-top: 0;
-    margin-top: 0;
-  }
-  .wide > :global(* + *) {
-    margin-top: 1.25rem;
-  }
-  .wide > :global(.frame),
-  .wide > :global(.tabs),
-  .wide > :global(.table-scroll),
-  .wide > :global(figure) {
-    margin-top: 2rem;
-  }
+  .overview-meta { display: grid; gap: 1rem; margin-bottom: 3rem; }
+  .overview-meta p { max-width: 65ch; }
+  .links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; font-size: 0.875rem; }
+  .start { justify-self: start; padding-block: 0.5rem; }
 </style>

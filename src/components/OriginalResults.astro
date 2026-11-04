@@ -1,0 +1,78 @@
+---
+import ScenarioTable from "./ScenarioTable.astro";
+import CurveChart from "./CurveChart.astro";
+import Callout from "./Callout.astro";
+import Badge from "./Badge.astro";
+import type { Curve, Scenarios } from "../lib/data";
+import { date } from "../lib/format";
+import { repoFile } from "../lib/site";
+interface OriginalRun {
+  strategy: string; generated_utc: string; execution_version: string;
+  params: Record<string, string | number | boolean>;
+  inputs: { label: string; value: string | number | boolean }[];
+  scenarios: Scenarios; curve: Curve; sources: { path: string; sha256: string }[];
+}
+interface Props { strategy: string }
+const { strategy } = Astro.props;
+const files = import.meta.glob<{ default: OriginalRun }>("../data/original/*.json", { eager: true });
+const data = files[`../data/original/${strategy}.json`]?.default;
+const summary = data?.scenarios["0"];
+const primaryCount = strategy === "fair_price_reversal" ? 6 : strategy === "supertrend_kalman" ? 11 : 4;
+const primaryInputs = data?.inputs.slice(0, primaryCount) ?? [];
+const extraInputs = data?.inputs.slice(primaryCount) ?? [];
+const explanations: Record<string, string> = {
+  fair_price_reversal: "New York session; a 60-minute setup window; ATR(14) with a 1× move-away threshold; swing strength 2; target at the near edge of the anchor candle body.",
+  supertrend_kalman: "All hours; entry on a Supertrend flip; no volatility filter; fixed stop and 2R target; swing strength 3; Supertrend factor 3 and ATR length 10; Kalman q 0.01. The source ATR trail multiple is 2, but trailing exits are off.",
+  tupa_trade: "New York session only; the lowest eligible tested timeframe is 1 hour; a 25-tick take profit and maximum initial risk of 25 ticks ($250 before fees). One filled trade per session.",
+};
+---
+<div class="original prose">
+  <p>Feature 0 asks: <strong>how does the strategy perform with its original settings?</strong> It runs one fixed configuration. No parameter combinations are searched and no winner is selected.</p>
+  <h2>What “original settings” means</h2>
+  <p>These are the default inputs in this repo’s current Pine v6 twin, checked against the Python strategy defaults before the run. They describe the current CL adaptation, including its entry rules. They are not a claim about an untouched original author’s script.</p>
+  <p>{explanations[strategy]} Additional research filters, breakeven rules and time exits are off.</p>
+  <Callout title="Feature 0 and Feature 1">
+    <p><strong>Feature 0:</strong> test this one default configuration. <strong>Feature 1:</strong> test every combination in the declared grid and find separate winners for 13 metrics. A Feature 1 winner can have different settings from the defaults here.</p>
+  </Callout>
+  {data && summary ? <>
+    <h2>Original inputs</h2>
+    <p>These values are copied from the current Pine twin. {strategy === "supertrend_kalman" && "The volatility filter threshold and ATR trail multiple are inactive with these defaults."}</p>
+    <div class="table-scroll"><table class="data">
+      <caption class="sr-only">Current Pine default inputs for Feature 0</caption>
+      <thead><tr><th scope="col">Setting</th><th scope="col">Original value</th></tr></thead>
+      <tbody>{primaryInputs.map((input) => <tr><th scope="row">{input.label}</th><td class="mono">{String(input.value)}</td></tr>)}</tbody>
+    </table></div>
+    {extraInputs.length > 0 && <details><summary>Additional filter and exit controls (inactive by default)</summary>
+      <p>A filter set to “off”, or exit management set to “none”, ignores its threshold. The original target stays enabled; time exit is off (0 bars).</p>
+      <div class="table-scroll"><table class="data"><thead><tr><th scope="col">Setting</th><th scope="col">Original value</th></tr></thead><tbody>
+        {extraInputs.map((input, i) => <tr><th scope="row">{/^f\w+Thr$/.test(input.label) ? `${extraInputs[i - 1]?.label} threshold` : input.label}</th><td class="mono">{String(input.value)}</td></tr>)}
+      </tbody></table></div>
+    </details>}
+    <h2>Test conditions</h2>
+    <p>CL1! on 1-minute bars, {date(summary.period_start)} to {date(summary.period_end)}. Starting capital $50,000; fixed size 1 CL contract; $2.01 commission per order ($4.02 round trip); no added slippage.</p>
+    <p>{strategy === "tupa_trade" ? "Entries use the strategy’s structure-break stop-limit order." : "Entries use a limit at the signal or decision close, active from the next bar."} A waiting entry expires at a one-minute close if that candle reached the planned take profit and the entry remains unfilled. Session and contract-roll rules still apply. Limit orders can fill at the limit or better; stops and forced closes keep their existing order types.</p>
+    <p>The tester closes any open position on the old contract’s last bar. This is an owner rule; the Pine twin does not reproduce that roll exit. <a href="/method/">Read the execution assumptions.</a></p>
+    <h2>Original strategy result</h2>
+    <p class="result-labels"><Badge tone="warn">In-sample</Badge><Badge>1 fixed configuration</Badge><Badge>Commission included</Badge></p>
+    <p>These defaults were not selected by this run. The strategy was developed and discussed using historical data, so this is not an independent out-of-sample test or evidence of a live trading edge. Not financial advice.</p>
+    <ScenarioTable scenarios={data.scenarios} caption="Feature 0: one original configuration, after commission" />
+    <CurveChart title="Original settings: cumulative closed-trade P&L" caption="Month-end closed-trade profit after commission, with dates shown in Malaysia time. Open P&L and swings within a month are not shown. Use the result table for intrabar drawdown."
+      series={[{ label: "Net profit", tone: "ink", points: data.curve }]} />
+    <details><summary>Run provenance and source files</summary>
+      <p>Generated {date(data.generated_utc)} by the tester. Execution version: <code>{data.execution_version}</code>. This is a tester run, not an independent replication or a verified TradingView export.</p>
+      <div class="table-scroll"><table class="data sources"><thead><tr><th scope="col">Source</th><th scope="col">SHA-256</th></tr></thead><tbody>
+        {data.sources.map((source) => <tr><th scope="row">{repoFile(source.path) ? <a href={repoFile(source.path)!}>{source.path}</a> : source.path}</th><td class="mono">{source.sha256}</td></tr>)}
+      </tbody></table></div>
+    </details>
+  </> : <Callout title="Original run pending"><p>The settings above define Feature 0. No saved default-configuration result has been exported yet. Feature 1 results are available on their own page.</p></Callout>}
+</div>
+<style>
+  .original > * + * { margin-top: 1.25rem; }
+  .original h2 { margin-top: 3rem; }
+  .result-labels { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  details { border-top: 1px solid var(--line); padding-top: 1rem; }
+  summary { cursor: pointer; padding-block: 0.75rem; }
+  details > * + * { margin-top: 1rem; }
+  .sources { font-size: 0.8125rem; }
+  td { overflow-wrap: anywhere; }
+</style>

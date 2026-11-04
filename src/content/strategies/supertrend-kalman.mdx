@@ -7,6 +7,7 @@ pine: strategies/supertrend_kalman.pine
 stage: tested
 verdict: Results include commission only. Limit-entry strategy updates and new search validation are pending.
 features:
+  f0: done
   f1: done
   f2: done
   f3: not-started
@@ -43,85 +44,4 @@ I left every design choice open, so each one became a setting to test: which sig
 volatility filter, and how the trade exits. Click through the steps below to see one trade from start to finish.
 
 <AnnotatedChart story={story} />
-
-## The rules
-
-These are the rules behind the saved results. Entries will be updated to limit buy/sell at the planned price;
-that strategy change has not been tested yet.
-
-- **15-minute candles.** Built from the 1-minute bars. A candle's values are used only once it is complete: the
-  decision is made on the first 1-minute bar of the next candle, and the order fills one minute later.
-- **Entry signal** (a setting): Supertrend flips to the trade side; or price crosses the ATR trail while
-  Supertrend agrees; or both agree for the first time. In every case the Kalman slope must point the same way.
-- **Stop.** The last confirmed 15-minute swing low (for a long) or swing high (for a short).
-- **Target.** 2R or 3R, where R is the distance from the decision close to the stop.
-- **Volatility filter** (a setting): none; skip trades whose stop is wider than a multiple of ATR; skip when
-  short-term ATR is high against long-term ATR; or require RVI on the trade side.
-- **Exit** (a setting): fixed stop and target; the stop trails the ATR line; or close the trade when Supertrend
-  flips against it.
-- **Hours.** Four versions: all hours, or only inside the Asia, London or New York session (closed at the session
-  end).
-
-Same fixed properties as every test: $50,000, 1 contract, $2.01 commission per order, results after commission. [How the tester works](/method/).
-
-## Test every setting (F1)
-
-1,728 combinations for each of the four versions (6,912 in all), on 16 years of 1-minute data. Below is the
-historical net-profit winner of each version, with commission included. New runs select separate winners for
-13 metrics. The selector shows which rankings have fresh results and which still need a full-grid rerun.
-
-<Callout tone="honest" title="Previous net-profit result">
-  <p>The historical report shows the best settings found on the full history under the previous rules, with commission included. Picking the best of
-  1,728 settings for each version can overstate what the rules will earn on new data.</p>
-</Callout>
-
-<F1Results strategy="supertrend_kalman" paramLabels={{ trigger: "entry", vol: "volatility filter", exit: "exit", rr: "target R", swing: "swing bars", trail_mult: "trail ATR ×", st_factor: "Supertrend factor", kalman_q: "Kalman q" }} />
-
-## Exit study: breakeven and trailing stop
-
-Here the entry and the first stop stay exactly as F1 found them, and only the exit changes. **T** is the target
-distance: how far the profit target sits from the entry. The study tried breakeven by touch, by close and by time;
-trailing stops that follow a fraction of T, an ATR line, the last swing pivot, a step ratchet, the best close, an
-EMA or Parabolic SAR; combinations with three declared breakevens; and a plain time exit. Stops move at each
-1-minute close and work from the next bar.
-
-<ExitStudy strategy="supertrend_kalman" />
-
-### What this means
-
-Exit rules do not change the picture. In All hours and New York, the two biggest variants, no rule really beat the
-fixed stop and target. All hours: 0 of 427. New York: the best gained $40 over 16 years. In All hours, every
-breakeven and trailing family cut net profit sharply, and some turned it negative. Asia and London improved
-slightly. The best London rule (breakeven at half the target plus a 1-minute EMA(9) trail, target removed) added
-$2,440 after commission over 16 years. Those gains are the best of
-428 tries on the same data. They are about the size that picking the best of many rules can produce by luck. They
-were found on the full history, including the reserved 2024+ years, so they cannot be checked there.
-
-## Search for a better filter (F2)
-
-The saved search used data before 2024. Every run is listed below. These are historical selections from the
-previous execution assumptions, shown with commission only. Selection and validation need a fresh run after
-the planned limit-entry updates.
-
-<F2Runs strategy="supertrend_kalman" />
-
-## Stress the search (F3)
-
-<F3Results strategy="supertrend_kalman" />
-
-## Prop challenge (F4)
-
-<Pending>
-  F4 asks whether a result would pass a Topstep 50K evaluation: a $3,000 target before a $2,000 trailing loss
-  limit, flat by 3:10 PM Chicago time, at most 3 CL contracts. It only runs on a result that passes F3, and it
-  will be compared with random entries under the same rules, because a fixed target and floor can be passed by
-  luck. Nothing here has reached it yet.
-</Pending>
-
-## Final check on reserved data (F5)
-
-<Pending>
-  One run of the frozen strategy and prop rules on the 2024+ data, used once and never tuned on. That data is
-  "reserved", not clean: F1 already picked its starting settings with it.
-</Pending>
 

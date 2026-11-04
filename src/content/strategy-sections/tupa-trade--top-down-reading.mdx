@@ -1,0 +1,24 @@
+---
+strategy: tupa-trade
+section: top-down-reading
+title: "Top-down reading"
+order: 2
+---
+import Callout from "../../components/Callout.astro";
+import F1Results from "../../components/F1Results.astro";
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/tupa-trade";
+
+## Top-down reading
+
+I read the same chart on six timeframes: daily, 4 hours, 1 hour, 15 minutes, 5 minutes and 1 minute. Only closed
+candles count. The 4-hour candles start at 06:00 MYT during US summer or 07:00 MYT during US winter, like the CME trading day.
+
+- **Downtrend** on a timeframe: its last higher low (HL) has been touched. **Uptrend:** its last lower high (LH)
+  has been touched.
+- The **tested timeframe** is the one with a candidate swing. For a short, that is a candidate swing low. The
+  worst case for a short is that this low holds and price builds a swing high from it.
+- **Short bias:** every timeframe below the tested one, down to 5 minutes, is already in a downtrend. Each lower
+  timeframe that breaks down makes the worst case less likely.
+- Longs are the exact mirror.
+

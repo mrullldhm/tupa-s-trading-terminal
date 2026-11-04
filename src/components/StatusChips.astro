@@ -2,7 +2,7 @@
 import Badge from "./Badge.astro";
 import { STAGES, STAGE_KEYS, STAGE_STATE_WORD } from "../lib/stages";
 type S = keyof typeof STAGE_STATE_WORD;
-interface Props { features: { f1: S; f2: S; f3: S; f4: S; f5: S } }
+interface Props { features: { f0: S; f1: S; f2: S; f3: S; f4: S; f5: S } }
 const { features } = Astro.props;
 ---
 <ul class="chips" aria-label="Test stages">

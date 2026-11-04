@@ -3,6 +3,7 @@
 import { STAGES } from "../lib/stages";
 const stages = [
   { name: "Write it twice", text: "Each strategy is written in Python for the tester and in Pine for TradingView, so any trade can be checked on a real chart.", state: "done" },
+  { name: `${STAGES.f0.name} (${STAGES.f0.tag})`, text: "Run the current Pine defaults once on CL. Publish the exact inputs and the result before searching for better settings.", state: "done" },
   { name: `${STAGES.f1.name} (${STAGES.f1.tag})`, text: "Run every combination of settings over 16 years of 1-minute data. Show the best result after commission.", state: "done" },
   { name: `${STAGES.f2.name} (${STAGES.f2.tag})`, text: "Write the guess down first. Search only pre-2024 data, log every try, and review the results.", state: "done" },
   { name: "Independent review", text: "Codex reviews the code, then rebuilds headline results with its own engine. A result only counts when the trades match.", state: "done" },
@@ -11,7 +12,7 @@ const stages = [
   { name: `${STAGES.f5.name} (${STAGES.f5.tag})`, text: "One run of the frozen strategy and prop rules on the reserved 2024+ data. Used once, never tuned on.", state: "pending" },
 ];
 // A connector into a pending stage is dashed.
-const into = stages.map((s, i) => stages[i + 1]?.state === "pending");
+const into = stages.map((_, i) => stages[i + 1]?.state === "pending");
 ---
 <ol class="stack">
   {stages.map((s, i) => (

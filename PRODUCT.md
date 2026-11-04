@@ -40,6 +40,13 @@ published costs, baseline results after commission, an independent review and re
   saved trades before displaying them.
 - Explanatory prose is written by hand (MDX) and kept separate from generated numbers, so rerunning a test never
   overwrites the explanation.
+- Each strategy has an overview and separate pages for its rules, F0–F5, exit study where available, and
+  evidence. Section navigation stays visible in the desktop sidebar and wraps above the content on mobile;
+  Previous/Next links connect the pages in reading order.
+- F0 tests one fixed configuration from the current repo Pine twin's default inputs, with its main settings
+  checked against the Python strategy defaults. It describes the current CL adaptation, with extra research
+  filters and exit management off; it does not search for a winner or claim to reproduce an untouched author's
+  script. The page explains the inputs, execution assumptions and in-sample result separately from F1.
 - Features (roadmap renumbered by the owner 2026-11-01): F1 (TradingView-style test with 13 separate metric winners), F2 (optimization), F3 (stress
   test of the F2 search: walk-forward re-selection, PBO, deflated Sharpe; development interval only) exist. F4
   (Topstep 50K prop challenge) and F5 (the one check on reserved 2024+ data) are not built; the site keeps a
@@ -58,6 +65,9 @@ published costs, baseline results after commission, an independent review and re
 - **Disclaimers on every results page:** in-sample, best of N where optimized, execution assumptions, not
   financial advice.
 - Fixed test properties shown as-is: $50,000 capital, 1 contract, $2.01 per order ($4.02 round trip).
+  F0 uses the current execution rules with no added slippage, shows all Pine input controls (including inactive
+  ones), and publishes only aggregate results and source hashes. Private configuration snapshots, summaries
+  and trades stay in `results/<strategy>/original/`; `npm run original` runs the three CL baselines sequentially.
   New multi-metric F1 runs use limit entries with no added slippage; each run declares its interval,
   eligibility (default 30 closed trades) and estimated ruin loss threshold (default $25,000).
   Historical net-profit reports use previous rules and remain separately labelled. A session with no fresh

@@ -1,0 +1,20 @@
+---
+strategy: tupa-trade
+section: swing-points
+title: "Swing points"
+order: 1
+---
+import Callout from "../../components/Callout.astro";
+import F1Results from "../../components/F1Results.astro";
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/tupa-trade";
+
+## Swing points
+
+- A candle is a **swing high** when the candle before it is not higher (equal is allowed) and the candle after it
+  is strictly lower. A swing low is the mirror. So a swing is only known one candle later.
+- Equal counts as a break: a high equal to the last swing high is a HH, a low equal to the last swing low is a LL.
+- Two swing highs with no swing low between them: only the higher one stays. Same for lows.
+- A swing is **confirmed** one candle late, but it is only **real** once the opposite swing has formed after it.
+  Until then it is a **candidate** and can still be replaced.
+

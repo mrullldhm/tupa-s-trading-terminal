@@ -1,0 +1,27 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import Strategy from "../../../layouts/Strategy.astro";
+import OriginalResults from "../../../components/OriginalResults.astro";
+import Pending from "../../../components/Pending.astro";
+import { STAGES } from "../../../lib/stages";
+export async function getStaticPaths() {
+  const strategies = await getCollection("strategies", (s) => s.data.stage !== "planned");
+  const sections = await getCollection("strategySections");
+  return strategies.flatMap((entry) => {
+    const own = sections.filter((s) => s.data.strategy === entry.id);
+    const paths: { params: { slug: string; section: string }; props: { entry: CollectionEntry<"strategies">; content?: CollectionEntry<"strategySections">; title: string } }[] = own.map((content) => ({ params: { slug: entry.id, section: content.data.section }, props: { entry, content, title: content.data.title } }));
+    for (const [i, stage] of Object.values(STAGES).entries()) {
+      const section = `feature-${i}`;
+      if (!own.some((s) => s.data.section === section)) paths.push({ params: { slug: entry.id, section }, props: { entry, content: undefined, title: `${stage.name} (${stage.tag})` } });
+    }
+    return paths;
+  });
+}
+const { entry, content, title } = Astro.props;
+const section = Astro.params.section!;
+const rendered = content ? await render(content) : null;
+const Content = rendered?.Content;
+---
+<Strategy entry={entry} section={section} title={title}>
+  {section === "feature-0" ? <OriginalResults strategy={entry.data.dataKey!} /> : Content ? <div class="prose"><Content /></div> : <Pending heading="Not run yet">This research stage has not been run for {entry.data.title}. No result is available yet.</Pending>}
+</Strategy>

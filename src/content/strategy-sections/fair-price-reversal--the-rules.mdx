@@ -1,0 +1,42 @@
+---
+strategy: fair-price-reversal
+section: the-rules
+title: "The rules"
+order: 1
+---
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/fair-price-reversal";
+import Callout from "../../components/Callout.astro";
+import F1Results from "../../components/F1Results.astro";
+import F2Runs from "../../components/F2Runs.astro";
+import ExitStudy from "../../components/ExitStudy.astro";
+import F3Results from "../../components/F3Results.astro";
+import Pending from "../../components/Pending.astro";
+import SessionTable from "../../components/SessionTable.astro";
+
+## The rules
+
+These are the rules behind the saved results. Entries will be updated to limit buy/sell at the planned price;
+that strategy change has not been tested yet.
+
+The signal is the indicator's own logic, unchanged. The trade rules are mine, because the indicator only draws
+signals and never trades.
+
+- **Fair price.** The body (open to close) of the candle just before the session opens.
+- **Setup window.** Starts at the session open. Price must move beyond the body by at least a set multiple of
+  ATR(14). ATR is a measure of normal candle size.
+- **Long signal.** After a move down, a lower swing high forms. A candle then closes above that swing high while
+  still below the body. Shorts are the mirror image. At most one long and one short per session per day.
+- **Entry.** A market order at the next candle's open, only when no trade is open.
+- **Stop.** The most extreme price of the move away, fixed when the signal fires.
+- **Target.** One of four choices, tested as a setting: the near body edge, the far body edge, 1R or 2R. R is
+  the distance from the signal close to the stop.
+- **Session end.** Any open trade is closed at the flat time: the close order is sent on the candle before, so it
+  fills at the flat minute's open (or the next open if that candle is missing).
+
+<SessionTable />
+
+Every test uses the same fixed properties: $50,000 starting capital, 1 contract, $2.01 commission per order
+($4.02 for a round trip). Results include commission only. One tick on CL is
+$10 per contract. [How the tester works](/method/) explains every fill rule.
+

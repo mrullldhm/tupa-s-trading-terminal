@@ -92,3 +92,24 @@ variant directory and checks the winners against
 their grids, summaries and trade totals. Missing multi-metric runs are visibly pending; the historical report
 stays in a disclosure. No old grid is presented as a new-rule result. Metric daily results use Malaysia time,
 and their verified real-price charts are available only on localhost, like the existing daily results.
+
+## Feature 0 and separate strategy pages
+
+`/strategies/<slug>/` is the overview. Each former section has its own route, with persistent section
+navigation and Previous/Next links. Feature 0 lives at `/strategies/<slug>/feature-0/`; the grid search
+is `/feature-1/`. Rules, exit studies and evidence have separate pages too.
+
+Feature 0 runs **one fixed configuration** using the defaults in the current repo Pine twin. The runner
+checks the main inputs against the Python constructor defaults before running. This means the current CL
+adaptation, including current entry rules, rather than the untouched author's original strategy or an F1
+winner. Extra filters and exit management remain off. All Pine controls, including inactive ones, are shown.
+
+From `web/`, run `npm run original` to regenerate all three baselines sequentially. For one strategy, from
+the repo root run `.venv/bin/python web/tools/run_original.py tupa_trade` (or the other strategy key).
+This uses the tester and is not an independent replication. No grid search or slippage scenarios run.
+Private summaries, configuration snapshots and trades go to `results/<strategy>/original/`.
+Only aggregate results and source hashes go to `src/data/original/*.json`; no prices or trade rows are published.
+The normal `npm run export` retains its F1–F5 role; it does not overwrite these F0 artifacts.
+
+F0 reports include commission, current execution assumptions, the exact interval, source hashes and an
+in-sample label. A profitable baseline alone does not establish a tradable edge or TradingView parity.

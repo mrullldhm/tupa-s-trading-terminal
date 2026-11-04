@@ -1,0 +1,27 @@
+---
+strategy: tupa-trade
+section: one-example-26-october-2026
+title: "One example: 26 October 2026"
+order: 4
+---
+import Callout from "../../components/Callout.astro";
+import F1Results from "../../components/F1Results.astro";
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/tupa-trade";
+
+## One example: 26 October 2026
+
+The rules came from walking through real days with my charts. On 26 October:
+
+- The 1-hour chart had a candidate higher low. The worst case for a short was that it would hold.
+- The 15-minute and 5-minute charts had both already touched their last higher low, so both were in a downtrend.
+- On the 1-minute chart, price touched the last higher low. The stop (the 1-minute swing high) was 26 ticks away,
+  more than the 25-tick limit. So the sell limit sat 1 tick above the break point, which made the risk exactly 25
+  ticks.
+- A few minutes later price touched the break point and the order filled. The take profit was hit the next
+  minute: +25 ticks, which is $250 minus $4.02 commission.
+
+This is one hand-picked day that I used to write the rules, so it proves nothing about the method. The test had to
+reproduce this trade before any of its other numbers were trusted, and it did: same minute, same prices, same
+result, in my tester and in Codex's own code.
+

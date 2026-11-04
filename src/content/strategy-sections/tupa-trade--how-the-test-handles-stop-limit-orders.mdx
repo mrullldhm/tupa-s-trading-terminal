@@ -1,0 +1,18 @@
+---
+strategy: tupa-trade
+section: how-the-test-handles-stop-limit-orders
+title: "How the test handles stop-limit orders"
+order: 5
+---
+import Callout from "../../components/Callout.astro";
+import F1Results from "../../components/F1Results.astro";
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/tupa-trade";
+
+## How the test handles stop-limit orders
+
+The tester had no stop-limit orders before this strategy. They now follow one rule. When price touches the trigger,
+the order becomes a limit order. It can still fill later in the same candle if price comes back to the limit. A
+limit fill uses the limit price or a better price. This rule has not been checked against TradingView yet. The first check is whether
+TradingView takes the 26 October trade at the same minute and price.
+

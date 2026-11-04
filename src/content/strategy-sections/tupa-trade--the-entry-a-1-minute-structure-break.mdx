@@ -1,0 +1,28 @@
+---
+strategy: tupa-trade
+section: the-entry-a-1-minute-structure-break
+title: "The entry: a 1-minute structure break"
+order: 3
+---
+import Callout from "../../components/Callout.astro";
+import F1Results from "../../components/F1Results.astro";
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/tupa-trade";
+
+## The entry: a 1-minute structure break
+
+With a short bias, I wait for the 1-minute chart to turn from up to down:
+
+- The last 1-minute swing low is a higher low, and a swing high has formed after it.
+- When price **touches** that higher low, structure has broken (a market structure shift). That level is the
+  **break point**.
+- The order is a **stop-limit**: it wakes up when price touches the break point, then sells at the limit price.
+
+| Item | Rule |
+|---|---|
+| Stop loss | Exactly at the last 1-minute swing high |
+| Maximum risk | 25 ticks ($250 for one contract, before costs). If the stop is further away, the sell limit moves up toward it so the risk is exactly 25 ticks |
+| Take profit | 25 ticks from the fill |
+| Unfilled limit | Cancelled when the next 1-minute swing high forms |
+| Session | New York only: 21:00–02:30 MYT during US summer, 22:00–03:30 MYT during US winter (ends the following day). One trade per session. An open trade is closed at the end |
+

@@ -1,0 +1,40 @@
+---
+strategy: tupa-trade
+section: feature-1
+title: "Test every setting (F1)"
+order: 6
+---
+import Callout from "../../components/Callout.astro";
+import F1Results from "../../components/F1Results.astro";
+import AnnotatedChart from "../../components/AnnotatedChart.astro";
+import { story } from "../../lib/illustrative/tupa-trade";
+
+## Test every setting (F1)
+
+The open question of how low the tested timeframe may go became the one setting: 15 minutes, 1 hour, 4 hours or
+daily. All four run over 16 years of 1-minute data, New York session only. The selector finds separate winners
+for 13 metrics, with commission included. The previous net-profit report is kept below as a historical reference.
+
+<Callout tone="honest" title="Previous net-profit result">
+  <p>In the previous run, all four settings lost money after commission. The best one (the tested timeframe can only be the daily)
+  lost $14,149 over 858 trades. It won 31% of its trades. With wins of about
+  $239 and losses of about $132, it would need to win about 36% just to break even after commission. Longs and shorts
+  lost about the same.</p>
+</Callout>
+
+<F1Results strategy="tupa_trade" paramLabels={{ t_min: "lowest tested timeframe" }} />
+
+### What this means
+
+As coded, these rules have no edge on CL. The other three settings traded more often (2,000 to 4,100 trades) and
+lost more ($32,852 to $34,158 after commission), so more trades did not help. Only 5 of the 17 years made money, none by
+much.
+
+These numbers test the rules as written down, not the trader. If my hand trading uses judgement the rules do not
+capture yet, it is missing here. Before calling the method dead, the next step is to compare the coded trades with
+how I would have traded the same days, and find the gap.
+
+Codex rebuilt the 26 October trade and the whole F1 result with its own code and got the same numbers. Its review
+also found a bug in the Pine version (it stopped trading after the first trade), now fixed. It does not prove
+TradingView gives the same numbers: only a TradingView export of the Pine version can do that.
+
