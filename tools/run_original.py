@@ -19,6 +19,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+if __name__ == "__main__":
+    from tvtester.resource_guard import entrypoint
+    entrypoint([str(Path(__file__).resolve()), *sys.argv[1:]])
+
 from export_web import Exporter, check_publication, check_trades_match_summary, monthly_curve
 from tvtester import metrics
 from tvtester.config import DEFAULT

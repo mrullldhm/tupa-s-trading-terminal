@@ -12,13 +12,16 @@ export default function localTradeReplay() {
   let worker;
   let workerStamp;
   let pending;
+  let idleTimer;
   let queue = Promise.resolve();
   function stop() {
+    clearTimeout(idleTimer); idleTimer = undefined;
     worker?.kill(); worker = undefined;
     pending?.reject(new Error("The replay worker stopped. Try opening the chart again."));
     pending = undefined;
   }
   function start() {
+    clearTimeout(idleTimer); idleTimer = undefined;
     if (worker && workerStamp !== statSync(script).mtimeMs) stop();
     if (worker) return;
     workerStamp = statSync(script).mtimeMs;
@@ -33,6 +36,9 @@ export default function localTradeReplay() {
         const response = JSON.parse(line);
         if (response.error) job.reject(new Error(response.error)); else job.resolve(response.data);
       } catch { job.reject(new Error("The replay worker returned an unreadable response.")); }
+      // Release cached bars and the shared research lock between chart visits.
+      idleTimer = setTimeout(() => { if (worker === child && !pending) stop(); }, 30_000);
+      idleTimer.unref();
     });
     child.on("error", () => { if (worker === child) stop(); });
     child.on("exit", () => { if (worker === child) stop(); });

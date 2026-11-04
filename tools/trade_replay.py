@@ -17,11 +17,15 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
-import numpy as np
-import pandas as pd
-
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+
+if __name__ == "__main__":
+    from tvtester.resource_guard import entrypoint
+    entrypoint([str(Path(__file__).resolve()), *sys.argv[1:]])
+
+import numpy as np
+import pandas as pd
 from tvtester import engine, ta
 from tvtester.config import DEFAULT, TICK
 from tvtester.data import Bars, load_bars

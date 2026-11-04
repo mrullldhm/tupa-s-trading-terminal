@@ -116,3 +116,10 @@ in-sample label. A profitable baseline alone does not establish a tradable edge 
 
 All strategies, tests, features and swing exits use only `../indicators/structure_swings.pine`.
 There is no tunable swing setting. Web replays and teaching charts must follow that same rule.
+
+## Memory protection
+
+Default runs and private chart workers automatically use the parent repository research supervisor.
+The worker uses JSON only on stdout; guard diagnostics go to stderr. A chart worker releases its cached
+bars and shared research lock after 30 seconds idle. A running research job and chart replay cannot overlap.
+See `../docs/WSL_PREVENTION.md`.
