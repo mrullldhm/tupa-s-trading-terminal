@@ -1,0 +1,29 @@
+---
+// Net profit per calendar year: bars up (profit) or down (loss) from one zero line.
+import { usdK } from "../lib/format";
+interface Props { years: { year: number; net: number }[]; label: string }
+const { years, label } = Astro.props;
+const max = Math.max(...years.map((y) => Math.abs(y.net)), 1);
+---
+<div class="yb" role="img" aria-label={label}>
+  {years.map((y) => {
+    const h = Math.max(2, (Math.abs(y.net) / max) * 100);
+    return (
+      <div class="col" title={`${y.year}: ${usdK(y.net)}`}>
+        <div class="up">{y.net > 0 && <span class="bar pos-bar" style={`height:${h}%`}></span>}</div>
+        <div class="down">{y.net <= 0 && <span class="bar neg-bar" style={`height:${h}%`}></span>}</div>
+        <span class="yr">{String(y.year).slice(2)}</span>
+      </div>
+    );
+  })}
+</div>
+<style>
+  .yb { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; height: 96px; }
+  .col { display: grid; grid-template-rows: 1fr 1fr auto; min-width: 0; }
+  .up { display: flex; align-items: flex-end; border-bottom: 1px solid rgb(255 255 255 / 0.28); }
+  .down { display: flex; align-items: flex-start; }
+  .bar { display: block; width: 100%; }
+  .pos-bar { background: var(--pos); border-radius: 3px 3px 0 0; }
+  .neg-bar { background: var(--neg); border-radius: 0 0 3px 3px; opacity: 0.85; }
+  .yr { font-size: 0.7rem; color: var(--ink-3); text-align: center; margin-top: 3px; font-variant-numeric: tabular-nums; }
+</style>

@@ -1,0 +1,24 @@
+---
+// Five table cells: one per dev gate. Icon + value, so pass/fail never relies on colour.
+import Icon from "./Icon.astro";
+import { gates, type Variant } from "../lib/data";
+interface Props { variant: Variant; rules?: boolean }
+const { variant, rules = false } = Astro.props;
+---
+{gates(variant).map((g) => (
+  <td class:list={["gate", g.pass ? "ok" : "no"]} data-sort={g.key}>
+    <span class="gv num">
+      <Icon name={g.pass ? "check" : "cross"} size={13} label={g.pass ? "passes" : "fails"} />
+      {g.value}
+    </span>
+    {rules && <span class="gr">needs {g.rule}</span>}
+  </td>
+))}
+<style>
+  .gate { vertical-align: top; }
+  .gv { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 500; }
+  .ok .gv { color: var(--pos); }
+  .no .gv { color: var(--ink); }
+  .no .gv :global(svg) { color: var(--neg); }
+  .gr { display: block; margin-top: 0.15rem; font-size: 0.72rem; color: var(--ink-3); padding-left: 1.2rem; }
+</style>

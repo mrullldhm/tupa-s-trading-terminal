@@ -1,0 +1,128 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { R } from "../lib/data";
+import { int } from "../lib/format";
+const c = R.combine;
+const rules = [
+  { rule: "Starting balance", value: `$${int(c.start_balance)}`, plain: "The practice account you start with.", ok: true },
+  { rule: "Profit target", value: `+$${int(c.profit_target)}`, plain: "Reach this total profit to pass.", ok: true },
+  { rule: "Maximum loss", value: `$${int(c.max_loss)}`, plain: "If your balance, including open trades, falls this far below your best end-of-day balance, the account fails.", ok: true },
+  { rule: "Maximum loss stops moving", value: `at $${int(c.start_balance)}`, plain: "Once your best balance is $2,000 above the start, the loss line stops rising.", ok: false },
+  { rule: "Daily loss limit", value: "off", plain: "Optional on TopstepX ($1,000 when on). Hitting it ends your day but does not fail the account.", ok: false },
+  { rule: "Consistency", value: `best day ≤ ${Math.round(c.consistency * 100)}%`, plain: "Your best day must be at most 55% of total profit. If not, the target rises until it is. You do not fail.", ok: false },
+  { rule: "Size", value: `up to ${c.max_contracts} CL`, plain: "Most strategies here trade 1 contract.", ok: true },
+  { rule: "Close all trades by", value: "3:10 PM CT", plain: "Every position is closed before the daily break.", ok: false },
+  { rule: "Fee per round trip", value: `$${c.fee_round_turn.toFixed(2)}`, plain: "Commission plus exchange fees for 1 CL contract, in and out.", ok: false },
+  { rule: "Subscription and reset", value: `$${c.monthly_fee} / $${c.reset_fee}`, plain: "Used to work out the cost of each pass.", ok: false },
+];
+const steps = [
+  { h: "Replay each day", p: "Trades come from the backtest, with their profit or loss minute by minute, fees included." },
+  { h: "Watch the loss line", p: "If open loss crosses the maximum-loss line at any minute, the account fails right there." },
+  { h: "Close the day", p: "Add the day's result to the balance. Move the loss line up if the balance made a new high." },
+  { h: "Check for a pass", p: "Pass when profit reaches $3,000 and the best day is no more than 55% of it." },
+];
+---
+<Base title="Topstep 50K rules" description="The Topstep 50K Trading Combine rules used in the simulator, explained simply, with unconfirmed values clearly marked." crumbs={[{ label: "Topstep 50K rules" }]}>
+  <header class="head">
+    <h1>The Topstep 50K Combine, as we simulate it</h1>
+    <p>
+      The Trading Combine is Topstep's test account. Pass it and you can trade their money. Every strategy here is run
+      through these rules on every possible start day, so we can see how often it would pass and what each pass would
+      cost.
+    </p>
+  </header>
+
+  <section class="panel" aria-labelledby="r-h">
+    <div class="panel-head">
+      <h2 id="r-h">The rules</h2>
+      <p>Taken from 2026 third-party guides. Rules marked below still need checking with Topstep.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Rule</th><th>Value used</th><th>What it means</th><th>Confirmed?</th></tr></thead>
+        <tbody>
+          {rules.map((r) => (
+            <tr>
+              <td><b>{r.rule}</b></td>
+              <td class="num val">{r.value}</td>
+              <td class="plain">{r.plain}</td>
+              <td>
+                {r.ok
+                  ? <span class="chip chip-pos"><Icon name="check" />All sources agree</span>
+                  : <span class="chip chip-warn"><Icon name="warn" />Not yet confirmed</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="s-h">
+    <div class="panel-head"><h2 id="s-h">How the simulator decides pass or fail</h2></div>
+    <ol class="steps">
+      {steps.map((s, i) => (
+        <li>
+          <span class="n num" aria-hidden="true">{i + 1}</span>
+          <h3>{s.h}</h3>
+          <p>{s.p}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <div class="split">
+    <section class="panel" aria-labelledby="pr-h">
+      <div class="panel-body prose">
+        <h2 id="pr-h">Pass rate</h2>
+        <p>
+          We start one attempt on <strong>every trading day</strong> and count how many pass. This shows how often the
+          strategy would pass if you started on a random day.
+        </p>
+        <p>The attempts overlap, so they are not fully separate samples. Treat the number as a guide, not a promise.</p>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="cp-h">
+      <div class="panel-body prose">
+        <h2 id="cp-h">Cost per pass</h2>
+        <p>
+          We also run attempts <strong>back to back</strong>, as you would live: after a pass or a fail, start again the
+          next day. Adding up subscriptions and resets gives the average cost of one pass.
+        </p>
+        <p>The billing model itself is not yet confirmed with Topstep.</p>
+      </div>
+    </section>
+  </div>
+
+  <p class="note faint">Not modelled yet: the funded account after the Combine, its payouts, and news-time restrictions.</p>
+</Base>
+<style>
+  .head { position: relative; padding: clamp(2rem, 5vw, 3.25rem) 0 1.75rem; }
+  .head::before {
+    content: ""; position: absolute; z-index: -1; inset: -3.5rem -20% auto; height: 22rem; pointer-events: none;
+    background: radial-gradient(34rem 16rem at 25% 0%, var(--sky-glow), transparent 70%);
+  }
+  .head h1 { max-width: 20ch; }
+  .head p { margin-top: 0.8rem; max-width: 66ch; color: var(--ink-2); }
+  .panel + .panel, .split, .split + .panel, .panel + .split { margin-top: 1rem; }
+  .table-wrap { padding: 0.6rem 0.5rem 0.4rem; }
+  b { font-weight: 600; }
+  .val { font-weight: 600; }
+  .plain { white-space: normal; min-width: 22rem; color: var(--ink-2); }
+  .steps { list-style: none; margin: 0; padding: 1.1rem 1.25rem 1.3rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+  .steps li { position: relative; }
+  .n {
+    display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: 50%;
+    border: 1px solid rgb(91 140 255 / 0.5); color: var(--sky-ink); font-size: 0.8rem; font-weight: 600; margin-bottom: 0.7rem;
+  }
+  .steps h3 { margin-bottom: 0.35rem; }
+  .steps p { font-size: 0.875rem; color: var(--ink-2); }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .split .panel + .panel { margin-top: 0; }
+  .prose h2 { color: var(--ink); margin-bottom: 0.7rem; }
+  .note { margin-top: 1rem; font-size: 0.82rem; }
+  @media (max-width: 960px) { .steps { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .steps { grid-template-columns: 1fr; } }
+</style>

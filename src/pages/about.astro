@@ -1,0 +1,40 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="About" description="Who runs Tupa's Trading Terminal, why, and what the numbers do and do not mean." crumbs={[{ label: "About" }]}>
+  <header class="head">
+    <h1>About this terminal</h1>
+  </header>
+  <section class="panel">
+    <div class="panel-body prose">
+      <p>
+        <strong>Tupa's Trading Terminal</strong> is a public research journal. One trader, Tupa, is looking for a crude
+        oil futures strategy that can pass the Topstep 50K Trading Combine again and again, not just once by luck.
+      </p>
+      <p>
+        Every idea is tested the same way and every result is published, including the failures. A failed idea still
+        teaches something, and hiding it would make the winners look better than they are.
+      </p>
+      <p>
+        <strong>CL only.</strong> Only the full-size crude oil contract (CL) is tested. Micro crude (MCL) is never used,
+        for personal religious (syariah) reasons.
+      </p>
+      <p>
+        <strong>Not financial advice.</strong> Everything here is a simulation on past prices. Real trading has costs,
+        delays and emotions that a simulator cannot fully copy. Past results do not predict future results.
+      </p>
+      <p>
+        <strong>No outside claims.</strong> There are no testimonials, followers or live trading results on this site,
+        because none exist yet.
+      </p>
+    </div>
+  </section>
+</Base>
+<style>
+  .head { position: relative; padding: clamp(2rem, 5vw, 3.25rem) 0 1.5rem; }
+  .head::before {
+    content: ""; position: absolute; z-index: -1; inset: -3.5rem -20% auto; height: 22rem; pointer-events: none;
+    background: radial-gradient(34rem 16rem at 25% 0%, var(--sky-glow), transparent 70%);
+  }
+  .prose { font-size: 1rem; }
+</style>

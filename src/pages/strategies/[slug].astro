@@ -1,0 +1,203 @@
+---
+import Base from "../../layouts/Base.astro";
+import Status from "../../components/Status.astro";
+import GateCells from "../../components/GateCells.astro";
+import EquityChart from "../../components/EquityChart.astro";
+import YearBars from "../../components/YearBars.astro";
+import Icon from "../../components/Icon.astro";
+import ReadingGuide from "../../components/ReadingGuide.astro";
+import { strategies, curve, gatesPassed, yearRange, VARIANT_COLORS, type Strategy } from "../../lib/data";
+import { usdK, usd, int, pct, date } from "../../lib/format";
+
+export function getStaticPaths() {
+  return strategies.map((s, i) => ({
+    params: { slug: s.slug },
+    props: { s, prev: strategies[i - 1] ?? null, next: strategies[i + 1] ?? null },
+  }));
+}
+interface Props { s: Strategy; prev: Strategy | null; next: Strategy | null }
+const { s, prev, next } = Astro.props;
+const t = s.text;
+const years = yearRange();
+const variants = [...s.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor);
+const series = variants.map((v, i) => ({ id: v.hash, name: v.label, color: VARIANT_COLORS[i % VARIANT_COLORS.length], points: curve(v) }));
+const b = s.best;
+const exitTotal = Object.values(b.exits).reduce((n, x) => n + x, 0);
+const exitWords: Record<string, string> = { stop: "Stop hit", target: "Target hit", flatten: "Closed at 3:10 PM", manage: "Closed by trade rules", day_end: "Closed at day end", roll: "Closed at contract roll", partial: "Part profit taken", time: "Time limit" };
+const exits = Object.entries(b.exits).sort((a, c) => c[1] - a[1]);
+---
+<Base title={s.name} description={`${s.name}: ${s.short} Tested on CL futures against the Topstep 50K Combine.`} crumbs={[{ href: "/strategies/", label: "Strategies" }, { label: s.name }]}>
+  <header class="head">
+    <div class="title">
+      <i style={`background:${s.color}`}></i>
+      <Status state={s.status.state} />
+      <span class="faint">Updated {date(b.run_utc)}</span>
+    </div>
+    <h1>{s.name}</h1>
+    <p class="short">{s.short}</p>
+    <dl class="meta">
+      <div>
+        <dt>Source</dt>
+        <dd>
+          {t.source.url ? <a href={t.source.url} rel="noopener noreferrer" target="_blank">{t.source.label} <Icon name="external" size={12} /></a> : t.source.label}
+        </dd>
+      </div>
+      <div><dt>Versions tried</dt><dd class="num">{s.variants.length}</dd></div>
+      <div><dt>Test data</dt><dd class="num">CL 1-minute, {years}</dd></div>
+      <div><dt>Best version, net profit</dt><dd class="num">{usd(b.net)} <span class="faint">in-sample</span></dd></div>
+    </dl>
+  </header>
+
+  <section class="panel verdict" aria-labelledby="v-h">
+    <div class="panel-body">
+      <h2 id="v-h">Verdict</h2>
+      <p>{t.verdict}</p>
+      {t.lessons.length > 0 && (
+        <ul>{t.lessons.map((l) => <li>{l}</li>)}</ul>
+      )}
+    </div>
+  </section>
+
+  <div class="split">
+    <section class="panel" aria-labelledby="idea-h">
+      <div class="panel-body prose">
+        <h2 id="idea-h">The idea</h2>
+        <p>{t.idea}</p>
+        <p class="src"><strong>About the source:</strong> {t.source.note}</p>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="rules-h">
+      <div class="panel-body prose">
+        <h2 id="rules-h">The rules, in plain words</h2>
+        <ul>{t.rules.map((r) => <li>{r}</li>)}</ul>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="res-h">
+    <div class="panel-head">
+      <h2 id="res-h">Results by version</h2>
+      <p>Build data {years} · in-sample · best of {s.variants.length}</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Version</th>
+            <th class="r">Net profit</th>
+            <th class="r">Win rate</th>
+            <th class="r">Biggest drop</th>
+            <th>Trades</th>
+            <th>Profit factor</th>
+            <th>Years in profit</th>
+            <th>Combine pass rate</th>
+            <th>Cost per pass</th>
+          </tr>
+        </thead>
+        <tbody>
+          {variants.map((v, i) => (
+            <tr>
+              <td><span class="vname"><i style={`background:${VARIANT_COLORS[i % VARIANT_COLORS.length]}`}></i>{v.label}</span></td>
+              <td class="r num strong">{usdK(v.net)}</td>
+              <td class="r num">{pct(v.win_rate, 0)}</td>
+              <td class="r num">{usdK(v.max_drawdown)}</td>
+              <GateCells variant={v} rules={i === 0} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <ReadingGuide />
+  </section>
+
+  <section class="panel" aria-labelledby="eq-h">
+    <div class="panel-head">
+      <h2 id="eq-h">Running profit by version</h2>
+      <p>One contract · after fees · {years}</p>
+    </div>
+    <div class="panel-body">
+      <EquityChart series={series} height={280} label={`Running net profit by month for each version of ${s.name}, ${years}.`} />
+    </div>
+  </section>
+
+  <div class="split">
+    <section class="panel" aria-labelledby="yr-h">
+      <div class="panel-head">
+        <h2 id="yr-h">Profit per year</h2>
+        <p>{b.label} · {b.years_positive} of {b.years_total} years in profit</p>
+      </div>
+      <div class="panel-body">
+        <YearBars years={b.years} label={`${s.name} ${b.label}: profit or loss per year`} />
+        <details class="tbl">
+          <summary>Show as table</summary>
+          <table>
+            <thead><tr><th>Year</th><th class="r">Net profit</th></tr></thead>
+            <tbody>{b.years.map((y) => <tr><td class="num">{y.year}</td><td class="r num">{usd(y.net)}</td></tr>)}</tbody>
+          </table>
+        </details>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="ex-h">
+      <div class="panel-head">
+        <h2 id="ex-h">How trades ended</h2>
+        <p>{b.label} · {int(exitTotal)} trades</p>
+      </div>
+      <div class="panel-body">
+        <ul class="exits">
+          {exits.map(([k, n]) => (
+            <li>
+              <span>{exitWords[k] ?? k}</span>
+              <span class="bar"><span style={`width:${(n / exitTotal) * 100}%`}></span></span>
+              <span class="num">{pct(n / exitTotal, 0)}</span>
+            </li>
+          ))}
+        </ul>
+        <p class="faint small">Combine attempts back to back: {b.seq_passes} passed, {b.seq_fails} failed.</p>
+      </div>
+    </section>
+  </div>
+
+  <nav class="pager" aria-label="More strategies">
+    {prev ? <a class="btn" href={`/strategies/${prev.slug}/`}><Icon name="back" />{prev.name}</a> : <span></span>}
+    {next && <a class="btn" href={`/strategies/${next.slug}/`}>{next.name}<Icon name="arrow" /></a>}
+  </nav>
+</Base>
+<style>
+  .head { position: relative; padding: clamp(2rem, 5vw, 3rem) 0 1.75rem; }
+  .head::before {
+    content: ""; position: absolute; z-index: -1; inset: -3.5rem -20% auto; height: 24rem; pointer-events: none;
+    background: radial-gradient(34rem 16rem at 25% 0%, var(--sky-glow), transparent 70%);
+  }
+  .title { display: flex; align-items: center; gap: 0.7rem; font-size: 0.8rem; margin-bottom: 0.9rem; }
+  .title i { width: 12px; height: 12px; border-radius: 3px; }
+  .short { margin-top: 0.7rem; font-size: 1.05rem; color: var(--ink-2); max-width: 60ch; }
+  .meta { margin: 1.5rem 0 0; display: flex; flex-wrap: wrap; gap: 0.75rem 2.25rem; }
+  .meta dt { font-size: 0.72rem; color: var(--ink-3); }
+  .meta dd { margin: 0.15rem 0 0; font-size: 0.9rem; font-weight: 500; }
+  .meta a { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .panel + .panel, .split, .split + .panel, .panel + .split { margin-top: 1rem; }
+  .verdict { background: linear-gradient(180deg, rgb(91 140 255 / 0.07), rgb(91 140 255 / 0.015)); border-color: rgb(91 140 255 / 0.25); }
+  .verdict p { margin-top: 0.6rem; max-width: 75ch; font-size: 1rem; }
+  .verdict ul { margin: 0.8rem 0 0; padding-left: 1.1rem; color: var(--ink-2); max-width: 75ch; }
+  .verdict li + li { margin-top: 0.35rem; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .split .panel + .panel { margin-top: 0; }
+  .prose h2 { color: var(--ink); margin-bottom: 0.8rem; }
+  .src { font-size: 0.875rem; }
+  .table-wrap { padding: 0.6rem 0.5rem 0.4rem; }
+  .vname { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500; }
+  .vname i { width: 10px; height: 3px; border-radius: 2px; }
+  .strong { font-weight: 600; }
+  .tbl { margin-top: 1rem; font-size: 0.82rem; }
+  .tbl summary { cursor: pointer; color: var(--sky-ink); width: max-content; min-height: 1.75rem; display: flex; align-items: center; }
+  .tbl table { margin-top: 0.5rem; }
+  .exits { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+  .exits li { display: grid; grid-template-columns: 11rem 1fr 3rem; gap: 0.8rem; align-items: center; font-size: 0.85rem; color: var(--ink-2); }
+  .exits .bar { height: 6px; border-radius: 3px; background: rgb(255 255 255 / 0.06); overflow: hidden; }
+  .exits .bar span { display: block; height: 100%; background: var(--sky); border-radius: 3px; }
+  .exits .num { text-align: right; color: var(--ink); }
+  .small { margin-top: 1rem; font-size: 0.8rem; }
+  .pager { display: flex; justify-content: space-between; gap: 0.6rem; margin-top: 1.5rem; flex-wrap: wrap; }
+  @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+  @media (max-width: 480px) { .exits li { grid-template-columns: 8.5rem 1fr 2.5rem; } }
+</style>

@@ -1,37 +1,24 @@
 const MINUS = "−";
 
-/** Signed USD, e.g. +42,475.80 / −20,100.08. The sign is always shown so colour is never the only signal. */
+/** Signed USD. The sign always shows, so colour is never the only signal. */
 export function usd(v: number | null | undefined, opts: { sign?: boolean; cents?: boolean } = {}): string {
   if (v == null) return "—";
-  const { sign = true, cents = true } = opts;
-  const abs = Math.abs(v).toLocaleString("en-US", {
-    minimumFractionDigits: cents ? 2 : 0,
-    maximumFractionDigits: cents ? 2 : 0,
-  });
-  if (!sign || Math.abs(v) < (cents ? 0.005 : 0.5)) return `$${abs}`;
+  const { sign = true, cents = false } = opts;
+  const abs = Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
+  if (!sign || Math.abs(v) < 0.5) return `$${abs}`;
   return `${v > 0 ? "+" : MINUS}$${abs}`;
 }
 
-export function num(v: number | null | undefined, digits = 2): string {
-  if (v == null) return "—";
-  const s = Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
-  return v < 0 && Number(v.toFixed(digits)) !== 0 ? `${MINUS}${s}` : s;
+/** Compact signed USD: +$14.5K, −$326K. */
+export function usdK(v: number): string {
+  const a = Math.abs(v);
+  const s = a >= 1000 ? `$${(a / 1000).toFixed(a >= 100_000 ? 0 : 1)}K` : `$${Math.round(a)}`;
+  return a < 0.5 ? s : `${v > 0 ? "+" : MINUS}${s}`;
 }
 
-export function int(v: number | null | undefined): string {
-  return v == null ? "—" : v.toLocaleString("en-US");
-}
+export const int = (v: number) => v.toLocaleString("en-US");
+export const pct = (v: number, d = 1) => `${(v * 100).toFixed(d)}%`;
 
-export function pct(v: number | null | undefined, digits = 1): string {
-  return v == null ? "—" : `${num(v, digits)}%`;
-}
-
-export function tone(v: number | null | undefined): "pos" | "neg" | "" {
-  if (v == null || Math.abs(v) < 0.005) return "";
-  return v > 0 ? "pos" : "neg";
-}
-
-export function date(iso: string | Date): string {
-  const d = typeof iso === "string" ? new Date(iso) : iso;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kuala_Lumpur" });
+export function date(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kuala_Lumpur" });
 }

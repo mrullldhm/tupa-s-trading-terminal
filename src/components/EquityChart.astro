@@ -1,0 +1,103 @@
+---
+// Cumulative net profit by month, one line per series. Server-drawn SVG; hover readout from equity.client.ts.
+import { usdK } from "../lib/format";
+interface Series { id: string; name: string; color: string; points: { t: string; y: number }[] }
+interface Props { series: Series[]; height?: number; label: string }
+const { series, height = 300, label } = Astro.props;
+
+const W = 1000, H = height, PL = 56, PR = 16, PT = 14, PB = 28;
+const months = [...new Set(series.flatMap((s) => s.points.map((p) => p.t)))].sort();
+// Carry each series forward over months without trades, so every line spans the period.
+const full = series.map((s) => {
+  const by = new Map(s.points.map((p) => [p.t, p.y]));
+  let last = 0;
+  return { ...s, ys: months.map((m) => (last = by.get(m) ?? last)) };
+});
+const all = full.flatMap((s) => s.ys).concat(0);
+const lo = Math.min(...all), hi = Math.max(...all);
+const span = hi - lo || 1;
+const raw = span / 5, mag = 10 ** Math.floor(Math.log10(raw));
+const step = [1, 2, 2.5, 5, 10].map((k) => k * mag).find((k) => k >= raw)!;
+const y0 = Math.floor(lo / step) * step, y1 = Math.ceil(hi / step) * step;
+const ticks: number[] = [];
+for (let v = y0; v <= y1 + 1e-9; v += step) ticks.push(v);
+const x = (i: number) => PL + (i / Math.max(1, months.length - 1)) * (W - PL - PR);
+const y = (v: number) => PT + (1 - (v - y0) / (y1 - y0)) * (H - PT - PB);
+const path = (ys: number[]) => ys.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join("");
+const years = months.map((m, i) => [m, i] as const).filter(([m]) => m.endsWith("-01"));
+const payload = JSON.stringify({
+  months,
+  series: full.map((s) => ({ name: s.name, color: s.color, ys: s.ys.map((v) => Math.round(v)) })),
+  box: { W, PL, PR },
+});
+---
+<figure class="eq" data-equity={payload} data-focus={series.length > 1 ? "0" : undefined} style={`--h:${height}px`}>
+  <div class="eq-plot">
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={label}>
+      {ticks.map((v) => (
+        <line x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} class:list={["grid", v === 0 && "zero"]} vector-effect="non-scaling-stroke" />
+      ))}
+      {full.map((s, i) => (
+        <path d={path(s.ys)} stroke={s.color} class:list={["line", i === 0 && full.length > 1 && "on"]} data-i={i} vector-effect="non-scaling-stroke" />
+      ))}
+      <line class="cross" x1="0" x2="0" y1={PT} y2={H - PB} vector-effect="non-scaling-stroke" />
+    </svg>
+    <div class="yax" aria-hidden="true">
+      {ticks.map((v) => <span style={`top:${(y(v) / H) * 100}%`}>{usdK(v)}</span>)}
+    </div>
+    <div class="xax" aria-hidden="true">
+      {years.map(([m, i], k) => <span class:list={[k % 2 === 1 && "odd"]} style={`left:${(x(i) / W) * 100}%`}>{m.slice(0, 4)}</span>)}
+    </div>
+    {full.map((s, i) => (
+      <span class:list={["end", i === 0 && full.length > 1 && "on"]} data-i={i} style={`top:${(y(s.ys.at(-1)!) / H) * 100}%;color:${s.color}`} aria-hidden="true">{s.name}</span>
+    ))}
+    <div class="tip" role="status" aria-live="polite" hidden></div>
+  </div>
+  {series.length > 1 && (
+    <figcaption class="legend">
+      <span class="lg-hint faint">Highlight a line:</span>
+      {full.map((s, i) => (
+        <button type="button" class="lg" data-i={i} aria-pressed={i === 0 ? "true" : "false"}>
+          <i style={`background:${s.color}`}></i>{s.name}<b class="num">{usdK(s.ys.at(-1)!)}</b>
+        </button>
+      ))}
+    </figcaption>
+  )}
+</figure>
+<script src="../lib/equity.client.ts"></script>
+<style>
+  .eq { margin: 0; }
+  .eq-plot { position: relative; height: var(--h, 300px); touch-action: pan-y; cursor: crosshair; }
+  svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .grid { stroke: rgb(255 255 255 / 0.06); stroke-width: 1; }
+  .grid.zero { stroke: rgb(255 255 255 / 0.34); stroke-dasharray: 3 3; }
+  .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; transition: opacity 0.25s var(--ease), stroke-width 0.25s var(--ease); }
+  .eq[data-focus] .line { opacity: 0.22; }
+  .eq[data-focus] .line:global(.on) { opacity: 1; stroke-width: 2.6; }
+  .end {
+    position: absolute; right: 0; transform: translate(0, -135%); font-size: 0.75rem; font-weight: 600;
+    pointer-events: none; display: none; text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+  }
+  .eq:not([data-focus]) .end, .end:global(.on) { display: block; }
+  .cross { stroke: rgb(255 255 255 / 0.35); stroke-width: 1; opacity: 0; }
+  .eq:global(.hover) .cross { opacity: 1; }
+  .yax span, .xax span { position: absolute; font-size: 0.7rem; color: var(--ink-3); font-variant-numeric: tabular-nums; pointer-events: none; }
+  .yax span { left: 0; transform: translateY(-50%); }
+  .xax span { bottom: 0; transform: translateX(-50%); }
+  @media (max-width: 640px) { .xax .odd { display: none; } }
+  .tip {
+    position: absolute; top: 0; z-index: 2; min-width: 12rem; pointer-events: none;
+    padding: 0.55rem 0.7rem; border-radius: var(--r-md); font-size: 0.78rem; line-height: 1.6;
+    background: var(--pop); border: 1px solid var(--line-hi); box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
+  }
+  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 1rem; font-size: 0.8rem; color: var(--ink-2); }
+  .lg-hint { margin-right: 0.3rem; font-size: 0.75rem; }
+  .lg {
+    display: inline-flex; align-items: center; gap: 0.45rem; min-height: 1.85rem; padding: 0 0.65rem; border-radius: 99px;
+    border: 1px solid transparent; background: none; color: inherit; font: inherit; cursor: pointer;
+  }
+  .lg:hover { background: rgb(255 255 255 / 0.05); color: var(--ink); }
+  .lg[aria-pressed="true"] { border-color: var(--line-hi); background: rgb(255 255 255 / 0.06); color: var(--ink); }
+  .lg i { width: 10px; height: 3px; border-radius: 2px; }
+  .lg b { font-weight: 500; }
+</style>

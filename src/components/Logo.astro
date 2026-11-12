@@ -1,15 +1,11 @@
 ---
-// Mark: a rounded hexagon (Graphite's frame) holding one candlestick.
+// Mark: a rounded tile holding one candle that crosses a blue target line.
 interface Props { size?: number }
-const { size = 26 } = Astro.props;
+const { size = 28 } = Astro.props;
 ---
-<svg class="logo-mark" width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-  <path d="M16 2.6 27.6 9.3v13.4L16 29.4 4.4 22.7V9.3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-  <path d="M16 8.5v15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-  <rect x="12.5" y="12" width="7" height="8" rx="1" fill="currentColor" />
+<svg class="mark" width={size} height={size} viewBox="0 0 28 28" aria-hidden="true">
+  <rect x="1" y="1" width="26" height="26" rx="8" fill="#1a1d26" stroke="rgb(255 255 255 / .16)" />
+  <path d="M6 11h16" stroke="#5b8cff" stroke-width="1.6" stroke-linecap="round" />
+  <path d="M14 5.5v17" stroke="#f6f7f9" stroke-width="1.6" stroke-linecap="round" />
+  <rect x="11" y="9" width="6" height="9" rx="1.5" fill="#f6f7f9" />
 </svg>
-<style>
-  .logo-mark {
-    filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.45));
-  }
-</style>

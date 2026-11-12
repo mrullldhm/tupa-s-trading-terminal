@@ -3,19 +3,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "export": "cd .. && .venv/bin/python web/tools/export_web.py fair_price_reversal && .venv/bin/python web/tools/export_web.py tupa_trade",
-    "original": "cd .. && .venv/bin/python web/tools/run_original.py fair_price_reversal && .venv/bin/python web/tools/run_original.py tupa_trade",
+    "export": "cd .. && .venv/bin/python web/tools/export_web.py",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check"
   },
   "dependencies": {
-    "@astrojs/mdx": "^8.1.2",
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
-    "astro": "^7.4.4",
-    "lightweight-charts": "^5.2.1"
+    "astro": "^7.4.4"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",

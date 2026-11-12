@@ -8,101 +8,89 @@ web
 
 ## Stack
 
-Astro (static site generation) with TradingView Lightweight Charts for candlestick and equity charts. Hosted on
-Cloudflare Pages. Lives in `web/`, separate from the Python tester in the parent folder. Agreed with the owner in
-discussion (2026-10-31): SSR and a client-side SPA were rejected because the data only changes when the tester runs.
+Astro static site, no client framework and no chart library: charts are SVG drawn at build time, with two small
+external scripts (chart crosshair and highlight, runs-table filter and sort). Hosted on Cloudflare Pages. Lives in
+`web/`, its own git repo, separate from the Python tester in the parent folder. The data only changes when the tester
+runs, so SSR and a client-side SPA are not needed.
 
 ## Users
 
-- **Primary reader: retail traders.** They know candles, stops, take profit and TradingView. They do not need a
-  candle explained, but they do need the method (fills, commission, in-sample) explained in plain words.
-- **The owner (Tupa).** Uses the site as a public journal of the research journey and shares links to it.
+- **Primary reader: retail traders.** They know candles, stops, take profit, TradingView and prop-firm challenges.
+  They need the method (fills, fees, in-sample, best of N, the Combine rules) explained in plain words.
+- **The owner (Tupa).** Uses the site as a public journal of the research and shares links to it.
 
 ## Product Purpose
 
-Tupa's Trading Terminal is a public research journal. It shows, in simple English, how each trading strategy on
-CL1! (NYMEX WTI crude oil, 1-minute bars) was tested: what the strategy is, the rules and process used, and the
-results. Success means a retail trader can follow a strategy from idea to result without reading code, and can
-trust what the numbers do and do not claim.
+Tupa's Trading Terminal is a public research journal for one question: **is there an intraday CL (NYMEX WTI crude
+oil futures) strategy that passes the Topstep 50K Trading Combine consistently?** Ideas come from public sources
+(articles, GitHub bots, shared documents), are rebuilt for CL, replayed on one-minute bars under strict fill rules,
+then run through the Combine's rules. Success means a retail trader can follow each idea from source to verdict
+without reading code, and can trust what the numbers do and do not claim.
 
 ## Positioning
 
-The results come from a backtester built to match the TradingView Strategy Tester on CL1! 1m, with fixed and
-published costs, baseline results after commission, an independent review and replication by Codex, and honest labels
-(in-sample, best of N). Failed ideas are published too, not only winners.
+Honest research, not a signal service. Every idea is tested the same way, failures are published, and every number
+carries its label (in-sample, best of N, fees and fill rules). The current answer is "not yet", and the site says so
+first.
 
 ## Operating Context
 
-- Content source: the Python tester in the parent folder writes `results/<strategy>/` (CSV, JSON, JSONL) and
-  `docs/strategies/<strategy>/` (Markdown, PNG). A Python export step turns these into JSON for the site.
-- The public site only displays exported numbers. It never recomputes metrics, so it cannot drift from
-  `docs/ENGINE.md`. The private localhost chart replays the tester configuration and verifies fills against
-  saved trades before displaying them.
-- Explanatory prose is written by hand (MDX) and kept separate from generated numbers, so rerunning a test never
-  overwrites the explanation.
-- Each strategy has an overview and separate pages for its rules, F0–F5, exit study where available, and
-  evidence. Section navigation stays visible in the desktop sidebar and wraps above the content on mobile;
-  Previous/Next links connect the pages in reading order.
-- F0 tests one fixed configuration from the current repo Pine twin's default inputs, with its main settings
-  checked against the Python strategy defaults. It describes the current CL adaptation, with extra research
-  filters and exit management off; it does not search for a winner or claim to reproduce an untouched author's
-  script. The page explains the inputs, execution assumptions and in-sample result separately from F1.
-- Features (roadmap renumbered by the owner 2026-11-01): F1 (TradingView-style test with 13 separate metric winners), F2 (optimization), F3 (stress
-  test of the F2 search: walk-forward re-selection, PBO, deflated Sharpe; development interval only) exist. F4
-  (Topstep 50K prop challenge) and F5 (the one check on reserved 2024+ data) are not built; the site keeps a
-  pending slot for each that updates once it exists.
+- Research reset on 2026-11-12. Work before that date (Fair Price Reversal, Tupa Trade, F0–F5 features, TradingView
+  matching) is retired and not shown; it remains in git history.
+- Content source: the tester writes `../results/ledger.csv` (one row per run, never deleted), trade lists in
+  `../results/<strategy>/` and hypothesis/results docs in `../docs/strategies/<strategy>/README.md` (with a `Status:`
+  line). `npm run export` turns these into `src/data/research.json`.
+- The exporter copies ledger stats and status lines, and sums net profit per month and per year for the newest run
+  of each version. It never re-runs a backtest and never publishes prices or per-trade rows.
+- Plain-English text per strategy (idea, rules, verdict, lessons) is hand-written in `src/data/strategies.ts`,
+  separate from numbers, so a re-run never overwrites the explanation.
+- Research stages: Build (dev, 2010-06 to 2021-12), Check (validation, 2022–2024, one frozen run), Final exam
+  (holdout, 2025 to 2026-11-12, once per strategy), Live paper (new data only). The owner studied every year before
+  the reset, so only forward data is truly unseen; the site says this.
+- Five dev checks (from `../docs/PROTOCOL.md`, proposed, owner may change): 200+ trades, profit factor 1.25+, 70%+
+  years in profit, Combine rolling pass rate 50%+, sequential cost per pass $500 or less. The "best version" of an
+  idea is the one passing the most checks, then the highest profit factor.
 
 ## Capabilities and Constraints
 
-- Public, no authentication or authorization.
-- Display all chart, execution and daily result times in Malaysia time (Asia/Kuala_Lumpur, MYT, UTC+8).
-  Daily results group by the Malaysian exit date; original tester timestamps and session rules remain intact.
-- **Public candlestick visuals use fake or illustrative data only.** The owner-requested localhost development
-  exception shows real historical one-minute CL prices with verified simulated fills, stop/target paths and
-  strategy indicators when a daily result is selected. It uses the 0-tick baseline only, with no selector.
-  Real Databento market data must never be published without separate redistribution authorization; published
-  daily results retain their profit list without real-price charts.
-- **Disclaimers on every results page:** in-sample, best of N where optimized, execution assumptions, not
-  financial advice.
-- Fixed test properties shown as-is: $50,000 capital, 1 contract, $2.01 per order ($4.02 round trip).
-  F0 uses the current execution rules with no added slippage, shows all Pine input controls (including inactive
-  ones), and publishes only aggregate results and source hashes. Private configuration snapshots, summaries
-  and trades stay in `results/<strategy>/original/`; `npm run original` runs the three CL baselines sequentially.
-  New multi-metric F1 runs use limit entries with no added slippage; each run declares its interval,
-  eligibility (default 30 closed trades) and estimated ruin loss threshold (default $25,000).
-  Historical net-profit reports use previous rules and remain separately labelled. A session with no fresh
-  multi-metric run stays pending; historical values must never be substituted as new-rule results.
-- CL only. MCL is never shown or suggested.
-- Feature 2 numbers come from the development interval (before 2024-01-01). 2024+ is reserved, not clean
-  out-of-sample.
-- Owner rules that differ from TradingView (roll exit) are labelled as such.
+- Public, no authentication.
+- Dates display in Malaysia time (Asia/Kuala_Lumpur).
+- Real Databento market data (prices, candles) must never be published without separate redistribution
+  authorization. Only aggregates (net $ by month and year, counts) are published.
+- **Disclaimers on every page:** in-sample, best of N, fill and fee assumptions, not financial advice.
+- Fixed test properties: 1 CL contract unless a strategy sizes up (max 5), $4.04 fee per round trip, limit entries
+  that fill on a touch, no exit slippage, flat by 3:10 PM CT.
+- Topstep values marked VERIFY in `../cltester/config.py` are unconfirmed and must be shown as "Not yet confirmed",
+  never as official.
+- CL only. MCL is never shown or suggested (owner rule, syariah).
 - Owner commits by hand. Git remote: `git@github.com:mrullldhm/ttt.git`.
 
 ## Brand Commitments
 
 - Name: **Tupa's Trading Terminal**.
-- Voice: simple, understandable English. Short sentences. Plain words before jargon; explain each term once.
-- Binding visual constraints from the owner: night mode first; a Graphite-style web design theme.
+- Voice: simple, understandable English. Short sentences. Plain words before jargon; explain each term where the
+  number is read.
+- Binding visual constraints from the owner (2026-11-13): night mode first; visual language modelled on the LuxAlgo
+  web app (look only: no LuxAlgo logo, name, font or copy); feel of a modern professional financial SaaS.
 
 ## Evidence on Hand
 
-- Strategy tested: Fair Price Reversal (LuxAlgo 9:29 ET adaptation), three session variants (Asia, London, New
-  York). Docs in `../docs/strategies/fair_price_reversal/`, raw results in `../results/fair_price_reversal/`.
-- Feature 2 optimization runs: `../docs/strategies/fair_price_reversal/optimized/`, ledger in
-  `../results/fair_price_reversal/ledger.jsonl`.
-- Engine rules: `../docs/ENGINE.md`. Optimize rules: `../docs/OPTIMIZE.md`. Codex reviews: `../docs/REVIEWS.md`.
+- Six strategies tested on dev, all dropped: Yesterday's High and Low (purple_pa), RSI Strength Push (swapnil_hm),
+  Stretch Back to the Average (xtley_gap), Two Candles in a Row (swapnil_momentum), Supertrend + EMA + Vortex
+  (scribd_supertrend), ICT Confluence Score (ict_ea). 17 versions, 60 ledger rows.
+- Rules: `../docs/PROTOCOL.md`, `../docs/ENGINE.md`, `../docs/TOPSTEP.md`, `../docs/SWINGS.md`.
 - No testimonials, followers, performance track record or live trading results exist. Do not invent any.
 
 ## Product Principles
 
-1. **Honest over impressive.** Every number carries its label: in-sample, best of N, execution assumptions.
-2. **Explain the process, not only the result.** A reader should understand why a rule exists.
-3. **Plain English first.** If a retail trader would stumble on a sentence, rewrite it.
-4. **Display exported results.** The tester is the single source of truth for numbers; private localhost charts
-   use its replay and verify fills against saved trades.
-5. **The journey counts.** Failed strategies and dead ends are first-class entries.
+1. **Honest over impressive.** Every number carries its label. Money is shown in neutral ink with its sign; green
+   and red mean pass and fail, not "looks good".
+2. **Answer first.** Lead with the current answer and the closest attempt, then the evidence.
+3. **Explain the process, not only the result.** A reader should understand why a rule or check exists.
+4. **Plain English first.** If a retail trader would stumble on a sentence, rewrite it.
+5. **The journey counts.** Failed strategies are first-class entries, each with what it taught.
 
 ## Accessibility & Inclusion
 
-No product-specific requirement established beyond WCAG AA contrast on the dark theme and readable charts
-(color is never the only way to tell long from short or win from loss).
+WCAG AA contrast on the dark theme. Colour is never the only signal: pass/fail carries an icon and label, money
+carries its sign, charts have a table or text alternative.

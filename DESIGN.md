@@ -1,342 +1,278 @@
 ---
 name: Tupa's Trading Terminal
-description: Night-only CL1! strategy research journal in a graphite near-black world, with honest labels as first-class UI.
+description: A night-mode research dashboard that answers one question first, can a CL strategy pass the Topstep 50K Combine.
 colors:
-  ground: "#070707"
-  ground-raise: "#0c0c0d"
-  control-hover: "#2a2a2f"
-  button-light-top: "#f4f4f4"
-  button-light-bottom: "#dcdcdc"
-  panel: "#111112"
-  panel-2: "#17171a"
-  panel-3: "#1f1f23"
-  ink: "#f9f9f9"
-  ink-2: "rgb(249 249 249 / 0.66)"
-  ink-3: "rgb(249 249 249 / 0.5)"
-  line: "rgb(255 255 255 / 0.075)"
-  line-2: "rgb(255 255 255 / 0.12)"
-  line-3: "rgb(255 255 255 / 0.2)"
-  long: "#8fd4c1"
-  long-dim: "rgb(143 212 193 / 0.14)"
-  short: "#e7a39d"
-  short-dim: "rgb(231 163 157 / 0.14)"
-  amber: "#e9c98a"
-  amber-dim: "rgb(233 201 138 / 0.12)"
+  ink-blue-ground: "#0d0e12"
+  sunk-sidebar: "#090a0d"
+  panel-veil: "rgb(255 255 255 / 0.035)"
+  panel-veil-raised: "rgb(255 255 255 / 0.06)"
+  hairline: "rgb(255 255 255 / 0.09)"
+  hairline-strong: "rgb(255 255 255 / 0.16)"
+  ink: "#f6f7f9"
+  ink-secondary: "rgb(236 239 245 / 0.7)"
+  ink-tertiary: "rgb(236 239 245 / 0.56)"
+  sky: "#5b8cff"
+  sky-ink: "#9db8ff"
+  sky-glow: "rgb(70 110 255 / 0.22)"
+  pass-green: "#34c38f"
+  fail-red: "#f0616d"
+  unconfirmed-amber: "#e3a63b"
+  pale-button: "#e6e7ea"
+  button-ink: "#121317"
+  series-blue: "#3987e5"
+  series-rust: "#d95926"
+  series-jade: "#199e70"
+  series-ochre: "#c98500"
+  series-rose: "#d55181"
+  series-lavender: "#9085e9"
 typography:
   display:
     fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "clamp(2.5rem, 1.6rem + 3.6vw, 3.75rem)"
-    fontWeight: 500
+    fontSize: "clamp(2rem, 1.4rem + 2.4vw, 3.25rem)"
+    fontWeight: 700
     lineHeight: 1.12
-    letterSpacing: "-0.03em"
+    letterSpacing: "-0.035em"
   headline:
     fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "2.25rem"
-    fontWeight: 500
+    fontSize: "1.25rem"
+    fontWeight: 700
     lineHeight: 1.12
-    letterSpacing: "-0.022em"
+    letterSpacing: "-0.025em"
   title:
     fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.5rem"
-    fontWeight: 500
+    fontSize: "1rem"
+    fontWeight: 700
     lineHeight: 1.12
-    letterSpacing: "-0.015em"
+    letterSpacing: "-0.01em"
   body:
     fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1rem"
+    fontSize: "15px"
     fontWeight: 400
-    lineHeight: 1.6
+    lineHeight: 1.55
+    fontFeature: "\"ss01\", \"cv11\""
   label:
     fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.75rem"
     fontWeight: 500
     lineHeight: 1
-  lede:
-    fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.1875rem"
+  mono:
+    fontFamily: "Geist Mono Variable, ui-monospace, monospace"
+    fontSize: "0.86em"
     fontWeight: 400
-    lineHeight: 1.55
-  lede-sm:
-    fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 400
-    lineHeight: 1.55
-  prose:
-    fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.0625rem"
-    fontWeight: 400
-    lineHeight: 1.6
-  body-sm:
-    fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.9375rem"
-    fontWeight: 400
-    lineHeight: 1.55
-  meta:
-    fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.875rem"
-    fontWeight: 400
-    lineHeight: 1.5
-  caption:
-    fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.8125rem"
-    fontWeight: 400
-    lineHeight: 1.5
-  micro:
-    fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.6875rem"
-    fontWeight: 500
-    lineHeight: 1.3
-  data:
-    fontFamily: "Geist Mono Variable, ui-monospace, SFMono-Regular, monospace"
-    fontSize: "0.9rem"
-    fontWeight: 400
-    lineHeight: 1.6
-    fontFeature: "tnum"
 rounded:
-  tick: "2px"
-  code: "5px"
-  focus: "4px"
-  nav: "8px"
-  badge: "6px"
-  tab: "7px"
-  button: "9px"
+  sm: "7px"
   md: "10px"
-  lg: "16px"
-  screen: "12px"
-  frame: "20px"
+  lg: "14px"
+  pill: "99px"
 spacing:
-  xs: "0.35rem"
-  sm: "0.75rem"
-  md: "1.25rem"
-  lg: "2rem"
-  xl: "4rem"
-  wrap: "1180px"
-  measure: "50ch"
+  gutter: "clamp(1rem, 3vw, 2rem)"
+  panel-x: "1.25rem"
+  panel-y: "1.1rem"
+  stack: "1rem"
+  cell-x: "0.75rem"
+  sidebar: "248px"
+  content-max: "1240px"
 components:
   button-primary:
-    backgroundColor: "#f4f4f4"
-    textColor: "#0a0a0a"
-    rounded: "{rounded.button}"
-    height: "44px"
-    padding: "0 1.15rem"
+    backgroundColor: "{colors.pale-button}"
+    textColor: "{colors.button-ink}"
+    typography: "{typography.label}"
+    rounded: "{rounded.sm}"
+    padding: "0 1rem"
+    height: "2.4rem"
   button-primary-hover:
     backgroundColor: "#ffffff"
-  button-quiet:
-    backgroundColor: "{colors.panel-2}"
+    textColor: "{colors.button-ink}"
+  button-ghost:
+    backgroundColor: "rgb(255 255 255 / 0.045)"
     textColor: "{colors.ink}"
-    rounded: "{rounded.button}"
-    height: "44px"
-    padding: "0 1.15rem"
-  button-quiet-hover:
-    backgroundColor: "{colors.panel-3}"
-  badge:
-    backgroundColor: "{colors.panel-2}"
-    textColor: "{colors.ink-2}"
-    rounded: "{rounded.badge}"
-    height: "24px"
-    padding: "0 0.55rem"
-  badge-rejected:
-    backgroundColor: "{colors.short-dim}"
-    textColor: "{colors.short}"
-  badge-warn:
-    backgroundColor: "{colors.amber-dim}"
-    textColor: "{colors.amber}"
-  callout:
-    backgroundColor: "{colors.panel}"
-    textColor: "{colors.ink-2}"
-    rounded: "{rounded.md}"
-    padding: "1rem 1.15rem"
-  frame-screen:
-    backgroundColor: "{colors.ground-raise}"
-    rounded: "{rounded.frame}"
-    padding: "10px"
-  tab-selected:
-    backgroundColor: "{colors.panel-3}"
-    textColor: "{colors.ink}"
-    height: "34px"
+    rounded: "{rounded.sm}"
     padding: "0 1rem"
+    height: "2.4rem"
+  button-ghost-hover:
+    backgroundColor: "rgb(255 255 255 / 0.09)"
+  chip-status:
+    textColor: "{colors.ink-secondary}"
+    typography: "{typography.label}"
+    rounded: "{rounded.pill}"
+    padding: "0 0.55rem"
+    height: "1.5rem"
+  chip-fail:
+    backgroundColor: "rgb(240 97 109 / 0.08)"
+    textColor: "{colors.fail-red}"
+  chip-pass:
+    backgroundColor: "rgb(52 195 143 / 0.08)"
+    textColor: "{colors.pass-green}"
+  chip-unconfirmed:
+    backgroundColor: "rgb(227 166 59 / 0.08)"
+    textColor: "{colors.unconfirmed-amber}"
+  filter-pill:
+    textColor: "{colors.ink-secondary}"
+    rounded: "{rounded.pill}"
+    padding: "0 0.75rem"
+    height: "2rem"
+  filter-pill-pressed:
+    backgroundColor: "{colors.pale-button}"
+    textColor: "{colors.button-ink}"
+  panel:
+    backgroundColor: "{colors.panel-veil}"
+    rounded: "{rounded.lg}"
+    padding: "1.1rem 1.25rem 1.25rem"
+  nav-item:
+    textColor: "{colors.ink-secondary}"
+    rounded: "{rounded.sm}"
+    padding: "0 0.7rem"
+    height: "2.25rem"
+  nav-item-active:
+    backgroundColor: "rgb(255 255 255 / 0.08)"
+    textColor: "{colors.ink}"
 ---
 
 # Design System: Tupa's Trading Terminal
 
 ## Overview
 
-**Creative North Star: "The Tilted Terminal"**
+**Creative North Star: "The Night Desk Ledger"**
 
-A research journal that behaves like a quiet instrument panel. The grammar is borrowed from graphite.com: a near-black ground, off-white ink that steps down through alpha instead of through new greys, 1px low-alpha hairlines, product shown inside a bezelled frame, glowing white line art, and a light primary button with a faint iridescent rim. The first screen leads with "jump to a strategy": headline and two actions on the left, a glowing candle sculpture on the right, and the strategy terminal rising from the fold tilted, then straightening as you scroll.
+A research terminal read at night: a near-black ink-blue ground, a darker sunk sidebar, and thin veiled panels that hold numbers rather than decoration. The only atmosphere is a cool blue sky glow that rises behind each page head and fades before the first panel. Everything below the head is quiet, dense and tabular, so the answer and the evidence carry the page.
 
-The system is night mode only (`color-scheme: dark`, theme-color `#070707`). There is no light theme and none is planned. Density is calm: wide gaps, long measures capped at about 73 characters (`--measure: 50ch`), data in tables and mono. Trust is part of the look. Labels such as in-sample, best of N, execution assumptions and "Illustrative prices" are components, not footnotes.
+The visual language follows a modern trading-app dashboard (look only): bold tight Geist headings, a pale gray primary button with dark ink, pill chips for status, white-alpha panels with hairline borders. Colour is rationed by meaning. Green and red speak only about pass/fail checks and year bars; amber marks values that are not confirmed; the six categorical series colours identify strategies. Money is printed in neutral ink with a sign, never tinted.
+
+The voice is plain and honest. Labels say what a thing is in simple English, status is always icon plus word, and the system has no marketing surfaces: no hero imagery, no signal-seller glow on numbers.
 
 **Key Characteristics:**
-- Monochrome world; the only hues are desaturated long (mint), short (rose) and amber (caution).
-- Structure comes from 1px alpha rules and inset rings, never from heavy fills or border-left stripes.
-- Geist for words, Geist Mono for numbers and data only.
-- One authored motion, on the home page only.
-- Honesty labels are first-class vocabulary.
+- Night-mode only (`color-scheme: dark`); one ground, one sunk sidebar, one panel material.
+- Sky glow (radial gradient) behind page heads, nowhere else.
+- Panels are the single container: 1px hairline, 14px radius, never nested.
+- Tabular numerals on every figure; Geist Mono for code and identifiers.
+- Status = icon + word in a pill; colour is never the only signal.
+- Fixed categorical colour per strategy, reused in nav, tables, charts and legends.
 
 ## Colors
 
-A graphite scale of five grounds, one ink with two alpha steps, three hairline strengths, and three desaturated signal colors.
+A cold, low-chroma dark palette where hue is spent only on meaning: sky for focus and the answer, green/red for checks, amber for unconfirmed, six series colours for strategies.
 
 ### Primary
-- **Off-White Ink** (#f9f9f9): all primary text, active states, focus ring, glowing line art. There is no brand accent colour; ink is the accent.
+- **Sky** (sky): focus rings, the current step in a progress track, exit-share bars, the active sort arrow's ink. The system's one interactive accent.
+- **Sky Ink** (sky-ink): the lighter sky used as text: the "Not yet." answer in the home H1, "read more" links, disclosure summaries, sort indicators.
+- **Sky Glow** (sky-glow): the radial gradient behind page heads (`radial-gradient(34rem 16rem at 25% 0%, sky-glow, transparent 70%)`; home uses a wider 40rem x 20rem version).
 
 ### Secondary
-- **Mint Long** (#8fd4c1): long side, positive numbers (`.pos`), long price lines and the long equity curve. Its dim tint (14% alpha) is the matching fill.
-- **Rose Short** (#e7a39d): short side, negative numbers (`.neg`), rejected badges, short price lines. Dim tint at 14% alpha.
+- **Pass Green** (pass-green) and **Fail Red** (fail-red): pass/fail check icons and values, pass/fail chips, and up/down year bars. Nothing else.
+- **Unconfirmed Amber** (unconfirmed-amber): the "Testing" chip, the live status dot, and warning lines for Topstep values not yet confirmed.
 
 ### Tertiary
-- **Amber Caution** (#e9c98a): only for "this is not real data / be careful": the "Illustrative prices, not real market data" label, warn badges and warn callouts (12% alpha fill, 22% alpha ring).
+- **Strategy series** (series-blue, series-rust, series-jade, series-ochre, series-rose, series-lavender): a fixed categorical set validated on the dark ground. Each strategy owns one colour for its nav swatch, table name bar, equity line and legend dash. Assignment is fixed per strategy, never by sort order.
 
 ### Neutral
-- **Ground** (#070707): page. **Raise** (#0c0c0d): table wells and frame screen. **Panel** (#111112), **Panel 2** (#17171a), **Panel 3** (#1f1f23): successive raised surfaces; Panel 3 is the pressed/selected state.
-- **Ink 2** (66% ink) body prose and secondary copy. **Ink 3** (50% ink) labels, table headers, captions.
-- **Hairlines** at 7.5%, 12% and 20% white: `line` between rows, `line-2` for rings around controls, `line-3` for emphasis, dashed "pending" borders and link underlines.
+- **Ink-Blue Ground** (ink-blue-ground): page background and `theme-color`.
+- **Sunk Sidebar** (sunk-sidebar): the left rail, one step darker than the ground.
+- **Panel Veil / Raised** (panel-veil, panel-veil-raised): white-alpha panel fills; raised for hover and selected surfaces.
+- **Hairline / Strong** (hairline, hairline-strong): 1px panel and row borders; strong for buttons, chips and popovers.
+- **Ink / Secondary / Tertiary** (ink, ink-secondary, ink-tertiary): headings and figures; body and prose; table headers, captions and meta.
+- **Pale Button / Button Ink** (pale-button, button-ink): primary button and pressed filter pill.
 
 ### Named Rules
-**The Never-Alone Rule.** Long and short colours never carry meaning alone. Every colour use is paired with a sign (+ or the true minus), a glyph (check, clock, x, flask) or a word.
+**The Meaning-Only Colour Rule.** Green and red appear only for pass/fail checks and year bars. Profit and loss figures are printed in ink with a + or - sign.
 
-**The Alpha-Step Rule.** Secondary text is the same off-white at lower alpha, not a new grey. Hairlines are white at low alpha, not hex greys.
+**The Fixed Series Rule.** A strategy's colour is its identity everywhere it appears. Never reassign colours by rank, filter or position.
 
-**The Rare Amber Rule.** Amber appears only to flag illustration or caution. It is never decoration.
+**The Amber Means Unconfirmed Rule.** Amber marks unconfirmed or in-progress values only; it never decorates.
 
 ## Typography
 
-**Display / Body Font:** Geist Variable (fallback ui-sans-serif, system-ui, sans-serif)
-**Mono Font:** Geist Mono Variable (fallback ui-monospace, SFMono-Regular)
+**Display Font:** Geist Variable (with ui-sans-serif, system-ui)
+**Body Font:** Geist Variable
+**Label/Mono Font:** Geist Mono Variable (with ui-monospace) for code, identifiers and `.mono` text
 
-**Character:** Geist is neutral and engineered; headings sit at weight 500 with tight negative tracking so the page reads as a console, not a magazine. Mono is reserved for what is measured.
+**Character:** One geometric grotesk at two temperatures: bold and tightly tracked for headings, regular and open for reading. Stylistic sets ss01 and cv11 are on globally.
 
 ### Hierarchy
-- **Display** (500, clamp(2.5rem, 1.6rem + 3.6vw, 3.75rem), 1.12, -0.03em): h1 on the home page only, capped near 15ch.
-- **Headline** (500, 2.25rem, 1.12, -0.022em): h2 section titles.
-- **Title** (500, 1.5rem, -0.015em): h3. Prose h2 uses this size.
-- **Body** (400, 1rem / 1.6; prose 1.0625rem at ink-2): max line `--measure` = 50ch, which is about 73 real characters in Geist (its "0", the `ch` unit, is wider than average text; 68ch measured 88 to 90).
-- **Label** (500, 0.6875 to 0.8125rem): badges, sidebar group heads, table headers, in ink-3, sentence case.
-- **Data** (Geist Mono, tabular numerals, 0.9rem in tables): numbers, ids, chart axes (11px), `code`.
+- **Display** (700, fluid 2rem to 3.25rem, 1.12, -0.035em): the page H1 only, balanced wrap, about 19ch wide on home.
+- **Headline** (700, 1.25rem, -0.025em): panel and section titles (H2). The home "Closest attempt" panel uses 1.35rem.
+- **Title** (700, 1rem, -0.01em): H3 sub-heads inside panels.
+- **Body** (400, 15px, 1.55): running text; prose capped at 68ch, leads at 56-60ch and 1.05rem in ink-secondary.
+- **Label** (500, 0.75rem): table headers, chips, meta terms, axis ticks (0.7rem). Sentence case, no uppercase, no added tracking.
 
 ### Named Rules
-**The Mono-For-Numbers Rule.** Mono is for numbers, ids, dates in data and code. Never for headings, buttons or running prose.
+**The Tabular Figures Rule.** Every number that can sit beside another number uses `font-variant-numeric: tabular-nums`.
 
-**The No-Eyebrow Rule.** No small uppercase kickers above headings; labels are sentence case.
+**The Sentence Case Rule.** Labels and headers are sentence case at normal tracking. Hierarchy comes from weight and ink level, not capitals.
 
 ## Layout
 
-One centred column, `--wrap` 1180px with 2.5rem total side gutter (`min(100% - 2.5rem, 1180px)`). The home hero is a two-column grid (1.12fr / 0.88fr, 3rem gap); the "how it works" block is a 0.8fr / 1.2fr split with a sticky left head (top 110px) and about 9rem above it. Sections are varied, not repeated: hero, tilted terminal, stacked pipeline line, tables, step-through chart, spec strip. Do not build rows of identical cards.
+An app shell: a 248px sticky sunk sidebar (full viewport height) beside a main column. The main column carries a 3.5rem sticky top bar (ground at 82% opacity with a 12px backdrop blur) holding breadcrumbs and a live status pill, then content capped at 1240px with a fluid gutter (`clamp(1rem, 3vw, 2rem)`).
 
-Responsive: below 980px the fixed-rules spec strip goes to 2 columns with bottom rules; below 900px the terminal drops its sidebar and legend and rows collapse to two columns; at 720px scroll-padding grows (88px to 112px) for the stacked header. Wide tables sit in a horizontally scrolling `.table-scroll` well rather than reflowing. Spacing is rem-based and generous (0.35, 0.75, 1.25, 2, 4rem steps in use).
+Each page opens with a head block (2-3.25rem top padding, sky glow behind it) followed by a vertical stack of panels separated by 1rem. Two-up splits use equal columns with a 1rem gap. The home head is a two-column grid (1.35fr / 1fr): question and actions left, a summary panel right.
+
+Responsive: below 1100px the home head stacks; below 960px the sidebar hides, the brand moves into the top bar and navigation becomes a dropdown panel; below 860px splits stack and the first table column becomes sticky while numbers scroll sideways; below 720px wide tables swap for stacked row cards.
 
 ## Elevation & Depth
 
-Depth is tonal plus hairline, with light, not shadow, as the lifted signal. Surfaces step up through Panel tones and are outlined with inset 1px rings (`box-shadow: 0 0 0 1px var(--line-2) inset`) instead of borders. The one heavy shadow belongs to the Frame bezel.
+Depth is tonal, not shadowed. The sidebar sinks below the ground; panels lift by a faint white veil and a hairline. Shadows exist only on things that float above content: popovers and tooltips. Small halo rings (3-4px spread at 18-20% alpha) mark live or current dots.
 
 ### Shadow Vocabulary
-- **Inset ring** (`0 0 0 1px rgb(255 255 255 / 0.075 | 0.12 | 0.2) inset`): every chip, callout, tab strip, table well.
-- **Frame lift** (`0 30px 80px -30px rgb(0 0 0 / 0.9), 0 0 60px -30px rgb(255 255 255 / 0.12)`): bezel only.
-- **Primary rim** (inset white ring plus `-6px 0 18px -10px rgb(255 160 120 / 0.55)` and `6px 0 18px -10px rgb(140 170 255 / 0.55)`): the faint iridescent edge on the primary button.
-- **Glow** (`drop-shadow(0 0 3px #fff) drop-shadow(0 0 16px rgb(255 255 255 / .5)) drop-shadow(0 0 44px rgb(255 255 255 / .22))`): hero candle sculpture front layer; pipeline and review nodes use a small white box-glow.
+- **Popover** (`box-shadow: 0 16px 40px rgb(0 0 0 / 0.5)`): the mobile nav dropdown.
+- **Tooltip** (`box-shadow: 0 8px 24px rgb(0 0 0 / 0.45)`): the chart crosshair readout.
+- **Halo** (`box-shadow: 0 0 0 4px rgb(91 140 255 / 0.2)`): the current step dot; amber variant at 3px for the live dot.
 
 ### Named Rules
-**The Light-Not-Shadow Rule.** Emphasis is a white glow or a brighter ring, never a coloured shadow or a blurred grey drop.
+**The Flat Panel Rule.** Panels never cast shadows. If something needs a shadow, it must be floating over other content.
 
 ## Shapes
 
-Soft-square. Badges 6px, buttons 9px, wells/callouts/tables 10px (`--radius`), larger 16px (`--radius-lg`), Frame bezel 20px outside and 12px inside. Nodes in the pipeline and review trail are perfect circles. Keyboard focus is a 2px ink outline, 3px offset. Pending or not-built things use a dashed 20% white border or a faint 135-degree hatch, so "not there yet" is a shape, not just a dim colour.
+Three radii plus a pill. Buttons and nav items use the tight 7px; tooltips and inner grids 10px; panels and popovers 14px; chips, filter pills, legend buttons and scrollbars are fully round (99px). Small data marks keep 2-3px corners (series swatches, bars). Borders are always 1px; there are no thick strokes or offset shapes.
 
 ## Components
 
 ### Buttons
-- **Shape:** 9px radius, 44px tall, 0.9375rem weight 500, arrow icon nudges 3px right on hover.
-- **Primary:** light vertical gradient (#f4f4f4 to #dcdcdc) with dark text (#0a0a0a) and the iridescent rim; hover lifts to #fff gradient.
-- **Quiet:** Panel 2 with inset ring; hover Panel 3. Both press down 1px on `:active`.
+- **Shape:** gently squared (7px), 2.4rem tall, 0 1rem padding, 14px/500 label, optional 16px arrow icon after the word.
+- **Primary:** pale gray fill with dark ink; hover goes to pure white. One per view, for the main next step.
+- **Ghost:** 4.5% white veil with a strong hairline; hover deepens the veil to 9% and the border to 24%.
+- **Focus:** 2px sky outline, 2px offset. Transitions 0.2s on the shared ease (`cubic-bezier(0.16, 1, 0.3, 1)`).
 
-### Badge and status chips
-Compact 24px chip, 0.75rem, optional 13px icon. Tones: info (Panel 2), done (ink with 20% ring, check), pending (transparent, hatched, dashed look, clock), rejected (short on short-dim, x), warn (amber on amber-dim, flask). StatusChips renders each stage as tag + plain name ("F1 Test every setting") as done or pending, with a screen-reader state word ("not started", never the raw key). Stage tags and names live in `src/lib/stages.ts` only; readers never see "Feature 1/2/3".
+### Chips
+- **Status chip:** 1.5rem pill, strong hairline, 12px stroke icon plus word ("Dropped", "Testing", "Candidate"). Tinted variants use their meaning colour for text, 35% alpha border, 8% alpha fill.
+- **Filter pill:** 2rem pill, transparent with strong hairline; pressed state switches to the pale button fill with dark ink. Optional series swatch and a dimmed count.
 
-### Callout
-Panel surface, 10px, ring only (no left stripe). Tones: note, honest (Panel 2, stronger ring, for in-sample / best of N statements), warn (amber tint and ring, flask icon, amber title). Max `--measure`.
+### Cards / Containers
+- **Corner Style:** 14px.
+- **Background:** panel veil; the strategy verdict panel alone may carry a faint sky wash and sky-tinted border.
+- **Shadow Strategy:** none (see Flat Panel Rule).
+- **Border:** 1px hairline.
+- **Internal Padding:** 1.1rem x 1.25rem; panel heads sit on a baseline row with a tertiary note on the right.
 
-### Frame (bezel)
-Outer 10px padded shell with 20px radius and a faint top-down white gradient, inner screen in Raise with 12px radius. Wraps every product-like thing: terminal, charts.
+### Navigation
+- **Sidebar items:** 2.25rem rows, 7px radius, 16px stroke icon plus label at 0.875rem/500 in ink-secondary. Hover adds a 5% veil; current page an 8% veil and full ink.
+- **Strategy sub-list:** indented under a 1px hairline rule, 0.8rem/400 labels each with a 7px series swatch.
+- **Mobile:** a ghost menu button opens a 14px-radius popover containing the same list.
 
-### Strategy index terminal (signature)
-Grid of a 200px Panel sidebar (Show filter with counts, Market line) and a main area with a titlebar and one row per strategy: name and summary, F1 to F5 chips (wrapping), verdict, arrow. The titlebar legend ("F1 every setting · F2 narrow search · F3 stress test · F4 prop challenge · F5 final check") shows at every width. A tick means the stage ran, never that it passed. Rows separated by hairlines, hover to Panel 2, arrow slides 3px. Planned rows are non-links with a Planned badge. Filters toggle `hidden` with `aria-pressed`; below 900px the sidebar becomes a horizontal filter strip (never removed), and a filter with no rows shows "Nothing in this group yet" with a reset.
+### Data tables
+- 0.875rem body, 0.75rem/500 tertiary headers, 1px hairline row rules, 2.5% veil on row hover. Numeric columns right-aligned and tabular. Strategy name cells lead with a 4px-wide series bar. Sortable headers are bare buttons with a sky-ink direction arrow.
+- **Pass checks:** one cell per check, stroke check or cross icon plus value. Passing values are green; failing values stay in ink with a red cross.
 
-### Pipeline stack line
-The research path as a vertical line of circular glowing nodes joined by a 1px gradient rule; each unbuilt stage (F4, F5) has a hatched hollow node, a dashed connector into it and a "Not built yet" tag.
+### Equity chart (signature)
+- 2px series lines over 6% white grid lines and a dashed zero line. Legend items are pill buttons; pressing one dims every other line to 22% opacity, thickens the chosen line to 2.6px and shows its end label. A 1px crosshair follows the pointer with a floating 10px-radius readout.
 
-### Review trail
-Same node-and-line vocabulary at smaller scale: Review or Replication badge, mono id, date, then the label.
+### Year bars
+- Small column chart, 3px gaps, green bars up and red bars down (85% opacity) from a 28% white baseline, 3px outer corners, tabular year labels.
 
-### Tabs
-Segmented strip in Panel with ring; selected tab Panel 3 with ring and top highlight; arrow, Home and End keys; panels server-rendered and toggled via `hidden`.
-
-### Tables (ScenarioTable, F1/F2 results, `table.data`)
-In a `.table-scroll` well (Raise, 1px line, 10px). 0.9rem, header row Panel with ink-3 labels, 1px row rules, numeric columns right aligned in tabular mono. Display only the baseline result after commission, with one result column. Below 640px ScenarioTable shows short values for the eye but keeps the full values in the accessibility tree (visually hidden, never `display: none`), and keeps every row hint and the drawdown % (as a second line): honesty labels are never dropped on mobile.
-
-### Period tables (F1 sessions, F2 candidates)
-`PeriodTables`: a daily-only list, latest first, with one baseline net-profit column after commission (whole
-dollars, sign and colour). The latest 30 days are server-rendered; "Show earlier days" adds 30 at a time from the
-daily export after checking its version and generation date. Days group trades by their Malaysian exit date (MYT, UTC+8) and omit
-days with no closed trades. There is no year/month/week drill-down or execution-scenario selector. The list has
-sticky headers, a row count and a 620px scroll well; without JavaScript the latest 30 days remain readable.
-Loading earlier days disables the button and names the loading state; a failure explains why and leaves it
-available to retry.
-
-On localhost development only, selecting a day opens one real historical CL one-minute chart above the daily list;
-selecting it again collapses it, and selecting another day replaces the chart. The daily list keeps its 620px
-scroll well, and the chart has a Hide chart control. The chart stays in document flow so it does not cover the
-list on smaller screens. The latest day is prepared as its list nears the viewport; repeated days and display
-indicators are cached privately with source invalidation. The replay uses the 0-tick baseline and checks simulated fills against saved trades. It shows
-entry/exit markers, working stop and target paths (including breakeven/trailing when active), strategy indicators,
-a full text legend and MYT execution prices in a table. Dates and execution timestamps stay on one line; wide
-numeric tables scroll horizontally. "Show candle and indicator values" supplies the chart's numeric alternative,
-and "Strategy settings and replay notes" explains the configuration. Loading and error messages appear in place
-with a "Try chart again" control. Label the chart "Real historical CL prices" and "Backtest fills, not live
-executions", with Malaysia time (MYT, UTC+8) and in-sample context. The public static site retains the daily profit list; real-price
-charts require separate redistribution authorization before publication.
-
-### At a glance (strategy page head)
-Compact `table.data` under the verdict: F1 best net profit per session after commission, with an amber In-sample badge and a "Best of N settings" badge, plus links to the F1 and F2 sections and to How to read. It places the baseline result beside its in-sample and best-of labels. Display only.
-
-### F3 results (stress the search)
-`F3Results` shows a re-test pending state while the saved stress tests use previous execution assumptions.
-Fresh selection and validation are required after the planned limit-entry updates.
-
-### Breadcrumbs
-`Crumbs`: `nav` + `ol`, "/" separators drawn in CSS, the current page as the last, unlinked item with `aria-current="page"`.
-
-### Charts (CurveChart, AnnotatedChart, CandleSculpture)
-TradingView Lightweight Charts on a transparent background inside a Frame. Axes mono 11px at 55% ink; grid 3.5% and 5% white; scale borders 8%; crosshair 25% white with Panel 3 labels. Candles are monochrome: up = hollow (#0c0c0d body, #f2f2f2 outline), down = grey (#8b8b91). Price lines use ink, dim, long (#8fd4c1) or short (#e7a39d) with labels; curves are ink 2px, dim and faint dashed, and long. Annotated chart steps through the idea with markers, a Step N of M count and dot nav (26 x 40 hit areas, 40px prev/next; only the step text is a live region). Every CurveChart has a collapsed "Show the numbers" table of the exported month-end points as its text alternative. The chart library is fetched only when a chart nears the viewport (`charts.client.ts` boots, `charts.render.ts` draws); a failed load says so in place. Grids that hold a chart use `minmax(0, 1fr)`, never a bare `1fr` or an implicit column, or the canvas keeps its old width after a rotate. The hero sculpture is white line art with four fading echo layers and a caption saying it is illustrative.
-
-### F3Pending and FixedRules
-F3Pending is a dashed-border, hatched block with a clock tile and a heading, "Not built yet" by default (F2Runs reuses it as "Not run yet" when a strategy has no search). FixedRules is a spec strip of definition terms (capital, size, cost, entry plan) separated by vertical hairlines, ink values over ink-3 terms.
-
-### Honesty labels
-Part of the vocabulary: any chart with invented prices carries the amber flask label "Illustrative prices, not real market data"; every result carries in-sample, best of N where optimized, and its execution assumptions; owner rules that differ from TradingView are labelled as such.
-
-### Motion
-One authored motion: the strategy terminal on the home page starts at `rotateX(26deg) scale(0.92) translateY(30px)`, opacity .55, 1.5px blur, origin bottom centre, inside a 1800px perspective stage, and untilts linearly with scroll (`animation-timeline: view()`, range `entry 0% cover 42%`). It is wrapped in `@supports (animation-timeline: view())` and `@media (min-width: 900px) and (prefers-reduced-motion: no-preference)`. Use longhand animation properties, and keep `animation-timeline` and `animation-range` in a separate, doubled selector (`.tilt.tilt`), because minifiers fold the timeline into the shorthand and Chrome drops it. Everything else is a 0.2 to 0.3s state transition (ease-out `cubic-bezier(0.16, 1, 0.3, 1)`); reduced motion collapses all durations to 0.01ms.
+### Icons
+- One stroke set on a 16px grid, 1.5 stroke, round caps and joins, `currentColor`. Inline SVG only.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep night mode only on #070707 with ink #f9f9f9 and alpha steps (66%, 50%) for secondary text.
-- **Do** build edges from 1px alpha rules or inset rings (7.5%, 12%, 20% white).
-- **Do** pair long (#8fd4c1) and short (#e7a39d) with a sign, glyph or word every time.
-- **Do** use Geist Mono with tabular numerals for numbers, ids and chart text, and right-align numeric columns.
-- **Do** put product views in a Frame bezel, and charts inside it.
-- **Do** attach the amber "Illustrative prices, not real market data" label to any chart with invented prices.
-- **Do** show honesty labels (in-sample, best of N, execution assumptions) as Badges or Callouts next to the numbers they qualify.
-- **Do** show unbuilt work as dashed or hatched with "Not built yet".
+- **Do** put new content in a panel (panel veil, 1px hairline, 14px radius) and stack panels with a 1rem gap.
+- **Do** open every page with a head block and the sky glow behind it, then go quiet.
+- **Do** show status as a pill chip with a stroke icon and a word.
+- **Do** use the strategy's fixed series colour wherever that strategy appears.
+- **Do** print money in ink with a sign, and every figure in tabular numerals.
+- **Do** mark unconfirmed values with amber and an icon, in plain words.
 
 ### Don't:
-- **Don't** add a light theme or any colour-scheme toggle.
-- **Don't** use mono for headings, buttons or prose.
-- **Don't** add eyebrows or kickers above headings.
-- **Don't** use gradient text.
-- **Don't** use coloured `border-left` accents on cards, callouts or lists.
-- **Don't** make grids of identical cards; vary the form of each section.
-- **Don't** let long or short colour be the only signal, or use pure red/green.
-- **Don't** add a second authored motion or run the untilt below 900px or under reduced motion.
-- **Don't** use amber for decoration, or real Databento prices in any visual.
+- **Don't** use green or red for profit and loss figures; they are reserved for pass/fail checks and year bars.
+- **Don't** nest panels or give panels shadows.
+- **Don't** signal state by colour alone.
+- **Don't** add a light theme surface or bright fills beyond the pale primary button and pressed pill.
+- **Don't** use uppercase tracked labels; labels are sentence case.

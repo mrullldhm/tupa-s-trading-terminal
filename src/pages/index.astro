@@ -1,211 +1,288 @@
 ---
 import Base from "../layouts/Base.astro";
-import CandleSculpture from "../components/CandleSculpture.astro";
-import Frame from "../components/Frame.astro";
-import StrategyIndex from "../components/StrategyIndex.astro";
-import Pipeline from "../components/Pipeline.astro";
-import FixedRules from "../components/FixedRules.astro";
-import JournalList from "../components/JournalList.astro";
 import Icon from "../components/Icon.astro";
+import Status from "../components/Status.astro";
+import GateCells from "../components/GateCells.astro";
+import EquityChart from "../components/EquityChart.astro";
+import YearBars from "../components/YearBars.astro";
+import ReadingGuide from "../components/ReadingGuide.astro";
+import { R, strategies, totals, curve, yearRange, gatesPassed, gates } from "../lib/data";
+import { usdK, int } from "../lib/format";
+
+const c = R.combine;
+const years = yearRange();
+const series = strategies.map((s) => ({ id: s.id, name: s.name, color: s.color, points: curve(s.best) }));
+const stages = [
+  { name: "Build", range: years, count: totals.strategies, note: "Tune on old data" },
+  { name: "Check", range: "2022–2024", count: 0, note: "One run, settings frozen" },
+  { name: "Final exam", range: "2025–2026", count: 0, note: "One run, ever" },
+  { name: "Live paper", range: "from Nov 2026", count: 0, note: "New data only" },
+];
+const top = strategies[0];
+const topGates = gates(top.best);
 ---
-<Base description="A public research journal of crude oil (CL1!) trading strategies, tested on 1-minute bars with fixed published costs, explained in plain English with honest labels.">
-  <section class="hero wrap">
-    <div class="copy">
-      <h1>Testing crude oil strategies honestly, in plain English.</h1>
-      <p class="lede">A public journal of every CL1! strategy I test on 1-minute bars: the idea, the rules, the
-      results after costs, and what went wrong.</p>
+<Base description="A research journal testing crude oil (CL) futures strategies against the Topstep 50K Trading Combine, in plain English, with every result labelled.">
+  <section class="hero">
+    <div class="hero-copy">
+      <h1>Can one crude oil strategy pass the Topstep&nbsp;50K Combine? <span>Not yet.</span></h1>
+      <p class="lead">
+        We take trading ideas from the internet, rebuild them for CL futures, and replay 12 years of one-minute prices
+        through Topstep's account rules. {totals.strategies} ideas and {totals.variants} versions tested so far. None
+        passed the first stage.
+      </p>
       <div class="actions">
-        <a class="btn btn-primary" href="#strategies">Browse strategies <Icon name="arrow-right" /></a>
-        <a class="btn btn-quiet" href="/method/">How the testing works</a>
+        <a class="btn btn-primary" href="#scoreboard">See the scoreboard <Icon name="arrow" /></a>
+        <a class="btn" href="/method/">How we test</a>
       </div>
-      <p class="fine">No signals, no courses. In-sample research, shared openly.</p>
     </div>
-    <div class="art">
-      <CandleSculpture />
+
+    <article class="panel closest" aria-labelledby="cl-h">
+      <div class="cl-head">
+        <span class="faint">Closest attempt</span>
+        <Status state={top.status.state} />
+      </div>
+      <h2 id="cl-h"><a href={`/strategies/${top.slug}/`}>{top.name}</a></h2>
+      <p class="dim">{top.short}</p>
+      <ul class="cl-checks" aria-label="Checks for the best version">
+        {topGates.map((g) => (
+          <li class:list={[g.pass ? "ok" : "no"]}>
+            <Icon name={g.pass ? "check" : "cross"} size={13} label={g.pass ? "passes" : "fails"} />
+            <span>{g.label}</span>
+            <b class="num">{g.value}</b>
+          </li>
+        ))}
+      </ul>
+      <p class="cl-why">
+        It made money in most years, but each trade earned too little: ${top.best.profit_factor.toFixed(2)} won for
+        every $1 lost, under the $1.25 bar.
+      </p>
+      <a class="more" href={`/strategies/${top.slug}/`}>Read why it was dropped <Icon name="arrow" size={14} /></a>
+    </article>
+  </section>
+
+  <section id="scoreboard" class="panel board" aria-labelledby="sb-h">
+    <div class="panel-head">
+      <h2 id="sb-h">Scoreboard</h2>
+      <p>Best version of each idea · build data {years} · in-sample</p>
+    </div>
+
+    <div class="table-wrap wide">
+      <table>
+        <thead>
+          <tr>
+            <th>Strategy</th>
+            <th>Status</th>
+            <th>Checks</th>
+            <th>Trades<span class="need">200+</span></th>
+            <th>Profit factor<span class="need">1.25+</span></th>
+            <th>Years in profit<span class="need">70%+</span></th>
+            <th>Pass rate<span class="need">50%+</span></th>
+            <th>Cost per pass<span class="need">≤ $500</span></th>
+            <th class="r">Net profit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {strategies.map((s) => (
+            <tr>
+              <td>
+                <a class="sname" href={`/strategies/${s.slug}/`}>
+                  <i style={`background:${s.color}`}></i>
+                  <span>
+                    <b>{s.name}</b>
+                    <small>{s.best.label} · best of {s.best.best_of}</small>
+                  </span>
+                </a>
+              </td>
+              <td><Status state={s.status.state} /></td>
+              <td class="num score"><b>{gatesPassed(s.best)}</b> of 5</td>
+              <GateCells variant={s.best} />
+              <td class="r num net">{usdK(s.best.net)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="cards">
+      {strategies.map((s) => (
+        <li>
+          <a href={`/strategies/${s.slug}/`}>
+            <span class="c-top">
+              <i style={`background:${s.color}`}></i>
+              <b>{s.name}</b>
+            </span>
+            <span class="c-mid">
+              <Status state={s.status.state} />
+              <span class="num"><b>{gatesPassed(s.best)}</b> of 5 checks</span>
+              <span class="num c-net">{usdK(s.best.net)}</span>
+            </span>
+            <span class="c-fail faint">
+              Fails: {gates(s.best).filter((g) => !g.pass).map((g) => g.label.toLowerCase()).join(", ")}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="board-note">
+      A strategy must pass all five checks on the build data before it may touch newer data.
+    </p>
+    <ReadingGuide />
+  </section>
+
+  <section class="panel" aria-labelledby="eq-h">
+    <div class="panel-head">
+      <h2 id="eq-h">Running profit, best version of each idea</h2>
+      <p>One contract · after $4.04 fees · {years} · in-sample</p>
+    </div>
+    <div class="panel-body">
+      <EquityChart series={series} height={320} label={`Running net profit by month for the best version of each of the ${strategies.length} strategies, ${years}.`} />
     </div>
   </section>
 
-  <section id="strategies" class="index wrap" aria-labelledby="strategies-index-h">
-    <div class="tilt-stage">
-      <Frame class="tilt">
-        <StrategyIndex interactiveHeading="Strategies" />
-      </Frame>
-    </div>
-    <p class="index-note"><a href="/strategies/">All strategies</a> · F1 to F5 are the five test stages, shown
-    step by step below.</p>
-  </section>
+  <div class="split">
+    <section class="panel" aria-labelledby="road-h">
+      <div class="panel-head"><h2 id="road-h">The road to a real account</h2></div>
+      <div class="panel-body">
+        <ol class="road">
+          {stages.map((st, i) => (
+            <li class:list={[i === 0 && "now"]}>
+              <span class="dot" aria-hidden="true"></span>
+              <div>
+                <b>{st.name}</b> <span class="faint">{st.range}</span>
+                <p class="dim">{st.note}</p>
+              </div>
+              <span class="cnt num">{st.count} {st.count === 1 ? "idea" : "ideas"}</span>
+            </li>
+          ))}
+        </ol>
+        <p class="road-note dim">
+          Each stage uses data the strategy was never tuned on. A strategy that fails a later stage is dropped, not
+          re-tuned. Next: new ideas enter at Build and face the same five checks.
+        </p>
+      </div>
+    </section>
 
-  <section class="how wrap" aria-labelledby="how-h">
-    <div class="how-head">
-      <h2 id="how-h">How a strategy earns a result</h2>
-      <p class="muted">Every strategy goes down the same path. Most stop early, and those are published too.</p>
-      <a class="more" href="/method/">The full method <Icon name="arrow-right" /></a>
-    </div>
-    <Pipeline />
-  </section>
+    <section class="panel" aria-labelledby="cb-h">
+      <div class="panel-head">
+        <h2 id="cb-h">What the Combine asks</h2>
+        <a class="more" href="/combine/">All rules <Icon name="arrow" size={14} /></a>
+      </div>
+      <div class="panel-body">
+        <dl class="rules">
+          <div><dt>Make</dt><dd class="num">+${int(c.profit_target)}</dd><p>profit on a ${int(c.start_balance)} account</p></div>
+          <div><dt>Never lose</dt><dd class="num">${int(c.max_loss)}</dd><p>from your best end-of-day balance</p></div>
+          <div><dt>Best day</dt><dd class="num">≤ {Math.round(c.consistency * 100)}%</dd><p>of total profit (consistency)</p></div>
+          <div><dt>Flat by</dt><dd class="num">3:10 PM</dd><p>Chicago time, every day</p></div>
+        </dl>
+        <p class="warnline"><Icon name="warn" size={14} /> Some values come from third-party guides and are not yet confirmed with Topstep.</p>
+      </div>
+    </section>
+  </div>
 
-  <section class="rules wrap" aria-labelledby="rules-h">
-    <h2 id="rules-h">The same rules for every test</h2>
-    <p class="muted rules-sub">Fixed capital, position size and commission across strategies.</p>
-    <FixedRules />
-  </section>
-
-  <section class="journal wrap" aria-labelledby="journal-h">
-    <div class="j-head">
-      <h2 id="journal-h">From the journal</h2>
-      <a class="more" href="/journal/">All entries <Icon name="arrow-right" /></a>
+  <section class="panel" aria-labelledby="yr-h">
+    <div class="panel-head">
+      <h2 id="yr-h">Profit per year, closest attempt</h2>
+      <p>{top.name} · {top.best.label} · {top.best.years_positive} of {top.best.years_total} years in profit</p>
     </div>
-    <JournalList limit={4} />
+    <div class="panel-body">
+      <YearBars years={top.best.years} label={`${top.name}: profit or loss per year, ${years}`} />
+    </div>
   </section>
 </Base>
 
 <style>
   .hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
-    align-items: center;
-    gap: 3rem;
-    padding: clamp(3.5rem, 8vw, 6.5rem) 0 2.5rem;
+    position: relative; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 2.5rem; align-items: end;
+    padding: clamp(2.5rem, 6vw, 4.5rem) 0 2.25rem;
   }
-  h1 {
-    max-width: 15ch;
+  .hero::before {
+    content: ""; position: absolute; z-index: -1; inset: -3.5rem -30% auto; height: 34rem; pointer-events: none;
+    background:
+      radial-gradient(40rem 20rem at 30% 0%, var(--sky-glow), transparent 70%),
+      radial-gradient(28rem 14rem at 70% 10%, rgb(120 90 255 / 0.1), transparent 70%);
   }
-  .lede {
-    margin-top: 1.5rem;
-    max-width: 46ch;
-    font-size: 1.1875rem;
-    line-height: 1.55;
-    color: var(--ink-2);
-  }
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 2.25rem;
-  }
-  .fine {
-    margin-top: 1.25rem;
-    font-size: 0.875rem;
-    color: var(--ink-3);
-  }
-  .art {
-    padding: 1rem 0 0 1rem;
-    margin-right: -2rem;
-  }
+  h1 { max-width: 19ch; }
+  h1 span { display: block; color: var(--sky-ink); }
+  .lead { margin-top: 1.1rem; max-width: 56ch; font-size: 1.05rem; color: var(--ink-2); }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.6rem; }
 
-  .index {
-    padding-top: 2rem;
+  .closest { padding: 1.15rem 1.25rem 1.2rem; background: var(--solid); }
+  .cl-head { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; }
+  .closest h2 { margin-top: 0.6rem; font-size: 1.35rem; }
+  .closest h2 a { text-decoration: none; }
+  .closest h2 a:hover { text-decoration: underline; }
+  .closest > p.dim { margin-top: 0.3rem; font-size: 0.875rem; }
+  .cl-checks { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: 0.1rem; }
+  .cl-checks li {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 0.55rem; align-items: center; padding: 0.35rem 0;
+    border-bottom: 1px solid var(--line); font-size: 0.85rem; color: var(--ink-2);
   }
-  .tilt-stage {
-    perspective: 1800px;
-  }
-  .index-note {
-    margin-top: 1.1rem;
-    text-align: center;
-    font-size: 0.875rem;
-    color: var(--ink-3);
-  }
-  .index-note a {
-    color: var(--ink-2);
-  }
-
-  /* The one authored motion: the terminal arrives tilted, like Graphite's inbox, and straightens as it scrolls in. */
-  @supports (animation-timeline: view()) {
-    @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
-      .tilt-stage :global(.tilt) {
-        transform-origin: 50% 100%;
-        animation-name: untilt;
-        animation-timing-function: linear;
-        animation-fill-mode: both;
-      }
-      /* Separate selector: a minifier must not fold the timeline into the shorthand (Chrome drops it there). */
-      .tilt-stage :global(.tilt.tilt) {
-        animation-timeline: view();
-        animation-range: entry 0% cover 42%;
-      }
-    }
-  }
-  @keyframes untilt {
-    from {
-      transform: rotateX(26deg) scale(0.92) translateY(30px);
-      opacity: 0.55;
-      filter: blur(1.5px);
-    }
-    to {
-      transform: none;
-      opacity: 1;
-      filter: none;
-    }
-  }
-
-  .how {
-    display: grid;
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-    gap: 4rem;
-    margin-top: 9rem;
-  }
-  .how-head {
-    position: sticky;
-    top: 110px;
-    align-self: start;
-    display: grid;
-    gap: 1rem;
-  }
+  .cl-checks li:last-child { border-bottom: 0; }
+  .cl-checks .ok :global(svg) { color: var(--pos); }
+  .cl-checks .no :global(svg) { color: var(--neg); }
+  .cl-checks b { font-weight: 600; color: var(--ink); }
+  .cl-why { margin-top: 0.85rem; font-size: 0.85rem; color: var(--ink-2); }
   .more {
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    text-decoration: none;
-    color: var(--ink);
+    display: inline-flex; align-items: center; gap: 0.3rem; min-height: 1.75rem; margin-top: 0.4rem;
+    font-size: 0.84rem; color: var(--sky-ink); text-decoration: none;
   }
-  .more :global(svg) {
-    transition: transform 0.3s var(--ease-out);
-  }
-  .more:hover :global(svg) {
-    transform: translateX(3px);
-  }
+  .more:hover { text-decoration: underline; }
+  .panel-head .more { margin-top: 0; }
 
-  .rules {
-    margin-top: 9rem;
-  }
-  .rules-sub {
-    margin: 0.75rem 0 2rem;
-  }
+  .panel + .panel, .split, .split + .panel { margin-top: 1rem; }
+  .board .table-wrap { padding: 0.6rem 0.5rem 0; }
+  th .need { display: block; font-weight: 400; color: var(--ink-3); margin-top: 0.1rem; }
+  .sname { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; }
+  .sname i { flex: none; width: 4px; height: 2rem; border-radius: 2px; }
+  .sname b { display: block; font-weight: 600; }
+  .sname small { display: block; color: var(--ink-3); font-size: 0.75rem; }
+  .sname:hover b { text-decoration: underline; text-underline-offset: 0.2em; }
+  .net { font-weight: 600; }
+  .score { color: var(--ink-3); }
+  .score b { color: var(--ink); font-weight: 600; }
+  .board-note { padding: 0.9rem 1.25rem; border-top: 1px solid var(--line); font-size: 0.82rem; color: var(--ink-3); }
 
-  .journal {
-    margin-top: 9rem;
-  }
-  .j-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    margin-bottom: 1.75rem;
-  }
+  .cards { display: none; list-style: none; margin: 0; padding: 0.5rem 0.75rem 0.25rem; }
+  .cards li + li { border-top: 1px solid var(--line); }
+  .cards a { display: grid; gap: 0.45rem; padding: 0.85rem 0.25rem; text-decoration: none; }
+  .c-top { display: flex; align-items: center; gap: 0.55rem; }
+  .c-top i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .c-top b { font-weight: 600; }
+  .c-mid { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; font-size: 0.84rem; color: var(--ink-2); }
+  .c-mid b { color: var(--ink); }
+  .c-net { margin-left: auto; color: var(--ink); font-weight: 600; }
+  .c-fail { font-size: 0.78rem; }
 
-  @media (max-width: 900px) {
-    .hero {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 1.5rem;
-    }
-    .art {
-      max-width: 360px;
-      padding: 0;
-    }
-    .how {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 2.5rem;
-      margin-top: 6rem;
-    }
-    .how-head {
-      position: static;
-    }
-    .rules,
-    .journal {
-      margin-top: 6rem;
-    }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .split .panel + .panel { margin-top: 0; }
+  .road { list-style: none; margin: 0; padding: 0; }
+  .road li { position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: 0.9rem; align-items: start; padding: 0.55rem 0; }
+  .road li:not(:last-child)::after {
+    content: ""; position: absolute; left: 5px; top: 1.45rem; bottom: -0.5rem; width: 1px; background: var(--line-hi);
   }
+  .road .dot { width: 11px; height: 11px; margin-top: 0.35rem; border-radius: 50%; border: 1.5px solid var(--line-hi); background: var(--bg); }
+  .road .now .dot { border-color: var(--sky); background: var(--sky); box-shadow: 0 0 0 4px rgb(91 140 255 / 0.2); }
+  .road b { font-weight: 600; }
+  .road p { font-size: 0.82rem; }
+  .road .cnt { font-size: 0.82rem; color: var(--ink-3); padding-top: 0.15rem; }
+  .road .now .cnt { color: var(--ink); }
+  .road-note { margin-top: 0.75rem; font-size: 0.82rem; }
+  .rules { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border-radius: var(--r-md); overflow: hidden; }
+  .rules div { background: var(--solid); padding: 0.85rem 1rem; }
+  .rules dt { font-size: 0.75rem; color: var(--ink-3); }
+  .rules dd { margin: 0.15rem 0 0.1rem; font-size: 1.3rem; font-weight: 600; letter-spacing: -0.02em; }
+  .rules p { font-size: 0.8rem; color: var(--ink-2); }
+  .warnline { display: flex; gap: 0.45rem; align-items: flex-start; margin-top: 0.9rem; font-size: 0.8rem; color: var(--warn); }
+  .warnline :global(svg) { flex: none; margin-top: 0.15rem; }
+
+  @media (max-width: 1100px) {
+    .hero { grid-template-columns: 1fr; align-items: start; gap: 1.75rem; }
+  }
+  @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+  @media (max-width: 720px) {
+    .wide { display: none; }
+    .cards { display: block; }
+  }
+  @media (max-width: 640px) { .rules { grid-template-columns: 1fr; } }
 </style>

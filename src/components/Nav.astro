@@ -1,0 +1,52 @@
+---
+import Icon, { type IconName } from "./Icon.astro";
+import { strategies } from "../lib/data";
+interface Props { current: string }
+const { current } = Astro.props;
+const items: { href: string; label: string; icon: IconName }[] = [
+  { href: "/", label: "Overview", icon: "overview" },
+  { href: "/strategies/", label: "Strategies", icon: "strategies" },
+  { href: "/runs/", label: "All test runs", icon: "runs" },
+  { href: "/combine/", label: "Topstep 50K rules", icon: "combine" },
+  { href: "/method/", label: "How we test", icon: "method" },
+  { href: "/about/", label: "About", icon: "about" },
+];
+const active = (href: string) => (href === "/" ? current === "/" : current.startsWith(href));
+---
+<nav class="nav" aria-label="Main">
+  <ul>
+    {items.map((i) => (
+      <li>
+        <a href={i.href} aria-current={active(i.href) ? "page" : undefined}><Icon name={i.icon} />{i.label}</a>
+        {i.href === "/strategies/" && (
+          <ul class="sub">
+            {strategies.map((s) => (
+              <li>
+                <a href={`/strategies/${s.slug}/`} aria-current={current === `/strategies/${s.slug}/` ? "page" : undefined}>
+                  <i style={`background:${s.color}`}></i>
+                  <span>{s.name}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </li>
+    ))}
+  </ul>
+</nav>
+<style>
+  ul { list-style: none; margin: 0; padding: 0; }
+  .nav > ul > li + li { margin-top: 2px; }
+  a {
+    display: flex; align-items: center; gap: 0.65rem; height: 2.25rem; padding: 0 0.7rem;
+    border-radius: var(--r-sm); color: var(--ink-2); text-decoration: none; font-size: 0.875rem; font-weight: 500;
+    transition: background 0.15s var(--ease), color 0.15s var(--ease);
+  }
+  a:hover { background: rgb(255 255 255 / 0.05); color: var(--ink); }
+  a[aria-current="page"] { background: rgb(255 255 255 / 0.08); color: var(--ink); }
+  a :global(svg) { flex: none; opacity: 0.85; }
+  .sub { margin: 2px 0 6px 1.45rem; padding-left: 0.6rem; border-left: 1px solid var(--line); }
+  .sub a { height: auto; min-height: 1.95rem; padding-block: 0.35rem; font-size: 0.8rem; font-weight: 400; gap: 0.55rem; line-height: 1.3; }
+  .sub span { min-width: 0; }
+  .sub i { flex: none; width: 7px; height: 7px; border-radius: 2px; }
+</style>

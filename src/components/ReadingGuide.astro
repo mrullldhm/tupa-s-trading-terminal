@@ -1,0 +1,34 @@
+---
+// Plain definitions placed right where the numbers are read.
+interface Props { open?: boolean }
+const { open = false } = Astro.props;
+const terms = [
+  ["Profit factor", "Money won ÷ money lost. Above 1 makes money; 1.25 means $1.25 won for each $1 lost."],
+  ["In-sample", "Tested on the same old data the strategy was built and tuned on. Flattering by nature."],
+  ["Best of N", "We tried N versions and show the best. The more versions, the more luck in the best one."],
+  ["Best version", "The version that passes the most checks; if tied, the higher profit factor."],
+  ["Pass rate", "Start a Topstep attempt on every trading day. The share of attempts that pass."],
+  ["Biggest drop", "The largest fall from a profit high to a later low, in dollars."],
+];
+---
+<details class="guide" open={open}>
+  <summary>How to read these numbers</summary>
+  <dl>
+    {terms.map(([t, d]) => <div><dt>{t}</dt><dd>{d}</dd></div>)}
+  </dl>
+</details>
+<style>
+  .guide { border-top: 1px solid var(--line); font-size: 0.84rem; }
+  summary {
+    display: flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 1.25rem; cursor: pointer;
+    color: var(--sky-ink); font-weight: 500; list-style: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "+"; width: 1rem; text-align: center; font-weight: 600; }
+  .guide[open] summary::before { content: "−"; }
+  dl { margin: 0; padding: 0 1.25rem 1.1rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.9rem 1.5rem; }
+  dt { font-weight: 600; color: var(--ink); }
+  dd { margin: 0.15rem 0 0; color: var(--ink-2); }
+  @media (max-width: 960px) { dl { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { dl { grid-template-columns: 1fr; } }
+</style>

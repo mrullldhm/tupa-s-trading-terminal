@@ -1,17 +1,22 @@
 ---
 import "../styles/global.css";
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
-// Every page sets text in Latin Geist first; preloading it shortens the fallback-font swap.
 import geistLatin from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url";
+import Logo from "../components/Logo.astro";
+import Nav from "../components/Nav.astro";
+import Icon from "../components/Icon.astro";
+import { R, totals } from "../lib/data";
+import { date } from "../lib/format";
 
 interface Props {
   title?: string;
   description: string;
+  crumbs?: { href?: string; label: string }[];
 }
-const { title, description } = Astro.props;
-const full = title ? `${title} · Tupa's Trading Terminal` : "Tupa's Trading Terminal: CL1! strategy research journal";
+const { title, description, crumbs = [] } = Astro.props;
+const site = "Tupa's Trading Terminal";
+const full = title ? `${title} · ${site}` : `${site}: can a CL strategy pass the Topstep 50K Combine?`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const path = Astro.url.pathname;
 ---
 <!doctype html>
 <html lang="en">
@@ -21,45 +26,122 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <title>{full}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <meta name="theme-color" content="#070707" />
+    <meta name="theme-color" content="#0d0e12" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href={geistLatin} as="font" type="font/woff2" crossorigin />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={full} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:site_name" content="Tupa's Trading Terminal" />
+    <meta property="og:site_name" content={site} />
     <meta name="twitter:card" content="summary" />
   </head>
   <body>
-    <Fragment set:html={`<!--
-THESIS: A CL1! research journal whose first job is "jump to a strategy". Refuses the blog index and the signal-seller hero.
-OWN-WORLD: graphite.com grammar. Near-black #070707, off-white ink with alpha-stepped secondary text, 1px low-alpha rules, framed panels with an inner bezel, glowing white line art, light primary button with a faint iridescent rim. Geist + Geist Mono for data. Long/short desaturated, always with sign.
-STORY: Traders see what is tested, open a strategy, learn the idea from an illustrative chart, read rules and costs, then honest results with labels (in-sample, best of N, commission).
-FIRST VIEWPORT: Headline + plain sub left, two actions; glowing illustrative candle sculpture right; the tilted strategy terminal rising from the fold, straightening on scroll.
-FORM: Tilted Terminal, grounded list position 7, seed key d14c2125.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
--->`} />
     <a class="skip" href="#main">Skip to content</a>
-    <Header />
-    <main id="main">
-      <slot />
-    </main>
-    <Footer />
+    <div class="app">
+      <aside class="side">
+        <a class="brand" href="/"><Logo /><span>Tupa's Trading<br />Terminal</span></a>
+        <Nav current={path} />
+        <div class="side-foot">
+          <p><Icon name="clock" size={13} /> Last test run {date(R.last_run_utc)}</p>
+          <p class="faint">CL futures only · not financial advice</p>
+        </div>
+      </aside>
+
+      <div class="main-col">
+        <header class="top">
+          <a class="brand brand-m" href="/"><Logo size={26} /><span>Tupa's Trading Terminal</span></a>
+          <nav class="crumbs" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            {crumbs.map((c) => (
+              <>
+                <span aria-hidden="true">/</span>
+                {c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+              </>
+            ))}
+          </nav>
+          <div class="top-right">
+            <span class="live"><i></i>{totals.passed} of {totals.strategies} passed · still searching</span>
+            <details class="mnav">
+              <summary class="btn" aria-label="Menu"><Icon name="menu" /></summary>
+              <div class="mnav-panel"><Nav current={path} /></div>
+            </details>
+          </div>
+        </header>
+
+        <main id="main">
+          <slot />
+        </main>
+
+        <footer class="foot">
+          <p>
+            All results are simulated on past data (<strong>in-sample</strong>), with a $4.04 fee per round trip and limit
+            orders that fill on a touch. Past results do not predict future results. This is a research journal, not
+            financial advice.
+          </p>
+          <p class="faint">Data exported {date(R.exported_utc)} · {totals.variants} versions, {R.ledger_rows} logged runs (some versions were re-run after bug fixes)</p>
+        </footer>
+      </div>
+    </div>
     <style>
       .skip {
-        position: absolute;
-        left: 1rem;
-        top: -3rem;
-        z-index: 100;
-        padding: 0.6rem 0.9rem;
-        background: var(--ink);
-        color: var(--bg);
-        border-radius: 8px;
-        text-decoration: none;
+        position: absolute; left: 1rem; top: -3rem; z-index: 100; padding: 0.6rem 0.9rem;
+        background: var(--btn); color: var(--btn-ink); border-radius: var(--r-sm); text-decoration: none;
       }
-      .skip:focus {
-        top: 1rem;
+      .skip:focus { top: 1rem; }
+      .app { display: grid; grid-template-columns: var(--side) minmax(0, 1fr); min-height: 100dvh; }
+      .side {
+        position: sticky; top: 0; height: 100dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem;
+        padding: 1.1rem 0.75rem 1rem; background: var(--bg-sunk); border-right: 1px solid var(--line);
+      }
+      .brand {
+        display: flex; align-items: center; gap: 0.65rem; padding: 0 0.45rem; text-decoration: none;
+        font-weight: 700; font-size: 0.9rem; letter-spacing: -0.015em; line-height: 1.15;
+      }
+      .side-foot { margin-top: auto; padding: 0.9rem 0.7rem 0; border-top: 1px solid var(--line); font-size: 0.75rem; color: var(--ink-2); display: grid; gap: 0.3rem; }
+      .side-foot p { display: flex; align-items: center; gap: 0.4rem; }
+      .main-col { min-width: 0; display: flex; flex-direction: column; overflow-x: clip; }
+      .top {
+        position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 1rem; height: 3.5rem;
+        padding: 0 clamp(1rem, 3vw, 2rem); background: rgb(13 14 18 / 0.82); backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--line);
+      }
+      .brand-m { display: none; padding: 0; }
+      .crumbs { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--ink-3); min-width: 0; }
+      .crumbs a { color: var(--ink-2); text-decoration: none; }
+      .crumbs a:hover { color: var(--ink); }
+      .crumbs [aria-current] { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .top-right { margin-left: auto; display: flex; align-items: center; gap: 0.6rem; }
+      .live {
+        display: inline-flex; align-items: center; gap: 0.5rem; height: 1.9rem; padding: 0 0.75rem; border-radius: 99px;
+        border: 1px solid var(--line-hi); font-size: 0.75rem; color: var(--ink-2); white-space: nowrap;
+      }
+      .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 0 3px rgb(227 166 59 / 0.18); }
+      .mnav { display: none; position: relative; }
+      .mnav summary { list-style: none; padding: 0 0.6rem; }
+      .mnav summary::-webkit-details-marker { display: none; }
+      .mnav-panel {
+        position: absolute; right: 0; top: calc(100% + 0.5rem); width: min(19rem, calc(100vw - 2rem)); padding: 0.5rem;
+        max-height: calc(100dvh - 5rem); overflow-y: auto;
+        background: var(--pop); border: 1px solid var(--line-hi); border-radius: var(--r-lg); box-shadow: 0 16px 40px rgb(0 0 0 / 0.5);
+      }
+      main { flex: 1; width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem) 3rem; }
+      .foot {
+        max-width: 1240px; width: 100%; margin: 0 auto; padding: 1.5rem clamp(1rem, 3vw, 2rem) 2.5rem;
+        border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--ink-2); display: grid; gap: 0.5rem;
+      }
+      .foot p:first-child { max-width: 72ch; }
+      .foot strong { color: var(--ink); font-weight: 600; }
+      @media (max-width: 960px) {
+        .app { grid-template-columns: minmax(0, 1fr); }
+        .side { display: none; }
+        .brand-m { display: flex; }
+        .crumbs { display: none; }
+        .mnav { display: block; }
+      }
+      @media (max-width: 520px) {
+        .brand-m span { display: none; }
+        .live { font-size: 0.7rem; padding: 0 0.6rem; }
       }
     </style>
   </body>

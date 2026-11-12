@@ -1,0 +1,145 @@
+---
+import Base from "../layouts/Base.astro";
+import { R } from "../lib/data";
+import { int } from "../lib/format";
+const g = R.gates;
+const periods = [
+  { name: "Build", range: "Jun 2010 – Dec 2021", years: 11.6, use: "Write and tune the strategy. Every run is logged.", now: true },
+  { name: "Check", range: "2022 – 2024", years: 3, use: "One run with settings frozen. No changes after looking." },
+  { name: "Final exam", range: "2025 – Nov 2026", years: 1.9, use: "One run per strategy, ever. A fail ends it." },
+  { name: "Live paper", range: "Nov 2026 onward", years: 1.2, use: "New prices only, then paper trading on TopstepX." },
+];
+const total = periods.reduce((n, p) => n + p.years, 0);
+const fills = [
+  ["Entries", "Always limit orders. If price touches the limit, the order fills."],
+  ["When a signal can trade", "A signal uses only finished candles. The order starts working on the next minute."],
+  ["Stops and targets", "Fill at the exact price, with no slippage. If price gaps past a stop, it fills at the gap price."],
+  ["Stop and target in the same minute", "We assume the stop came first (the worse case)."],
+  ["End of day", "Every trade is closed at 3:10 PM Chicago time, as Topstep requires."],
+  ["Contract roll", "A trade is closed before the futures contract changes month."],
+  ["Fees", "$4.04 per contract, in and out."],
+];
+const gates = [
+  ["At least " + g.trades + " trades", "Enough trades that luck plays a smaller part."],
+  ["Profit factor " + g.profit_factor.toFixed(2) + " or more", "Total wins divided by total losses. 1.25 means $1.25 won for every $1 lost."],
+  [Math.round(g.years_positive * 100) + "% of years in profit", "The profit must not come from one or two lucky years."],
+  ["Combine pass rate " + Math.round(g.pass_rate * 100) + "% or more", "Start an attempt on every trading day: at least half must pass."],
+  ["Cost per pass $" + g.cost_per_pass + " or less", "Fees and resets paid, on average, for each pass."],
+];
+---
+<Base title="How we test" description="How the CL tester works: the data, the test periods, how orders fill, and the five checks every strategy must pass." crumbs={[{ label: "How we test" }]}>
+  <header class="head">
+    <h1>How we test</h1>
+    <p>
+      Think of it as a flight simulator for the Topstep Combine. We replay real one-minute crude oil prices, place each
+      strategy's orders under strict fill rules, then run the result through the Combine's rules. The rules below are
+      written so a curve-fitted idea gets caught early.
+    </p>
+  </header>
+
+  <section class="panel" aria-labelledby="d-h">
+    <div class="panel-head">
+      <h2 id="d-h">The data</h2>
+      <p>CL front-month futures (NYMEX WTI crude oil) · one-minute candles · Databento</p>
+    </div>
+    <div class="panel-body">
+      <div class="timeline" role="img" aria-label="Test periods from June 2010 to now: build, check, final exam and live paper.">
+        {periods.map((p) => (
+          <div class:list={["seg", p.now && "now"]} style={`flex:${p.years / total} 1 9.5rem`}>
+            <b>{p.name}</b>
+            <span class="num">{p.range}</span>
+          </div>
+        ))}
+      </div>
+      <ul class="periods">
+        {periods.map((p) => (
+          <li><b>{p.name}</b><span class="dim">{p.use}</span></li>
+        ))}
+      </ul>
+      <p class="honest">
+        <strong>Honest note:</strong> before a fresh start in November 2026, the owner had already studied every year up
+        to 2026. So the check and final-exam years are unused in this research, but not truly unseen. Only live paper
+        trading is clean.
+      </p>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="f-h">
+    <div class="panel-head"><h2 id="f-h">How orders fill</h2><p>Same rules for every strategy</p></div>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          {fills.map(([k, v]) => <tr><th scope="row">{k}</th><td>{v}</td></tr>)}
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      A touch fill is kind to limit orders: in real markets price can touch your limit without filling you. We measured
+      this help at about $5 per trade, so a strategy must earn more than that to count.
+    </p>
+  </section>
+
+  <section class="panel" aria-labelledby="g-h">
+    <div class="panel-head"><h2 id="g-h">The five checks on build data</h2><p>All five must pass before a strategy moves on</p></div>
+    <ol class="gates">
+      {gates.map(([k, v], i) => (
+        <li><span class="n num" aria-hidden="true">{i + 1}</span><div><b>{k}</b><p>{v}</p></div></li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="panel" aria-labelledby="h-h">
+    <div class="panel-body prose">
+      <h2 id="h-h">Rules that keep us honest</h2>
+      <ul>
+        <li><strong>Plan first.</strong> Before any test, the idea, rules and the number of versions to try are written down.</li>
+        <li><strong>Log everything.</strong> Every run goes into a permanent log ({int(R.ledger_rows)} runs so far). Nothing is deleted.</li>
+        <li><strong>Label every number.</strong> In-sample means tested on data the strategy was built on. "Best of 6" means we tried 6 versions and show the best.</li>
+        <li><strong>Check the trades.</strong> For each strategy, 400 trades are compared with the raw price data before a result counts.</li>
+        <li><strong>Outside review.</strong> The code is reviewed by a second AI (Codex). Every fix triggers a full re-run.</li>
+        <li><strong>CL only.</strong> Micro crude (MCL) is never tested or suggested.</li>
+      </ul>
+    </div>
+  </section>
+</Base>
+<style>
+  .head { position: relative; padding: clamp(2rem, 5vw, 3.25rem) 0 1.75rem; }
+  .head::before {
+    content: ""; position: absolute; z-index: -1; inset: -3.5rem -20% auto; height: 22rem; pointer-events: none;
+    background: radial-gradient(34rem 16rem at 25% 0%, var(--sky-glow), transparent 70%);
+  }
+  .head p { margin-top: 0.8rem; max-width: 66ch; color: var(--ink-2); }
+  .panel + .panel { margin-top: 1rem; }
+  .timeline { display: flex; gap: 3px; border-radius: var(--r-md); overflow: hidden; }
+  .seg { min-width: 0; padding: 0.7rem 0.8rem; background: rgb(255 255 255 / 0.05); display: grid; gap: 0.15rem; }
+  .seg b { font-size: 0.85rem; font-weight: 600; }
+  .seg span { font-size: 0.75rem; color: var(--ink-3); }
+  .seg.now { background: rgb(91 140 255 / 0.18); box-shadow: inset 0 0 0 1px rgb(91 140 255 / 0.45); }
+  .seg.now span { color: var(--sky-ink); }
+  .periods { list-style: none; margin: 1.1rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; font-size: 0.85rem; }
+  .periods b { display: block; font-weight: 600; margin-bottom: 0.2rem; }
+  .honest { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.875rem; color: var(--ink-2); max-width: 80ch; }
+  .honest strong { color: var(--warn); font-weight: 600; }
+  .table-wrap { padding: 0.5rem 0.5rem 0; }
+  th[scope="row"] { color: var(--ink); font-size: 0.875rem; font-weight: 600; width: 15rem; vertical-align: top; padding-top: 0.75rem; white-space: normal; }
+  td { white-space: normal; color: var(--ink-2); }
+  .note { padding: 0.9rem 1.25rem 1.1rem; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--ink-2); max-width: 90ch; }
+  .gates { list-style: none; margin: 0; padding: 1rem 1.25rem 1.25rem; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.25rem; }
+  .gates li { display: grid; gap: 0.6rem; align-content: start; }
+  .n {
+    display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: 50%;
+    border: 1px solid rgb(91 140 255 / 0.5); color: var(--sky-ink); font-size: 0.8rem; font-weight: 600;
+  }
+  .gates b { font-weight: 600; font-size: 0.92rem; }
+  .gates p { margin-top: 0.3rem; font-size: 0.84rem; color: var(--ink-2); }
+  .prose h2 { color: var(--ink); margin-bottom: 0.8rem; }
+  @media (max-width: 1100px) { .gates { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 760px) {
+    .periods { grid-template-columns: 1fr 1fr; }
+    .gates { grid-template-columns: 1fr 1fr; }
+    .timeline { flex-direction: column; }
+    .timeline .seg { flex: none !important; }
+    th[scope="row"] { width: 9rem; }
+  }
+  @media (max-width: 480px) { .periods, .gates { grid-template-columns: 1fr; } }
+</style>

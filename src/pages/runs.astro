@@ -1,0 +1,109 @@
+---
+import Base from "../layouts/Base.astro";
+import GateCells from "../components/GateCells.astro";
+import ReadingGuide from "../components/ReadingGuide.astro";
+import { R, strategies, strategyById, yearRange, gatesPassed } from "../lib/data";
+import { usdK, pct, int } from "../lib/format";
+const years = yearRange();
+const rows = [...R.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor);
+---
+<Base title="All test runs" description="Every version of every CL strategy tested, with all five pass checks, sortable and filterable." crumbs={[{ label: "All test runs" }]}>
+  <header class="head">
+    <h1>All test runs</h1>
+    <p>
+      Every version of every idea. The tester keeps a permanent log of {R.ledger_rows} runs, because some versions were
+      run again after bug fixes. Only the newest run of each version is shown here.
+    </p>
+  </header>
+
+  <section class="panel" data-runs>
+    <div class="tools" role="group" aria-label="Filter by strategy">
+      <button type="button" class="pill" aria-pressed="true" data-filter="all">All <span class="num">{rows.length}</span></button>
+      {strategies.map((s) => (
+        <button type="button" class="pill" aria-pressed="false" data-filter={s.id}>
+          <i style={`background:${s.color}`}></i>{s.name} <span class="num">{s.variants.length}</span>
+        </button>
+      ))}
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th><button type="button" data-sort="name">Strategy · version</button></th>
+            <th class="r"><button type="button" data-sort="net">Net profit</button></th>
+            <th class="r"><button type="button" data-sort="win">Win rate</button></th>
+            <th class="r"><button type="button" data-sort="dd">Biggest drop</button></th>
+            <th><button type="button" data-sort="trades">Trades<span class="need">200+</span></button></th>
+            <th aria-sort="descending"><button type="button" data-sort="pf">Profit factor<span class="need">1.25+</span></button></th>
+            <th><button type="button" data-sort="years">Years in profit<span class="need">70%+</span></button></th>
+            <th><button type="button" data-sort="pass">Pass rate<span class="need">50%+</span></button></th>
+            <th><button type="button" data-sort="cost">Cost per pass<span class="need">≤ $500</span></button></th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((v) => {
+            const s = strategyById(v.strategy);
+            return (
+              <tr data-strategy={v.strategy} data-name={`${s.name} ${v.label}`} data-net={v.net} data-win={v.win_rate}
+                data-dd={v.max_drawdown} data-trades={v.trades} data-pf={v.profit_factor}
+                data-years={v.years_positive / v.years_total} data-pass={v.pass_rate} data-cost={v.cost_per_pass ?? 1e9}>
+                <td>
+                  <a class="sname" href={`/strategies/${s.slug}/`}>
+                    <i style={`background:${s.color}`}></i>
+                    <span><b>{s.name}</b><small>{v.label} · best of {v.best_of}</small></span>
+                  </a>
+                </td>
+                <td class="r num strong">{usdK(v.net)}</td>
+                <td class="r num">{pct(v.win_rate, 0)}</td>
+                <td class="r num">{usdK(v.max_drawdown)}</td>
+                <GateCells variant={v} />
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+    <ReadingGuide />
+    <p class="note">
+      All runs: build data {years}, one contract, $4.04 fee per round trip, limit entries that fill on a touch. In-sample.
+      Showing <span data-count>{rows.length}</span> of {rows.length} versions · {int(R.variants.reduce((n, v) => n + v.trades, 0))} trades.
+    </p>
+  </section>
+</Base>
+<script src="../lib/runs.client.ts"></script>
+<style>
+  .head { position: relative; padding: clamp(2rem, 5vw, 3.25rem) 0 1.75rem; }
+  .head::before {
+    content: ""; position: absolute; z-index: -1; inset: -3.5rem -20% auto; height: 22rem; pointer-events: none;
+    background: radial-gradient(34rem 16rem at 25% 0%, var(--sky-glow), transparent 70%);
+  }
+  .head p { margin-top: 0.8rem; max-width: 68ch; color: var(--ink-2); }
+  .tools { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 1rem 1.1rem 0.5rem; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 0.45rem; height: 2rem; padding: 0 0.75rem; border-radius: 99px;
+    border: 1px solid var(--line-hi); background: transparent; color: var(--ink-2); font: 500 0.8rem/1 var(--sans); cursor: pointer;
+    transition: background 0.15s var(--ease), color 0.15s var(--ease);
+  }
+  .pill:hover { color: var(--ink); background: rgb(255 255 255 / 0.05); }
+  .pill[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); border-color: transparent; }
+  .pill i { width: 8px; height: 8px; border-radius: 2px; }
+  .pill .num { opacity: 0.6; }
+  .table-wrap { padding: 0 0.5rem; }
+  th button {
+    all: unset; cursor: pointer; display: inline-block; min-height: 1.6rem; padding-block: 0.15rem; border-radius: 4px;
+  }
+  th button:hover { color: var(--ink); }
+  th button:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+  th[aria-sort] button::after { content: " ↓"; color: var(--sky-ink); }
+  th[aria-sort="ascending"] button::after { content: " ↑"; }
+  th.r button { text-align: right; }
+  th .need { display: block; font-weight: 400; color: var(--ink-3); margin-top: 0.1rem; }
+  .sname { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; }
+  .sname i { flex: none; width: 4px; height: 2rem; border-radius: 2px; }
+  .sname b { display: block; font-weight: 600; }
+  .sname small { display: block; color: var(--ink-3); font-size: 0.75rem; }
+  .sname:hover b { text-decoration: underline; text-underline-offset: 0.2em; }
+  .strong { font-weight: 600; }
+  tr[hidden] { display: none; }
+  .note { padding: 0.9rem 1.25rem 1.1rem; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--ink-3); }
+</style>

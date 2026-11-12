@@ -1,0 +1,12 @@
+---
+import Icon from "./Icon.astro";
+interface Props { state: string }
+const { state } = Astro.props;
+const map: Record<string, { cls: string; icon: "dropped" | "clock" | "check"; word: string }> = {
+  dropped: { cls: "chip-neg", icon: "dropped", word: "Dropped" },
+  testing: { cls: "chip-warn", icon: "clock", word: "Testing" },
+  candidate: { cls: "chip-pos", icon: "check", word: "Candidate" },
+};
+const s = map[state] ?? { cls: "", icon: "clock" as const, word: state };
+---
+<span class:list={["chip", s.cls]}><Icon name={s.icon} />{s.word}</span>

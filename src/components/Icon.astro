@@ -1,22 +1,26 @@
 ---
-// One stroke family (1.5px, round caps) for every icon on the site.
-interface Props {
-  name: "arrow-right" | "arrow-up-right" | "check" | "clock" | "dash" | "x" | "chevron-left" | "chevron-right" | "lock" | "flask";
-  size?: number;
-  class?: string;
-}
-const { name, size = 16, class: cls } = Astro.props;
-const paths: Record<Props["name"], string> = {
-  "arrow-right": "M3.5 8h9M8.5 4l4 4-4 4",
-  "arrow-up-right": "M5 11l6-6M6 5h5v5",
-  check: "M3.5 8.5l3 3 6-7",
-  clock: "M8 4.5V8l2.2 1.6M14 8A6 6 0 1 1 2 8a6 6 0 0 1 12 0Z",
-  dash: "M4.5 8h7",
-  x: "M4.5 4.5l7 7M11.5 4.5l-7 7",
-  "chevron-left": "M10 3.5L5.5 8l4.5 4.5",
-  "chevron-right": "M6 3.5L10.5 8 6 12.5",
-  lock: "M4.5 7.5V5.8a3.5 3.5 0 0 1 7 0v1.7M3.5 7.5h9v6h-9z",
-  flask: "M6.5 2.5h3M7 2.5v4L3.6 12.2a1 1 0 0 0 .9 1.3h7a1 1 0 0 0 .9-1.3L9 6.5v-4M5 10h6",
-};
+// One stroke icon set: 16px grid, 1.5 stroke, round joins.
+const P = {
+  overview: '<rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="3" rx="1.2"/><rect x="9" y="7" width="5" height="7" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/>',
+  strategies: '<path d="M8 1.8 14.2 5 8 8.2 1.8 5Z"/><path d="m1.8 8 6.2 3.2L14.2 8"/><path d="m1.8 11 6.2 3.2 6.2-3.2"/>',
+  runs: '<path d="M5.5 4h8.5M5.5 8h8.5M5.5 12h8.5"/><circle cx="2.6" cy="4" r=".6"/><circle cx="2.6" cy="8" r=".6"/><circle cx="2.6" cy="12" r=".6"/>',
+  combine: '<path d="M8 1.8 13.5 4v4c0 3.2-2.4 5.4-5.5 6.2C4.9 13.4 2.5 11.2 2.5 8V4Z"/><path d="m5.6 8 1.7 1.7 3.2-3.4"/>',
+  method: '<path d="M2.5 3.2c1.8-.8 3.7-.8 5.5.3v10c-1.8-1.1-3.7-1.1-5.5-.3Z"/><path d="M13.5 3.2c-1.8-.8-3.7-.8-5.5.3v10c1.8-1.1 3.7-1.1 5.5-.3Z"/>',
+  about: '<circle cx="8" cy="8" r="6.2"/><path d="M8 7.3v4"/><circle cx="8" cy="5" r=".5"/>',
+  check: '<path d="m3.5 8.3 2.8 2.8 6.2-6.4"/>',
+  cross: '<path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/>',
+  arrow: '<path d="M3 8h10M9 4l4 4-4 4"/>',
+  back: '<path d="M13 8H3M7 4 3 8l4 4"/>',
+  external: '<path d="M9 2.5h4.5V7"/><path d="M13.5 2.5 7.5 8.5"/><path d="M12 9.5V13a.5.5 0 0 1-.5.5h-8.5a.5.5 0 0 1-.5-.5V4.5a.5.5 0 0 1 .5-.5H6.5"/>',
+  menu: '<path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>',
+  dropped: '<circle cx="8" cy="8" r="6.2"/><path d="M5.5 8h5"/>',
+  clock: '<circle cx="8" cy="8" r="6.2"/><path d="M8 4.8V8l2.2 1.4"/>',
+  warn: '<path d="M8 2.2 14.3 13H1.7Z"/><path d="M8 6.5v3"/><circle cx="8" cy="11.3" r=".5"/>',
+} as const;
+export type IconName = keyof typeof P;
+interface Props { name: IconName; size?: number; class?: string; label?: string }
+const { name, size = 16, class: cls, label } = Astro.props;
 ---
-<svg class={cls} width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>
+<svg class={cls} width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+  stroke-linecap="round" stroke-linejoin="round" role={label ? "img" : undefined} aria-label={label}
+  aria-hidden={label ? undefined : "true"} set:html={P[name]} />

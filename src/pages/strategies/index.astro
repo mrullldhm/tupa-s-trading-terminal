@@ -1,31 +1,83 @@
 ---
 import Base from "../../layouts/Base.astro";
-import Frame from "../../components/Frame.astro";
-import StrategyIndex from "../../components/StrategyIndex.astro";
+import Status from "../../components/Status.astro";
+import YearBars from "../../components/YearBars.astro";
+import Icon from "../../components/Icon.astro";
+import { strategies, gatesPassed, yearRange } from "../../lib/data";
+import { usdK } from "../../lib/format";
+const years = yearRange();
 ---
-<Base title="Strategies" description="Every CL1! strategy tested or planned, with its stage and verdict.">
-  <section class="wrap page">
+<Base title="Strategies" description="Every CL strategy tested against the Topstep 50K Combine, best and worst, with its result in plain words." crumbs={[{ label: "Strategies" }]}>
+  <header class="head">
     <h1>Strategies</h1>
-    <p class="lede">Every strategy I have tested or planned on CL1! 1-minute bars. Each one goes through up to five stages:
-    <strong>F1</strong> tests every setting, <strong>F2</strong> runs a narrow search, <strong>F3</strong>
-    stress-tests that search, <strong>F4</strong> tries a prop-firm challenge and <strong>F5</strong> is one
-    final check on reserved data. A tick means the stage is done, not that it passed.
-    New here? Read <a href="/method/how-to-read/">how to read the results</a> first.</p>
-    <Frame><StrategyIndex interactiveHeading="All strategies" /></Frame>
-  </section>
+    <p>
+      Every idea we test is listed here, including the ones that failed. Ideas come from public sources: articles,
+      GitHub bots and shared documents. Sorted from closest to passing to furthest.
+    </p>
+  </header>
+
+  <ul class="list">
+    {strategies.map((s) => (
+      <li class="panel row">
+        <a class="cover" href={`/strategies/${s.slug}/`} aria-label={`Open ${s.name}`}></a>
+        <div class="who">
+          <div class="title">
+            <i style={`background:${s.color}`}></i>
+            <h2>{s.name}</h2>
+            <Status state={s.status.state} />
+          </div>
+          <p class="short">{s.short}</p>
+          <p class="why faint">{s.status.reason ? `Why: ${s.status.reason}.` : ""}</p>
+        </div>
+        <div class="years">
+          <YearBars years={s.best.years} label={`${s.name}, profit or loss per year ${years}, best version`} />
+          <p class="faint">Profit per year, {years} · {s.best.label}</p>
+        </div>
+        <dl class="nums">
+          <div><dt>Net profit</dt><dd class="num">{usdK(s.best.net)}</dd></div>
+          <div><dt>Profit factor</dt><dd class="num">{s.best.profit_factor.toFixed(2)}</dd></div>
+          <div><dt>Checks passed</dt><dd class="num">{gatesPassed(s.best)}/5</dd></div>
+          <div><dt>Versions tried</dt><dd class="num">{s.variants.length}</dd></div>
+        </dl>
+        <Icon name="arrow" class="go" />
+      </li>
+    ))}
+  </ul>
+  <p class="note faint">Numbers show the best version of each idea (best of the versions tried), on build data {years}. In-sample.</p>
 </Base>
 <style>
-  .page {
-    padding-top: 3.5rem;
+  .head { padding: clamp(2rem, 5vw, 3.25rem) 0 1.75rem; position: relative; }
+  .head::before {
+    content: ""; position: absolute; z-index: -1; inset: -3.5rem -20% auto; height: 22rem; pointer-events: none;
+    background: radial-gradient(34rem 16rem at 25% 0%, var(--sky-glow), transparent 70%);
   }
-  .lede {
-    margin: 1rem 0 2.5rem;
-    max-width: 64ch;
-    font-size: 1.125rem;
-    color: var(--ink-2);
+  .head p { margin-top: 0.8rem; max-width: 62ch; color: var(--ink-2); }
+  .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+  .row {
+    position: relative; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto auto; gap: 1.75rem;
+    align-items: center; padding: 1.15rem 1.25rem; transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
   }
-  .lede strong {
-    color: var(--ink);
-    font-weight: 550;
+  .row:hover { border-color: var(--line-hi); background: var(--panel-hi); }
+  .cover { position: absolute; inset: 0; border-radius: inherit; z-index: 1; }
+  .title { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .title i { width: 10px; height: 10px; border-radius: 3px; }
+  .short { margin-top: 0.4rem; color: var(--ink-2); font-size: 0.9rem; }
+  .why { margin-top: 0.3rem; font-size: 0.8rem; }
+  .years p { margin-top: 0.4rem; font-size: 0.72rem; }
+  .nums { margin: 0; display: grid; grid-template-columns: repeat(2, auto); gap: 0.6rem 1.5rem; }
+  .nums dt { font-size: 0.72rem; color: var(--ink-3); }
+  .nums dd { margin: 0; font-weight: 600; font-size: 1rem; }
+  .row :global(.go) { color: var(--ink-3); transition: transform 0.25s var(--ease), color 0.2s; }
+  .row:hover :global(.go) { transform: translateX(3px); color: var(--ink); }
+  .note { margin-top: 1rem; font-size: 0.8rem; }
+  @media (max-width: 1100px) {
+    .row { grid-template-columns: minmax(0, 1fr) auto; }
+    .years { grid-column: 1 / -1; grid-row: 2; }
+    .row :global(.go) { display: none; }
+  }
+  @media (max-width: 560px) {
+    .row { grid-template-columns: 1fr; gap: 1.1rem; }
+    .years { grid-row: auto; }
+    .nums { grid-template-columns: repeat(4, auto); gap: 0.5rem 1rem; }
   }
 </style>
