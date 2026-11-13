@@ -57,6 +57,9 @@ first.
 - Dates display in Malaysia time (Asia/Kuala_Lumpur).
 - Real Databento market data (prices, candles) must never be published without separate redistribution
   authorization. Only aggregates (net $ by month and year, counts) are published.
+- Each strategy page shows one worked example trade on **synthetic** candles (seeded random walk), built by
+  `tools/export_demos.py` (`npm run export` runs it): the real strategy `signals()`, `manage()` and engine make the
+  trade, so the example follows the tested rules exactly. It must always be labelled as made-up candles.
 - **Disclaimers on every page:** in-sample, best of N, fill and fee assumptions, not financial advice.
 - Fixed test properties: 1 CL contract unless a strategy sizes up (max 5), $4.04 fee per round trip, limit entries
   that fill on a touch, no exit slippage, flat by 3:10 PM CT.

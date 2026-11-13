@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "export": "cd .. && .venv/bin/python web/tools/export_web.py",
+    "export": "cd .. && .venv/bin/python web/tools/export_web.py && .venv/bin/python web/tools/export_demos.py",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",

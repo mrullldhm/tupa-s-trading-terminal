@@ -254,6 +254,12 @@ Three radii plus a pill. Buttons and nav items use the tight 7px; tooltips and i
 ### Equity chart (signature)
 - 2px series lines over 6% white grid lines and a dashed zero line. Legend items are pill buttons; pressing one dims every other line to 22% opacity, thickens the chosen line to 2.6px and shows its end label. A 1px crosshair follows the pointer with a floating 10px-radius readout.
 
+### Worked example (strategy demo)
+- One trade per strategy on made-up candles, replayed in steps beside a sticky step rail (stacks below 1180px). A dashed sky "now" edge and a dark curtain hide candles the replay has not reached; the hover readout never shows past it.
+- Candles are monochrome: up hollow (ink outline), down solid (46% ink). Indicator lines use the series palette inside the chart only, with an in-chart legend; sub-panes (RSI, Vortex, ATR) sit below with dashed guide lines.
+- Trade levels are the one place red and green appear in a price chart, and only as pass/fail of the trade: stop line and zone in fail red, target in pass green, entry in sky, each with a labelled price tag so colour is never the only signal. The result tag stays in ink with its sign.
+- Signal conditions read as a check list (stroke check or cross plus the live value). A caption with the amber warn icon always says the candles are made up.
+
 ### Year bars
 - Small column chart, 3px gaps, green bars up and red bars down (85% opacity) from a 28% white baseline, 3px outer corners, tabular year labels.
 

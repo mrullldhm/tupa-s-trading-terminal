@@ -6,6 +6,8 @@ import EquityChart from "../../components/EquityChart.astro";
 import YearBars from "../../components/YearBars.astro";
 import Icon from "../../components/Icon.astro";
 import ReadingGuide from "../../components/ReadingGuide.astro";
+import StrategyDemo from "../../components/StrategyDemo.astro";
+import { demoFor } from "../../data/demos";
 import { strategies, curve, gatesPassed, yearRange, VARIANT_COLORS, type Strategy } from "../../lib/data";
 import { usdK, usd, int, pct, date } from "../../lib/format";
 
@@ -18,6 +20,7 @@ export function getStaticPaths() {
 interface Props { s: Strategy; prev: Strategy | null; next: Strategy | null }
 const { s, prev, next } = Astro.props;
 const t = s.text;
+const demo = demoFor(s.id);
 const years = yearRange();
 const variants = [...s.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor);
 const series = variants.map((v, i) => ({ id: v.hash, name: v.label, color: VARIANT_COLORS[i % VARIANT_COLORS.length], points: curve(v) }));
@@ -73,6 +76,18 @@ const exits = Object.entries(b.exits).sort((a, c) => c[1] - a[1]);
       </div>
     </section>
   </div>
+
+  {demo && (
+    <section class="panel" aria-labelledby="demo-h">
+      <div class="panel-head">
+        <h2 id="demo-h">One trade, step by step</h2>
+        <p>Made-up candles · real strategy code · {demo.variant}</p>
+      </div>
+      <div class="panel-body">
+        <StrategyDemo demo={demo} name={s.name} />
+      </div>
+    </section>
+  )}
 
   <section class="panel" aria-labelledby="res-h">
     <div class="panel-head">
