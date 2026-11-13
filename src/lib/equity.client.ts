@@ -58,6 +58,8 @@ for (const fig of document.querySelectorAll<HTMLElement>("[data-equity]")) {
     else fig.dataset.focus = String(i);
     for (const el of [...lines, ...ends]) el.classList.toggle("on", Number(el.dataset.i) === i);
     for (const b of buttons) b.setAttribute("aria-pressed", String(Number(b.dataset.i) === i));
+    // Panels for one version (data-vpanel = its line index) follow the highlighted line; none chosen: the best (0).
+    for (const p of document.querySelectorAll<HTMLElement>("[data-vpanel]")) p.hidden = Number(p.dataset.vpanel) !== (i ?? 0);
   };
   if (fig.dataset.focus != null) focus(Number(fig.dataset.focus));
   for (const b of buttons) {

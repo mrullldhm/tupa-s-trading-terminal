@@ -26,9 +26,9 @@ const variants = [...s.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) 
 const colorOf = variantColors(variants);
 const series = variants.map((v) => ({ id: v.hash, name: v.label, color: colorOf.get(v.hash)!, points: curve(v) }));
 const b = s.best;
-const exitTotal = Object.values(b.exits).reduce((n, x) => n + x, 0);
+const exitTotal = (v: typeof b) => Object.values(v.exits).reduce((n, x) => n + x, 0);
 const exitWords: Record<string, string> = { stop: "Stop hit", target: "Target hit", flatten: "Closed at 3:10 PM", manage: "Closed by trade rules", day_end: "Closed at day end", roll: "Closed at contract roll", partial: "Part profit taken", time: "Time limit" };
-const exits = Object.entries(b.exits).sort((a, c) => c[1] - a[1]);
+const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1]);
 ---
 <Base title={s.name} description={`${s.name}: ${s.short} Tested on CL futures against the Topstep 50K Combine.`} crumbs={[{ href: "/strategies/", label: "Strategies" }, { label: s.name }]}>
   <header class="head">
@@ -134,42 +134,44 @@ const exits = Object.entries(b.exits).sort((a, c) => c[1] - a[1]);
     </div>
   </section>
 
-  <div class="split">
-    <section class="panel" aria-labelledby="yr-h">
+  {variants.map((v, i) => (
+  <div class="split" data-vpanel={i} hidden={i !== 0}>
+    <section class="panel" aria-labelledby={`yr-h-${i}`}>
       <div class="panel-head">
-        <h2 id="yr-h">Profit per year</h2>
-        <p>{b.label} · {b.years_positive} of {b.years_total} years in profit</p>
+        <h2 id={`yr-h-${i}`}>Profit per year</h2>
+        <p>{v.label} · {v.years_positive} of {v.years_total} years in profit</p>
       </div>
       <div class="panel-body">
-        <YearBars years={b.years} label={`${s.name} ${b.label}: profit or loss per year`} />
+        <YearBars years={v.years} label={`${s.name} ${v.label}: profit or loss per year`} />
         <details class="tbl">
           <summary>Show as table</summary>
           <table>
             <thead><tr><th>Year</th><th class="r">Net profit</th></tr></thead>
-            <tbody>{b.years.map((y) => <tr><td class="num">{y.year}</td><td class="r num">{usd(y.net)}</td></tr>)}</tbody>
+            <tbody>{v.years.map((y) => <tr><td class="num">{y.year}</td><td class="r num">{usd(y.net)}</td></tr>)}</tbody>
           </table>
         </details>
       </div>
     </section>
-    <section class="panel" aria-labelledby="ex-h">
+    <section class="panel" aria-labelledby={`ex-h-${i}`}>
       <div class="panel-head">
-        <h2 id="ex-h">How trades ended</h2>
-        <p>{b.label} · {int(exitTotal)} trades</p>
+        <h2 id={`ex-h-${i}`}>How trades ended</h2>
+        <p>{v.label} · {int(exitTotal(v))} trades</p>
       </div>
       <div class="panel-body">
         <ul class="exits">
-          {exits.map(([k, n]) => (
+          {exits(v).map(([k, n]) => (
             <li>
               <span>{exitWords[k] ?? k}</span>
-              <span class="bar"><span style={`width:${(n / exitTotal) * 100}%`}></span></span>
-              <span class="num">{pct(n / exitTotal, 0)}</span>
+              <span class="bar"><span style={`width:${(n / exitTotal(v)) * 100}%`}></span></span>
+              <span class="num">{pct(n / exitTotal(v), 0)}</span>
             </li>
           ))}
         </ul>
-        <p class="faint small">Combine attempts back to back: {b.seq_passes} passed, {b.seq_fails} failed.</p>
+        <p class="faint small">Combine attempts back to back: {v.seq_passes} passed, {v.seq_fails} failed.</p>
       </div>
     </section>
   </div>
+  ))}
 
   <nav class="pager" aria-label="More strategies">
     {prev ? <a class="btn" href={`/strategies/${prev.slug}/`}><Icon name="back" />{prev.name}</a> : <span></span>}
@@ -198,6 +200,7 @@ const exits = Object.entries(b.exits).sort((a, c) => c[1] - a[1]);
   .demo-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem 1rem; margin-bottom: 0.9rem; }
   .demo-head p { font-size: 0.8rem; color: var(--ink-3); }
   .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .split[hidden] { display: none; }
   .split .panel + .panel { margin-top: 0; }
   .prose h2 { color: var(--ink); margin-bottom: 0.8rem; }
   .src { font-size: 0.875rem; }
