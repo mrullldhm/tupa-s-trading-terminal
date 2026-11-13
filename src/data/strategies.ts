@@ -157,7 +157,7 @@ export const STRATEGY_TEXT: StrategyText[] = [
     verdict: "Fails badly. It loses even before fees. The 57% win rate comes from many tiny protected wins, while losses are full stops.",
     lessons: [
       "A high win rate can still lose money when wins are small and losses are full size.",
-      "The gold-to-oil point conversion was our assumption, so we tested it 3× wider too. Same result.",
+      "Requiring every signal to agree (score 7 of 7) cut trades from 8,499 to 3,190 but lost more per trade. Full confluence adds no edge.",
     ],
   },
 ];

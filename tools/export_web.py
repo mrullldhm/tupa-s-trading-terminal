@@ -37,7 +37,7 @@ def variant_label(strategy: str, p: dict) -> str:
     if strategy == "scribd_supertrend":
         return "trailing exit" if p["exit"] == "trail" else "fixed 15-point target"
     if strategy == "ict_ea":
-        return "source settings" if p["pt_frac"] < 1e-5 else "wider stops (3×)"
+        return "all components (score 7)" if p["min_conf"] >= 7 else "source settings"
     return ", ".join(f"{k}={v}" for k, v in p.items())
 
 

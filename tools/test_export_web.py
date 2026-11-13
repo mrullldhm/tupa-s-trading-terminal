@@ -11,8 +11,8 @@ def test_variant_labels_name_only_the_parameters_that_vary():
     assert ex.variant_label("xtley_gap", {"tf": "15m", "trail": True}) == "15m · trailing stop"
     assert ex.variant_label("purple_pa", {"tf": "5m"}) == "5m candles"
     assert ex.variant_label("scribd_supertrend", {"exit": "fixed"}) == "fixed 15-point target"
-    assert ex.variant_label("ict_ea", {"pt_frac": 6.7e-06}) == "source settings"
-    assert ex.variant_label("ict_ea", {"pt_frac": 2e-05}) == "wider stops (3×)"
+    assert ex.variant_label("ict_ea", {"min_conf": 3}) == "source settings"
+    assert ex.variant_label("ict_ea", {"min_conf": 7}) == "all components (score 7)"
 
 
 def test_status_line_is_parsed(tmp_path, monkeypatch):
