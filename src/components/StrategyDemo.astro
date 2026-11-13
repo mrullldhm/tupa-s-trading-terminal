@@ -1,8 +1,9 @@
 ---
-// One worked example trade on made-up candles, replayed step by step. Server-drawn SVG; stepping and the hover
-// readout come from demo.client.ts. Without JS every step and every layer shows at once.
+// One worked example trade on made-up candles, replayed step by step inside a chart-app frame (trading-app look:
+// toolbar, OHLC legend, volume, last-price tag, side panel). Server-drawn SVG; stepping, autoplay and the
+// live legend come from demo.client.ts. Without JS every step and every layer shows at once.
 import Icon from "./Icon.astro";
-import { stepsFor, stopMoved, tfWords, type Demo, type DemoLine } from "../data/demos";
+import { stepsFor, stopMoved, tfWords, type Demo } from "../data/demos";
 import { usd } from "../lib/format";
 
 interface Props { demo: Demo; name: string }
@@ -10,34 +11,59 @@ const { demo: d, name } = Astro.props;
 const t = d.trade;
 const steps = stepsFor(d);
 const N = d.candles.length;
+const last = d.candles[N - 1];
+
+// --- legend items: price-pane overlays merged by name (Supertrend up/down is one line), then pane lines ---
+const base = (n: string) => n.split(" (")[0];
+const groups = new Map<string, typeof d.overlays>();
+for (const o of d.overlays) groups.set(base(o.name), [...(groups.get(base(o.name)) ?? []), o]);
+const overlayItems = [...groups.values()].map((g) => ({
+  name: g.length > 1 ? base(g[0].name) : g[0].name,
+  color: g[0].color,
+  dash: !!g[0].dash,
+  values: g[0].values.map((_, i) => g.map((o) => o.values[i]).find((v) => v != null) ?? null),
+}));
+const dpOf = (vals: (number | null)[], paneKey?: string) =>
+  paneKey === "rsi" || paneKey === "hm" ? 1 : vals.some((v) => v != null && Math.abs(v) < 5) ? 3 : 2;
 
 // --- geometry (viewBox units; vertical units equal CSS px because the plot height is fixed) ---
-const W = 1000, PL = 6, PR = 62, MH = 330, PH = 92, GAP = 30, XB = 26;
+const W = 1000, PL = 0, PR = 64, PH = 92, GAP = 28, XB = 24;
+// level lines far from the candles stay off the chart; the legend names them instead
+const hlines = d.marks.filter((m) => m.kind === "hline");
+const cLo0 = Math.min(...d.candles.map((c) => c.l)), cHi0 = Math.max(...d.candles.map((c) => c.h));
+const isNear = (v: number) => v >= cLo0 - (cHi0 - cLo0) * 0.6 && v <= cHi0 + (cHi0 - cLo0) * 0.6;
+const offChart = hlines.filter((m) => !m.faint && !isNear(m.price!));
+const onChart = hlines.filter((m) => isNear(m.price!));
+// room for the legend block: OHLC row, one row per indicator (or one note row), one per off-chart level
+const MT = 34 + (Math.max(1, overlayItems.length) + offChart.length) * 18;
+const MH = 300 + MT;
+const VOL = 44; // volume band at the bottom of the price pane
 const H = MH + d.panes.length * (GAP + PH) + XB;
 const slot = (W - PL - PR) / N;
-const bw = Math.max(1.2, slot * 0.62);
+const bw = Math.max(1.2, slot * 0.66);
 const x = (i: number) => PL + (i + 0.5) * slot;
 const xl = (i: number) => x(i) - slot / 2;
 const xr = (i: number) => x(i) + slot / 2;
 const pctX = (v: number) => `${(v / W) * 100}%`;
 
-// price range: candles, overlays, trade levels and non-faint marks
+// price range: candles, overlays, trade levels and marks near the candles
 const vals: number[] = d.candles.flatMap((c) => [c.h, c.l]);
 for (const o of d.overlays) for (const v of o.values) if (v != null) vals.push(v);
 vals.push(t.limit, t.stop, t.exit, ...(t.target != null ? [t.target] : []), ...t.stop_path.flatMap((p) => (p[1] == null ? [] : [p[1]])));
-const cLo = Math.min(...d.candles.map((c) => c.l)), cHi = Math.max(...d.candles.map((c) => c.h));
-const near = (v: number) => v >= cLo - (cHi - cLo) * 0.6 && v <= cHi + (cHi - cLo) * 0.6;
-for (const m of d.marks) if (m.price != null && !m.faint && near(m.price)) vals.push(m.price);
+
+
+for (const m of onChart) if (!m.faint) vals.push(m.price!);
 for (const m of d.marks) if (m.lo != null) vals.push(m.lo, m.hi!);
 let lo = Math.min(...vals), hi = Math.max(...vals);
-const padP = (hi - lo) * 0.08 || 0.05;
+const padP = (hi - lo) * 0.06 || 0.05;
 lo -= padP; hi += padP;
-const MT = 34; // room for the legend row inside the price pane
-const y = (v: number) => MT + (1 - (v - lo) / (hi - lo)) * (MH - MT - 8);
-const raw = (hi - lo) / 6, mag = 10 ** Math.floor(Math.log10(raw));
+const PB = MH - VOL * 0.55; // price area bottom; volume tucks under the lowest candles
+const y = (v: number) => MT + (1 - (v - lo) / (hi - lo)) * (PB - MT);
+const raw = (hi - lo) / 7, mag = 10 ** Math.floor(Math.log10(raw));
 const pstep = [1, 2, 2.5, 5, 10].map((k) => k * mag).find((k) => k >= raw)!;
 const pticks: number[] = [];
 for (let v = Math.ceil(lo / pstep) * pstep; v <= hi; v += pstep) pticks.push(+v.toFixed(4));
+const vmax = Math.max(...d.candles.map((c) => c.v), 1);
 
 // sub panes
 const panes = d.panes.map((p, k) => {
@@ -49,13 +75,12 @@ const panes = d.panes.map((p, k) => {
   return { ...p, top, py };
 });
 
-const pathOf = (vals: (number | null)[], fy: (v: number) => number, step = false) => {
+const pathOf = (vs: (number | null)[], fy: (v: number) => number, step = false) => {
   let s = "", pen = false;
-  vals.forEach((v, i) => {
+  vs.forEach((v, i) => {
     if (v == null) { pen = false; return; }
-    if (step) {
-      s += `${pen ? "L" : "M"}${xl(i).toFixed(1)},${fy(v).toFixed(1)}L${xr(i).toFixed(1)},${fy(v).toFixed(1)}`;
-    } else s += `${pen ? "L" : "M"}${x(i).toFixed(1)},${fy(v).toFixed(1)}`;
+    if (step) s += `${pen ? "L" : "M"}${xl(i).toFixed(1)},${fy(v).toFixed(1)}L${xr(i).toFixed(1)},${fy(v).toFixed(1)}`;
+    else s += `${pen ? "L" : "M"}${x(i).toFixed(1)},${fy(v).toFixed(1)}`;
     pen = true;
   });
   return s;
@@ -67,7 +92,6 @@ const days = d.candles.map((c, i) => ({ i, c })).filter(({ c }) => c.nd);
 const xlabels = d.candles.map((c, i) => ({ i, c }))
   .filter(({ i, c }) => c.nd || (i % every === Math.floor(every / 2) && days.every((z) => Math.abs(z.i - i) > every * 0.7)));
 
-// part-profit candle: first candle after the fill whose range reaches the part price
 const partI = t.part_exit != null ? (() => {
   for (let i = t.entry_i; i <= t.exit_i; i++) { const c = d.candles[i]; if (c.l <= t.part_exit! && c.h >= t.part_exit!) return i; }
   return null;
@@ -82,184 +106,296 @@ const stopD = t.stop_path.map(([p, v], k) => {
 }).join("");
 const buy = t.side === 1;
 const tgtOn = t.target != null;
+const symbol = "CL";
+// axis tags for the order: pushed apart (top to bottom) so close levels never overlap
+const TAG_GAP = 17;
+const tradeTags = [
+  ...(tgtOn ? [{ cls: "tgt", label: "Target", price: t.target! }] : []),
+  { cls: "ent", label: buy ? "Buy" : "Sell", price: t.limit },
+  { cls: "stp", label: "Stop", price: t.stop },
+].map((g) => ({ ...g, top: y(g.price) })).sort((a, b) => a.top - b.top);
+for (let k = 1; k < tradeTags.length; k++) tradeTags[k].top = Math.max(tradeTags[k].top, tradeTags[k - 1].top + TAG_GAP);
+const levelsOnly = !overlayItems.length && d.marks.some((m) => m.kind === "hline");
 
-const dp = (l: DemoLine, pane?: string) => (pane === "rsi" || pane === "hm" ? 1 : l.values.some((v) => v != null && Math.abs(v) < 5) ? 3 : 2);
+const paneItems = panes.flatMap((p) => p.lines.map((l) => ({ name: l.name, color: l.color, values: l.values, dp: dpOf(l.values, p.key) })));
+const items = [
+  ...overlayItems.map((o) => ({ v: o.values, dp: 2 })),
+  ...paneItems.map((l) => ({ v: l.values, dp: l.dp })),
+];
+const fmt = (v: number | null, dp: number) => (v == null ? "–" : v.toFixed(dp));
+const chg = (i: number) => {
+  const c = d.candles[i], prev = i > 0 ? d.candles[i - 1].c : c.o;
+  const ch = c.c - prev;
+  return `${ch >= 0 ? "+" : "−"}${Math.abs(ch).toFixed(2)} (${ch >= 0 ? "+" : "−"}${Math.abs((ch / prev) * 100).toFixed(2)}%)`;
+};
 const payload = JSON.stringify({
-  W, PL, PR, N,
+  W, PL, PR, N, MT, PB, lo, hi,
   c: d.candles.map((c) => [c.o, c.h, c.l, c.c, `${c.d} ${c.t}`]),
-  lines: [
-    ...d.overlays.filter((o) => !o.key.startsWith("band")).map((o) => ({ n: o.name, col: o.color, v: o.values, dp: 2 })),
-    ...d.panes.flatMap((p) => p.lines.map((l) => ({ n: l.name, col: l.color, v: l.values, dp: dp(l, p.key) }))),
-  ],
+  items,
   steps: steps.map((s) => ({ at: s.at, show: s.show })),
 });
-const legend = d.overlays.filter((o, i, a) => a.findIndex((z) => z.name.split(" (")[0] === o.name.split(" (")[0]) === i);
 ---
 <figure class="demo" data-demo={payload} style={`--h:${H}px`}>
-  <div class="stage">
-    <div class="plot" role="img" aria-label={`Worked example of ${name} on made-up ${tfWords(d.tf)} candles: a ${buy ? "buy" : "sell"} at ${usd(t.entry, { sign: false, cents: true })}, closed at ${usd(t.exit, { sign: false, cents: true })} for ${usd(t.net, { cents: true })}.`}>
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <clipPath id={`clip-${d.id}`}><rect x={PL} y="0" width={W - PL - PR} height={MH} /></clipPath>
-        </defs>
-        {pticks.map((v) => <line class="grid" x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} vector-effect="non-scaling-stroke" />)}
-        {days.map(({ i }) => <line class="day" x1={xl(i)} x2={xl(i)} y1="0" y2={H - XB} vector-effect="non-scaling-stroke" />)}
+  <div class="frame">
+    <div class="tb">
+      <span class="sym"><i aria-hidden="true">{symbol}</i><b>{symbol}</b><span class="faint">Crude oil · made-up</span></span>
+      <span class="chip num">{d.tf}</span>
+      <span class="sep" aria-hidden="true"></span>
+      <button type="button" class="tbtn" data-ind aria-pressed="true" disabled={!overlayItems.length && !panes.length} title="Show or hide the indicators">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12.5 6 7l3 3 5-6.5" /></svg>
+        <span>Indicators</span><span class="cnt num">{overlayItems.length + paneItems.length}</span>
+      </button>
+      <button type="button" class="tbtn" data-play hidden title="Play the steps one after another">
+        <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3 3 8l5 5M13 3 8 8l5 5" /></svg>
+        <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5v9M10.5 3.5v9" /></svg>
+        <span class="lbl">Replay</span>
+      </button>
+      <span class="grow"></span>
+      <span class="flag"><Icon name="warn" size={12} />Made-up candles</span>
+    </div>
 
-        <g clip-path={`url(#clip-${d.id})`}>
-          {/* candle highlights sit behind everything */}
-          {d.marks.filter((m) => m.kind === "candle").map((m) => (
-            <rect class="ly hl" data-ly={m.layer} x={xl(m.i!)} width={slot} y="0" height={MH} />
-          ))}
-          {/* trade zones */}
-          <g class="ly" data-ly="order">
-            <rect class="zone-stop" x={xr(t.signal)} width={xr(t.exit_i) - xr(t.signal)} y={Math.min(y(t.limit), y(t.stop))} height={Math.abs(y(t.limit) - y(t.stop))} />
-            {tgtOn && <rect class="zone-tgt" x={xr(t.signal)} width={xr(t.exit_i) - xr(t.signal)} y={Math.min(y(t.limit), y(t.target!))} height={Math.abs(y(t.limit) - y(t.target!))} />}
-            <line class="lvl-stop" x1={xr(t.signal)} x2={xr(t.exit_i)} y1={y(t.stop)} y2={y(t.stop)} vector-effect="non-scaling-stroke" />
-            {tgtOn && <line class="lvl-tgt" x1={xr(t.signal)} x2={xr(t.exit_i)} y1={y(t.target!)} y2={y(t.target!)} vector-effect="non-scaling-stroke" />}
-            <line class="lvl-wait" x1={xr(t.signal)} x2={xl(t.entry_i)} y1={y(t.limit)} y2={y(t.limit)} vector-effect="non-scaling-stroke" />
-          </g>
-          <line class="ly lvl-entry" data-ly="fill" x1={xl(t.entry_i)} x2={xr(t.exit_i)} y1={y(t.entry)} y2={y(t.entry)} vector-effect="non-scaling-stroke" />
-          {/* levels and zones from the strategy */}
-          {d.marks.filter((m) => m.kind === "hline").map((m) => (
-            <line class:list={["ly", "lvl", m.faint && "faint"]} data-ly={m.layer} x1={xl(m.from!)} x2={xr(m.to!)} y1={y(m.price!)} y2={y(m.price!)} vector-effect="non-scaling-stroke" />
-          ))}
-          {d.marks.filter((m) => m.kind === "zone").map((m) => (
-            <rect class:list={["ly", "mz", m.tone]} data-ly={m.layer} x={xl(m.i0!)} width={xr(m.i1!) - xl(m.i0!)} y={y(m.hi!)} height={Math.max(1, y(m.lo!) - y(m.hi!))} vector-effect="non-scaling-stroke" />
-          ))}
-          {/* overlays */}
-          {d.overlays.map((o) => (
-            <path class:list={["ov", o.dash && "dash"]} d={pathOf(o.values, y, o.step)} stroke={o.color} vector-effect="non-scaling-stroke" />
-          ))}
-          {/* candles */}
-          {d.candles.map((c, i) => {
-            const up = c.c >= c.o;
-            const top = y(Math.max(c.o, c.c)), bot = y(Math.min(c.o, c.c));
-            return (
-              <g class:list={["cd", up ? "up" : "dn"]}>
-                <line x1={x(i)} x2={x(i)} y1={y(c.h)} y2={y(c.l)} vector-effect="non-scaling-stroke" />
-                <rect x={x(i) - bw / 2} width={bw} y={top} height={Math.max(1, bot - top)} vector-effect="non-scaling-stroke" />
+    <div class="body">
+
+      <div class="chart">
+        <div class="plot" role="img" aria-label={`Worked example of ${name} on made-up ${tfWords(d.tf)} candles: a ${buy ? "buy" : "sell"} at ${usd(t.entry, { sign: false, cents: true })}, closed at ${usd(t.exit, { sign: false, cents: true })} for ${usd(t.net, { cents: true })}.`}>
+          <div class="wm" aria-hidden="true" style={`top:${(MT + PB) / 2}px`}>{symbol} · {d.tf}</div>
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <clipPath id={`clip-${d.id}`}><rect x={PL} y="0" width={W - PL - PR} height={MH} /></clipPath>
+            </defs>
+            {pticks.map((v) => <line class="grid" x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} vector-effect="non-scaling-stroke" />)}
+            {xlabels.map(({ i }) => <line class="grid" x1={x(i)} x2={x(i)} y1="0" y2={H - XB} vector-effect="non-scaling-stroke" />)}
+            {days.map(({ i }) => <line class="day" x1={xl(i)} x2={xl(i)} y1="0" y2={H - XB} vector-effect="non-scaling-stroke" />)}
+            <line class="axis" x1={W - PR} x2={W - PR} y1="0" y2={H} vector-effect="non-scaling-stroke" />
+            <line class="axis" x1="0" x2={W} y1={H - XB} y2={H - XB} vector-effect="non-scaling-stroke" />
+
+            <g clip-path={`url(#clip-${d.id})`}>
+              {d.marks.filter((m) => m.kind === "candle").map((m) => (
+                <rect class="ly hl" data-ly={m.layer} x={xl(m.i!)} width={slot} y="0" height={MH} />
+              ))}
+              {/* volume */}
+              {d.candles.map((c, i) => (
+                <rect class:list={["vol", c.c >= c.o ? "up" : "dn"]} x={x(i) - bw / 2} width={bw} y={MH - (c.v / vmax) * VOL} height={(c.v / vmax) * VOL} />
+              ))}
+              {/* trade zones */}
+              <g class="ly" data-ly="order">
+                <rect class="zone-stop" x={xr(t.signal)} width={xr(t.exit_i) - xr(t.signal)} y={Math.min(y(t.limit), y(t.stop))} height={Math.abs(y(t.limit) - y(t.stop))} />
+                {tgtOn && <rect class="zone-tgt" x={xr(t.signal)} width={xr(t.exit_i) - xr(t.signal)} y={Math.min(y(t.limit), y(t.target!))} height={Math.abs(y(t.limit) - y(t.target!))} />}
+                <line class="lvl-stop" x1={xr(t.signal)} x2={xr(t.exit_i)} y1={y(t.stop)} y2={y(t.stop)} vector-effect="non-scaling-stroke" />
+                {tgtOn && <line class="lvl-tgt" x1={xr(t.signal)} x2={xr(t.exit_i)} y1={y(t.target!)} y2={y(t.target!)} vector-effect="non-scaling-stroke" />}
+                <line class="lvl-wait" x1={xr(t.signal)} x2={xl(t.entry_i)} y1={y(t.limit)} y2={y(t.limit)} vector-effect="non-scaling-stroke" />
               </g>
+              <line class="ly lvl-entry" data-ly="fill" x1={xl(t.entry_i)} x2={xr(t.exit_i)} y1={y(t.entry)} y2={y(t.entry)} vector-effect="non-scaling-stroke" />
+              {d.marks.filter((m) => m.kind === "hline").map((m) => (
+                <line class:list={["ly", "lvl", m.faint && "faint"]} data-ly={m.layer} x1={xl(m.from!)} x2={xr(m.to!)} y1={y(m.price!)} y2={y(m.price!)} vector-effect="non-scaling-stroke" />
+              ))}
+              {d.marks.filter((m) => m.kind === "zone").map((m) => (
+                <rect class:list={["ly", "mz", m.tone]} data-ly={m.layer} x={xl(m.i0!)} width={xr(m.i1!) - xl(m.i0!)} y={y(m.hi!)} height={Math.max(1, y(m.lo!) - y(m.hi!))} vector-effect="non-scaling-stroke" />
+              ))}
+              <g class="ind">
+                {d.overlays.map((o) => (
+                  <path class:list={["ov", o.dash && "dash"]} d={pathOf(o.values, y, o.step)} stroke={o.color} vector-effect="non-scaling-stroke" />
+                ))}
+              </g>
+              {d.candles.map((c, i) => {
+                const up = c.c >= c.o;
+                const top = y(Math.max(c.o, c.c)), bot = y(Math.min(c.o, c.c));
+                return (
+                  <g class:list={["cd", up ? "up" : "dn"]}>
+                    <line x1={x(i)} x2={x(i)} y1={y(c.h)} y2={y(c.l)} vector-effect="non-scaling-stroke" />
+                    <rect x={x(i) - bw / 2} width={bw} y={top} height={Math.max(1, bot - top)} />
+                  </g>
+                );
+              })}
+              {moved && <path class="ly stop-path" data-ly="manage" d={stopD} vector-effect="non-scaling-stroke" />}
+              <line class="lastline" x1={PL} x2={W - PR} y1={y(last.c)} y2={y(last.c)} vector-effect="non-scaling-stroke" />
+            </g>
+
+            {panes.map((p) => (
+              <g>
+                <line class="axis" x1="0" x2={W - PR} y1={p.top - GAP} y2={p.top - GAP} vector-effect="non-scaling-stroke" />
+                {p.guides.map((g) => <line class="guide" x1={PL} x2={W - PR} y1={p.py(g.v)} y2={p.py(g.v)} vector-effect="non-scaling-stroke" />)}
+                {d.marks.filter((m) => m.kind === "candle").map((m) => (
+                  <rect class="ly hl" data-ly={m.layer} x={xl(m.i!)} width={slot} y={p.top - GAP} height={PH + GAP} />
+                ))}
+                <g class="ind">{p.lines.map((l) => <path class="ov" d={pathOf(l.values, p.py)} stroke={l.color} vector-effect="non-scaling-stroke" />)}</g>
+              </g>
+            ))}
+            <line class="cross" x1="0" x2="0" y1="0" y2={H - XB} vector-effect="non-scaling-stroke" />
+          </svg>
+
+          {/* legend: symbol line with OHLC, then one row per indicator with its value at the cursor */}
+          <div class="lgd">
+            <div class="ohlc num">
+              <b>{symbol} · {d.tf}</b>
+              <span>O <em data-o>{last.o.toFixed(2)}</em></span>
+              <span>H <em data-h>{last.h.toFixed(2)}</em></span>
+              <span>L <em data-l>{last.l.toFixed(2)}</em></span>
+              <span>C <em data-c>{last.c.toFixed(2)}</em></span>
+              <span class="chg" data-chg>{chg(N - 1)}</span>
+            </div>
+            {overlayItems.map((o, k) => (
+              <div class="li ind">
+                <i class:list={[o.dash && "dash"]} style={o.dash ? `border-top-color:${o.color}` : `background:${o.color}`}></i>
+                <span>{o.name}</span><em class="num" data-li={k} style={`color:${o.color}`}>{fmt(o.values[N - 1], 2)}</em>
+              </div>
+            ))}
+            {levelsOnly && <div class="li faint">Dotted lines: price levels from the rules</div>}
+            {offChart.map((m) => (
+              <div class="li ly faint" data-ly={m.layer}>{m.price! > hi ? "↑" : "↓"} {m.label} {m.price!.toFixed(2)}, {m.price! > hi ? "above" : "below"} the chart</div>
+            ))}
+            {!overlayItems.length && !levelsOnly && <div class="li faint">Candles only, no indicators</div>}
+          </div>
+          {panes.map((p, k) => {
+            const offset = overlayItems.length + panes.slice(0, k).reduce((n, q) => n + q.lines.length, 0);
+            return (
+              <div class="ptitle" style={`top:${p.top - GAP + 6}px`}>
+                <b>{p.title}</b>
+                {p.lines.map((l, j) => (
+                  <span><i style={`background:${l.color}`}></i>{p.lines.length > 1 && l.name}<em class="num" data-li={offset + j} style={`color:${l.color}`}>{fmt(l.values[N - 1], dpOf(l.values, p.key))}</em></span>
+                ))}
+              </div>
             );
           })}
-          {/* trade management and markers */}
-          {moved && (
-            <path class="ly stop-path" data-ly="manage" d={stopD} vector-effect="non-scaling-stroke" />
-          )}
-        </g>
 
-        {panes.map((p) => (
-          <g>
-            <rect class="pane" x={PL} y={p.top} width={W - PL - PR} height={PH} vector-effect="non-scaling-stroke" />
-            {p.guides.map((g) => <line class="guide" x1={PL} x2={W - PR} y1={p.py(g.v)} y2={p.py(g.v)} vector-effect="non-scaling-stroke" />)}
-            {d.marks.filter((m) => m.kind === "candle").map((m) => (
-              <rect class="ly hl" data-ly={m.layer} x={xl(m.i!)} width={slot} y={p.top} height={PH} />
-            ))}
-            {p.lines.map((l) => <path class="ov" d={pathOf(l.values, p.py)} stroke={l.color} vector-effect="non-scaling-stroke" />)}
-          </g>
-        ))}
-        <line class="cross" x1="0" x2="0" y1="0" y2={H - XB} vector-effect="non-scaling-stroke" />
-      </svg>
-
-      {/* HTML labels keep their shape when the SVG stretches */}
-      <div class="lgd" aria-hidden="true">
-        {legend.length ? legend.map((o) => <span><i class:list={[o.dash && "dash"]} style={o.dash ? `border-top-color:${o.color}` : `background:${o.color}`}></i>{o.name.replace(" (up)", "")}</span>)
-          : <span class="faint">{d.marks.some((m) => m.kind === "hline") ? "Dotted lines: price levels from the rules" : "Candles only, no indicators"}</span>}
-      </div>
-      {panes.map((p) => (
-        <div class="ptitle" style={`top:${p.top - 21}px`} aria-hidden="true">
-          <b>{p.title}</b>
-          {p.lines.length > 1 && p.lines.map((l) => <span><i style={`background:${l.color}`}></i>{l.name}</span>)}
-        </div>
-      ))}
-      <div class="yax" aria-hidden="true">
-        {pticks.map((v) => <span style={`top:${y(v)}px`}>{v.toFixed(2)}</span>)}
-        {panes.flatMap((p) => p.guides.map((g) => <span style={`top:${p.py(g.v)}px`}>{g.label}</span>))}
-      </div>
-      <div class="tags" aria-hidden="true">
-        {tgtOn && <span class="tag ly tgt" data-ly="order" style={`top:${y(t.target!)}px`}>Target {t.target!.toFixed(2)}</span>}
-        <span class="tag ly ent" data-ly="order" style={`top:${y(t.limit)}px`}>{buy ? "Buy" : "Sell"} {t.limit.toFixed(2)}</span>
-        <span class="tag ly stp" data-ly="order" style={`top:${y(t.stop)}px`}>Stop {t.stop.toFixed(2)}</span>
-      </div>
-      {d.marks.filter((m) => m.kind === "hline").map((m) => {
-        const off = m.price! > hi ? "above" : m.price! < lo ? "below" : null;
-        if (off && m.faint) return null;
-        const top = off === "above" ? MT + 12 : off === "below" ? MH - 6 : y(m.price!);
-        return (
-          <span class:list={["mlabel", "ly", m.faint && "faint", off && "off"]} data-ly={m.layer} style={`left:${pctX(xl(m.from!) + 4)};top:${top}px`} aria-hidden="true">
-            {m.label}{off && ` ${m.price!.toFixed(2)}, ${off} the chart ${off === "above" ? "↑" : "↓"}`}
-          </span>
-        );
-      })}
-      {d.marks.filter((m) => m.kind === "candle").map((m) => (
-        <span class="clabel ly" data-ly={m.layer} style={`left:${pctX(x(m.i!))};top:${y(d.candles[m.i!].l) + 8}px`} aria-hidden="true">{m.label}</span>
-      ))}
-      {d.marks.filter((m) => m.kind === "zone").map((m) => (
-        <span class="clabel ly zl" data-ly={m.layer} style={`left:${pctX((xl(m.i0!) + xr(m.i1!)) / 2)};top:${y(m.hi!) - 20}px`} aria-hidden="true">{m.label}</span>
-      ))}
-      <span class="dot ly ent" data-ly="fill" style={`left:${pctX(x(t.entry_i))};top:${y(t.entry)}px`} aria-hidden="true"></span>
-      {partI != null && <span class="dot ly part" data-ly="exit" style={`left:${pctX(x(partI))};top:${y(t.part_exit!)}px`} aria-hidden="true"></span>}
-      <span class="dot ly out" data-ly="exit" style={`left:${pctX(x(t.exit_i))};top:${y(t.exit)}px`} aria-hidden="true"></span>
-      <span class="exit-tag ly num" data-ly="exit" style={`left:${pctX(x(t.exit_i))};top:${y(t.exit)}px`} aria-hidden="true">{usd(t.net, { cents: true })}</span>
-      <div class="xax" aria-hidden="true">
-        {xlabels.map(({ i, c }, k) => <span class:list={[c.nd && "nd", !c.nd && k % 2 === 1 && "odd"]} style={`left:${pctX(x(i))}`}>{c.nd ? `${c.d} ${c.t}` : c.t}</span>)}
-      </div>
-      <div class="curtain" style={`right:${pctX(PR)}`} aria-hidden="true" hidden><span>Not happened yet</span></div>
-      <div class="tip" aria-hidden="true" hidden></div>
-    </div>
-    <p class="caption">
-      <Icon name="warn" size={13} />
-      <span>Made-up {tfWords(d.tf)} candles, not real oil prices (we may not publish market data). The signal, fill and exit come from the same strategy code and engine as the tests ({d.variant}). Times are Chicago. One example shows how the rules work, not whether they make money: see the results below.</span>
-    </p>
-  </div>
-
-  <div class="rail">
-    <div class="rail-head">
-      <h3>Step by step</h3>
-      <div class="ctl">
-        <button type="button" class="ib" data-go="-1" aria-label="Previous step" hidden><Icon name="back" /></button>
-        <span class="count num" aria-live="polite" hidden></span>
-        <button type="button" class="ib" data-go="1" aria-label="Next step" hidden><Icon name="arrow" /></button>
-      </div>
-    </div>
-    <ol class="steps">
-      {steps.map((s, k) => (
-        <li data-k={k}>
-          <button type="button" class="st" data-k={k}><span class="n num">{k + 1}</span><span>{s.title}</span></button>
-          <div class="body">
-            <p>{s.text}</p>
-            {s.checks && (
-              <ul class="checks">
-                {s.checks.map((c) => (
-                  <li class:list={[c.ok ? "ok" : "no"]}>
-                    <Icon name={c.ok ? "check" : "cross"} size={14} />
-                    <span class="cl">{c.label}</span>
-                    <span class="cv num">{c.value}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div class="yax" aria-hidden="true">
+            {pticks.map((v) => <span style={`top:${y(v)}px`}>{v.toFixed(2)}</span>)}
+            {panes.flatMap((p) => p.guides.map((g) => <span style={`top:${p.py(g.v)}px`}>{g.label}</span>))}
           </div>
-        </li>
-      ))}
-    </ol>
+          <div class="tags" aria-hidden="true">
+            {tradeTags.map((g) => <span class:list={["tag", "ly", g.cls]} data-ly="order" style={`top:${g.top}px`}><b>{g.label}</b> {g.price.toFixed(2)}</span>)}
+            <span class:list={["tag", "last", last.c >= last.o ? "up" : "dn"]} style={`top:${y(last.c)}px`}>{last.c.toFixed(2)}</span>
+          </div>
+          {onChart.map((m) => (
+            <span class:list={["mlabel", "ly", m.faint && "faint"]} data-ly={m.layer} style={`left:${pctX(Math.max(xl(m.from!), 0) + 6)};top:${y(m.price!)}px`} aria-hidden="true">{m.label}</span>
+          ))}
+          {d.marks.filter((m) => m.kind === "candle").map((m) => (
+            <span class="clabel ly" data-ly={m.layer} style={`left:${pctX(x(m.i!))};top:${y(d.candles[m.i!].l) + 8}px`} aria-hidden="true">{m.label}</span>
+          ))}
+          {d.marks.filter((m) => m.kind === "zone").map((m) => (
+            <span class="clabel ly zl" data-ly={m.layer} style={`left:${pctX((xl(m.i0!) + xr(m.i1!)) / 2)};top:${y(m.hi!) - 20}px`} aria-hidden="true">{m.label}</span>
+          ))}
+          <span class="dot ly ent" data-ly="fill" style={`left:${pctX(x(t.entry_i))};top:${y(t.entry)}px`} aria-hidden="true"></span>
+          {partI != null && <span class="dot ly part" data-ly="exit" style={`left:${pctX(x(partI))};top:${y(t.part_exit!)}px`} aria-hidden="true"></span>}
+          <span class="dot ly out" data-ly="exit" style={`left:${pctX(x(t.exit_i))};top:${y(t.exit)}px`} aria-hidden="true"></span>
+          <span class="exit-tag ly num" data-ly="exit" style={`left:${pctX(x(t.exit_i))};top:${y(t.exit)}px`} aria-hidden="true">{usd(t.net, { cents: true })}</span>
+          <div class="xax" aria-hidden="true">
+            {xlabels.map(({ i, c }, k) => <span class:list={[c.nd && "nd", !c.nd && k % 2 === 1 && "odd"]} style={`left:${pctX(x(i))}`}>{c.nd ? `${c.d} ${c.t}` : c.t}</span>)}
+          </div>
+          <div class="curtain" style={`right:${pctX(PR)};bottom:${XB}px`} aria-hidden="true" hidden><span>Not happened yet</span></div>
+        </div>
+        <div class="sb">
+          <span>{tfWords(d.tf)} candles · replay</span>
+          <span class="grow"></span>
+          <span class="num" data-clock>{last.d} {last.t}</span><span class="faint">Chicago</span>
+        </div>
+      </div>
+
+      <div class="panel-side">
+        <div class="ps-head">
+          <b>Step by step</b>
+          <div class="ctl">
+            <button type="button" class="ib" data-go="-1" aria-label="Previous step" hidden><Icon name="back" size={14} /></button>
+            <span class="count num" aria-live="polite" hidden></span>
+            <button type="button" class="ib" data-go="1" aria-label="Next step" hidden><Icon name="arrow" size={14} /></button>
+          </div>
+        </div>
+        <ol class="steps">
+          {steps.map((s, k) => (
+            <li data-k={k}>
+              <button type="button" class="st" data-k={k}><span class="n num">{k + 1}</span><span>{s.title}</span></button>
+              <div class="body-t">
+                <p>{s.text}</p>
+                {s.checks && (
+                  <ul class="checks">
+                    {s.checks.map((c) => (
+                      <li class:list={[c.ok ? "ok" : "no"]}>
+                        <Icon name={c.ok ? "check" : "cross"} size={14} />
+                        <span class="cl">{c.label}</span>
+                        <span class="cv num">{c.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
   </div>
+  <figcaption class="caption">
+    <b>Made-up candles, real rules.</b> These {tfWords(d.tf)} candles are not real oil prices (we may not publish market
+    data). The signal, fill and exit come from the same strategy code and engine as the tests. Times are Chicago. One
+    example shows how the rules work, not whether they make money: see the results below.
+  </figcaption>
 </figure>
 <script src="../lib/demo.client.ts"></script>
 <style>
-  .demo { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) 21rem; gap: 1.25rem; align-items: start; }
+  .demo { margin: 0; --up: #22ab94; --dn: #f23645; --chart: #0b0c0f; }
+  .frame { border: 1px solid var(--line-hi); border-radius: var(--r-lg); background: var(--chart); overflow: hidden; }
+
+  /* toolbar */
+  .tb { display: flex; align-items: center; gap: 0.4rem; height: 2.75rem; padding: 0 0.6rem; border-bottom: 1px solid var(--line); font-size: 0.8rem; }
+  .sym { display: inline-flex; align-items: center; gap: 0.5rem; padding-right: 0.3rem; white-space: nowrap; }
+  .sym i {
+    display: grid; place-items: center; width: 1.35rem; height: 1.35rem; border-radius: 50%; font-style: normal;
+    font-size: 0.55rem; font-weight: 700; color: var(--btn-ink); background: var(--btn);
+  }
+  .sym b { font-weight: 600; }
+  .sym .faint { font-size: 0.75rem; }
+  .chip { display: inline-flex; align-items: center; height: 1.75rem; padding: 0 0.55rem; border-radius: var(--r-sm); background: rgb(255 255 255 / 0.05); font-weight: 500; }
+  .sep { width: 1px; height: 1.2rem; background: var(--line-hi); margin: 0 0.2rem; }
+  .tbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem; height: 1.85rem; padding: 0 0.6rem; border-radius: var(--r-sm);
+    border: 0; background: none; color: var(--ink-2); font: inherit; font-weight: 500; cursor: pointer;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .tbtn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .tbtn:hover:not(:disabled) { background: rgb(255 255 255 / 0.06); color: var(--ink); }
+  .tbtn:disabled { opacity: 0.4; cursor: default; }
+  .tbtn[aria-pressed="true"] { color: var(--ink); }
+  .tbtn[data-ind][aria-pressed="false"] { color: var(--ink-3); }
+  .tbtn .cnt { font-size: 0.68rem; color: var(--ink-3); }
+  .tbtn .i-pause, .tbtn:global(.playing) .i-play { display: none; }
+  .tbtn:global(.playing) .i-pause { display: inline; }
+  .tbtn:global(.playing) { color: var(--sky-ink); background: rgb(91 140 255 / 0.1); }
+  .tbtn:focus-visible, .ib:focus-visible, .st:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+  .grow { flex: 1; }
+  .flag { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: var(--warn); white-space: nowrap; }
+
+  /* body: chart | side panel */
+  .body { display: grid; grid-template-columns: minmax(0, 1fr) 21rem; }
+  .chart { min-width: 0; display: flex; flex-direction: column; }
   .plot { position: relative; height: var(--h); touch-action: pan-y; cursor: crosshair; }
-  svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-  .grid { stroke: rgb(255 255 255 / 0.05); }
-  .day { stroke: rgb(255 255 255 / 0.2); stroke-dasharray: 2 4; }
-  .pane { fill: none; stroke: var(--line); }
-  .guide { stroke: rgb(255 255 255 / 0.22); stroke-dasharray: 3 3; }
-  .cd line { stroke: rgb(236 239 245 / 0.5); stroke-width: 1; }
-  .cd rect { stroke-width: 1; }
-  .cd.up rect { fill: var(--bg); stroke: rgb(236 239 245 / 0.82); }
-  .cd.dn rect { fill: rgb(236 239 245 / 0.46); stroke: rgb(236 239 245 / 0.46); }
+  .plot > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .sb {
+    display: flex; align-items: center; gap: 0.5rem; height: 2rem; padding: 0 0.75rem; border-top: 1px solid var(--line);
+    font-size: 0.72rem; color: var(--ink-3); white-space: nowrap; overflow: hidden;
+  }
+  .sb [data-clock] { color: var(--ink-2); }
+
+  /* chart marks */
+  .wm {
+    position: absolute; left: 0; right: 64px; transform: translateY(-50%); text-align: center; pointer-events: none;
+    font-size: clamp(2rem, 5vw, 3.6rem); font-weight: 700; letter-spacing: -0.03em; color: rgb(255 255 255 / 0.035);
+  }
+  .grid { stroke: rgb(255 255 255 / 0.04); }
+  .axis { stroke: var(--line); }
+  .day { stroke: rgb(255 255 255 / 0.16); stroke-dasharray: 2 4; }
+  .guide { stroke: rgb(255 255 255 / 0.2); stroke-dasharray: 3 3; }
+  .cd line { stroke-width: 1; }
+  .cd.up line { stroke: var(--up); }
+  .cd.up rect { fill: var(--up); }
+  .cd.dn line { stroke: var(--dn); }
+  .cd.dn rect { fill: var(--dn); }
+  .vol.up { fill: rgb(34 171 148 / 0.28); }
+  .vol.dn { fill: rgb(242 54 69 / 0.28); }
   .ov { fill: none; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
   .ov.dash { stroke-dasharray: 5 4; stroke-width: 1.2; opacity: 0.8; }
-  .hl { fill: rgb(91 140 255 / 0.12); }
+  .ind { transition: opacity 0.3s var(--ease); }
+  .demo:global(.no-ind) .ind { opacity: 0; }
+  .hl { fill: rgb(91 140 255 / 0.1); }
   .lvl { stroke: rgb(236 239 245 / 0.75); stroke-width: 1.2; stroke-dasharray: 1 3; stroke-linecap: round; }
   .lvl.faint { stroke: rgb(236 239 245 / 0.35); }
   .mz { stroke-width: 1; }
@@ -272,42 +408,54 @@ const legend = d.overlays.filter((o, i, a) => a.findIndex((z) => z.name.split(" 
   .lvl-wait { stroke: var(--sky); stroke-width: 1.4; stroke-dasharray: 4 3; }
   .lvl-entry { stroke: var(--sky); stroke-width: 1.4; }
   .stop-path { fill: none; stroke: var(--neg); stroke-width: 2; stroke-dasharray: 5 3; }
-  .cross { stroke: rgb(255 255 255 / 0.32); opacity: 0; }
+  .lastline { stroke: rgb(236 239 245 / 0.4); stroke-dasharray: 1 3; }
+  .cross { stroke: rgb(255 255 255 / 0.32); stroke-dasharray: 3 3; opacity: 0; }
   .demo:global(.hover) .cross { opacity: 1; }
-
   .ly { transition: opacity 0.35s var(--ease); }
   .demo:global(.js) .ly:global(.off) { opacity: 0; pointer-events: none; }
 
-  .lgd, .ptitle { position: absolute; left: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; font-size: 0.72rem; color: var(--ink-2); pointer-events: none; }
-  .lgd { top: 0.4rem; right: 4.5rem; }
-  .ptitle b { font-weight: 600; color: var(--ink-2); }
-  .lgd i.dash { height: 0; border-top: 2px dashed; }
-  .mlabel.off { color: var(--ink-3); }
-  .lgd i, .ptitle i { display: inline-block; width: 10px; height: 2px; border-radius: 2px; margin-right: 0.35rem; vertical-align: middle; }
-  .yax span, .xax span { position: absolute; font-size: 0.68rem; color: var(--ink-3); font-variant-numeric: tabular-nums; pointer-events: none; white-space: nowrap; }
-  .yax span { right: 0; transform: translateY(-50%); }
-  .xax span { bottom: 0.15rem; transform: translateX(-50%); }
+  /* legend */
+  .lgd { position: absolute; z-index: 2; top: 0.5rem; left: 0.75rem; right: 5rem; display: grid; gap: 0.2rem; font-size: 0.72rem; color: var(--ink-2); pointer-events: none; }
+  .ohlc { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.6rem; color: var(--ink-3); }
+  .ohlc b { color: var(--ink); font-weight: 600; margin-right: 0.2rem; }
+  .ohlc em, .li em, .ptitle em { font-style: normal; color: var(--ink); }
+  .chg { color: var(--ink-2); }
+  .li { display: flex; align-items: center; gap: 0.45rem; }
+  .li i, .ptitle i { display: inline-block; width: 10px; height: 2px; border-radius: 2px; }
+  .li i.dash { height: 0; border-top: 2px dashed; }
+  .li em { margin-left: 0.15rem; }
+  .ptitle { position: absolute; z-index: 2; left: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.15rem 0.8rem; font-size: 0.72rem; color: var(--ink-2); pointer-events: none; }
+  .ptitle b { font-weight: 600; }
+  .ptitle span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .yax span, .xax span { position: absolute; font-size: 0.66rem; color: var(--ink-3); font-variant-numeric: tabular-nums; pointer-events: none; white-space: nowrap; }
+  .yax span { right: 0.5rem; transform: translateY(-50%); }
+  .xax span { bottom: 0.3rem; transform: translateX(-50%); }
   .xax .nd { color: var(--ink-2); }
   .tags .tag {
-    position: absolute; right: 0; transform: translateY(-50%); z-index: 1; padding: 0.1rem 0.35rem; border-radius: 4px;
-    font-size: 0.66rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--btn-ink);
+    position: absolute; right: 2px; min-width: 58px; transform: translateY(-50%); z-index: 3; padding: 0.1rem 0.35rem; border-radius: 3px; white-space: nowrap;
+    font-size: 0.62rem; line-height: 1.25; font-weight: 600; font-variant-numeric: tabular-nums; text-align: center; color: #fff;
   }
-  .tag.tgt { background: var(--pos); }
-  .tag.stp { background: var(--neg); }
-  .tag.ent { background: var(--sky); }
+  .tag.tgt { background: #23966f; }
+  .tag.stp { background: #c8434f; }
+  .tag.ent { background: #3d6fe0; }
+  .tag b { font-weight: 500; opacity: 0.85; }
+  .tag.last { z-index: 2; }
+  .tag.last.up { background: var(--up); }
+  .tag.last.dn { background: var(--dn); }
   .mlabel {
     position: absolute; transform: translateY(-125%); font-size: 0.68rem; color: var(--ink-2); white-space: nowrap; pointer-events: none;
-    text-shadow: 0 0 4px var(--bg), 0 0 2px var(--bg);
+    text-shadow: 0 0 4px var(--chart), 0 0 2px var(--chart);
   }
-  .mlabel.faint { color: var(--ink-3); }
+  .mlabel.faint, .mlabel.off { color: var(--ink-3); }
+  .mlabel.off { transform: none; }
   .clabel {
     position: absolute; transform: translateX(-50%); padding: 0.05rem 0.4rem; border-radius: 99px; pointer-events: none;
-    font-size: 0.66rem; font-weight: 600; white-space: nowrap; color: var(--sky-ink); background: rgb(13 14 18 / 0.85); border: 1px solid rgb(91 140 255 / 0.45);
+    font-size: 0.66rem; font-weight: 600; white-space: nowrap; color: var(--sky-ink); background: rgb(11 12 15 / 0.88); border: 1px solid rgb(91 140 255 / 0.45);
   }
   .clabel.zl { color: var(--ink); }
   .dot {
     position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; pointer-events: none;
-    border: 2px solid var(--bg); box-shadow: 0 0 0 1px currentColor;
+    border: 2px solid var(--chart); box-shadow: 0 0 0 1px currentColor;
   }
   .dot.ent { background: var(--sky); color: var(--sky); }
   .dot.out, .dot.part { background: var(--ink); color: var(--ink); }
@@ -317,69 +465,67 @@ const legend = d.overlays.filter((o, i, a) => a.findIndex((z) => z.name.split(" 
     font-size: 0.72rem; font-weight: 600; white-space: nowrap; background: var(--pop); border: 1px solid var(--line-hi);
   }
   .curtain {
-    position: absolute; top: 0; bottom: 26px; left: 100%; pointer-events: none;
-    background: linear-gradient(90deg, rgb(13 14 18 / 0.9), rgb(13 14 18 / 0.82));
-    border-left: 1px dashed rgb(91 140 255 / 0.7);
-    transition: left 0.55s var(--ease);
+    position: absolute; top: 0; left: 100%; pointer-events: none; z-index: 1;
+    background: rgb(11 12 15 / 0.86); border-left: 1px dashed rgb(91 140 255 / 0.7);
+    transition: left 0.55s var(--ease), opacity 0.3s var(--ease);
   }
-  .curtain span { position: absolute; top: 0.45rem; left: 0.6rem; font-size: 0.7rem; color: var(--ink-3); white-space: nowrap; }
-  .tip {
-    position: absolute; top: 2.2rem; z-index: 3; min-width: 11rem; pointer-events: none; padding: 0.5rem 0.65rem;
-    border-radius: var(--r-md); font-size: 0.75rem; line-height: 1.55; background: var(--pop); border: 1px solid var(--line-hi);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
-  }
-  .caption { display: flex; gap: 0.5rem; margin: 0.9rem 0 0; font-size: 0.78rem; color: var(--ink-3); max-width: 90ch; }
-  .caption :global(svg) { flex: none; margin-top: 0.2rem; color: var(--warn); }
+  .curtain span { position: absolute; bottom: 0.5rem; left: 0.6rem; font-size: 0.7rem; color: var(--ink-3); white-space: nowrap; }
 
-  .rail { position: sticky; top: 4.5rem; }
-  .rail-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.6rem; min-height: 2rem; }
-  .rail-head h3 { font-size: 1rem; letter-spacing: -0.01em; }
-  .ctl { display: flex; align-items: center; gap: 0.35rem; }
-  .count { font-size: 0.75rem; color: var(--ink-3); min-width: 3.2rem; text-align: center; }
+  /* side panel (steps) */
+  .panel-side { border-left: 1px solid var(--line); display: flex; flex-direction: column; min-width: 0; max-height: calc(var(--h) + 2rem + 1px); }
+  .steps { overflow-y: auto; scrollbar-width: thin; }
+  .ps-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; height: 2.75rem; padding: 0 0.6rem 0 0.9rem; border-bottom: 1px solid var(--line); font-size: 0.85rem; }
+  .ps-head b { font-weight: 600; }
+  .ctl { display: flex; align-items: center; gap: 0.3rem; }
+  .count { font-size: 0.72rem; color: var(--ink-3); min-width: 3rem; text-align: center; }
   .ib {
-    display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: var(--r-sm); cursor: pointer;
+    display: inline-grid; place-items: center; width: 1.85rem; height: 1.85rem; border-radius: var(--r-sm); cursor: pointer;
     color: var(--ink); background: rgb(255 255 255 / 0.045); border: 1px solid var(--line-hi);
     transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
   }
   .ib:hover:not(:disabled) { background: rgb(255 255 255 / 0.09); border-color: rgb(255 255 255 / 0.24); }
   .ib:disabled { opacity: 0.35; cursor: default; }
-  .ib:focus-visible, .st:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
-  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
+  .steps { list-style: none; margin: 0; padding: 0.5rem; display: grid; gap: 0.1rem; align-content: start; }
   .st {
     display: flex; align-items: center; gap: 0.6rem; width: 100%; min-height: 2.25rem; padding: 0.3rem 0.5rem; border-radius: var(--r-sm);
-    border: 0; background: none; color: var(--ink-2); font: inherit; font-size: 0.875rem; font-weight: 500; text-align: left; cursor: pointer;
+    border: 0; background: none; color: var(--ink-2); font: inherit; font-size: 0.84rem; font-weight: 500; text-align: left; cursor: pointer;
   }
   .st:hover { background: rgb(255 255 255 / 0.05); color: var(--ink); }
   .n {
-    flex: none; display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 50%; font-size: 0.7rem;
+    flex: none; display: grid; place-items: center; width: 1.35rem; height: 1.35rem; border-radius: 50%; font-size: 0.68rem;
     border: 1px solid var(--line-hi); color: var(--ink-3);
   }
-  .steps li:global(.done) .n { border-color: rgb(91 140 255 / 0.5); color: var(--sky-ink); }
-  .steps li:global(.on) .st { color: var(--ink); background: rgb(255 255 255 / 0.06); }
-  .steps li:global(.on) .n { background: var(--sky); border-color: var(--sky); color: var(--btn-ink); box-shadow: 0 0 0 4px rgb(91 140 255 / 0.2); }
-  .body { padding: 0.35rem 0.5rem 0.75rem 2.5rem; font-size: 0.86rem; color: var(--ink-2); }
-  .body p { margin: 0; max-width: 60ch; }
-  .demo:global(.js) .steps li:not(:global(.on)) .body { display: none; }
-  .checks { list-style: none; margin: 0.7rem 0 0; padding: 0; display: grid; gap: 0.4rem; font-size: 0.8rem; }
+  .steps > li:global(.done) .n { border-color: rgb(91 140 255 / 0.5); color: var(--sky-ink); }
+  .steps > li:global(.on) .st { color: var(--ink); background: rgb(255 255 255 / 0.06); }
+  .steps > li:global(.on) .n { background: var(--sky); border-color: var(--sky); color: var(--btn-ink); box-shadow: 0 0 0 4px rgb(91 140 255 / 0.2); }
+  .body-t { padding: 0.35rem 0.5rem 0.75rem 2.45rem; font-size: 0.83rem; color: var(--ink-2); }
+  .body-t p { margin: 0; max-width: 60ch; }
+  .demo:global(.js) .steps > li:not(:global(.on)) .body-t { display: none; }
+  .checks { list-style: none; margin: 0.7rem 0 0; padding: 0; display: grid; gap: 0.4rem; font-size: 0.78rem; }
   .checks li { display: grid; grid-template-columns: 14px 1fr; column-gap: 0.5rem; align-items: start; }
   .checks :global(svg) { margin-top: 0.15rem; }
   .checks .ok :global(svg) { color: var(--pos); }
   .checks .no :global(svg) { color: var(--neg); }
   .cl { color: var(--ink); }
-  .cv { grid-column: 2; color: var(--ink-3); font-size: 0.76rem; }
+  .cv { grid-column: 2; color: var(--ink-3); font-size: 0.74rem; }
+
+  .caption { margin: 0.8rem 0 0; font-size: 0.78rem; color: var(--ink-3); max-width: 95ch; }
+  .caption b { color: var(--ink-2); font-weight: 600; }
 
   @media (max-width: 1180px) {
-    .demo { grid-template-columns: 1fr; }
-    .rail { position: static; }
+    .body { grid-template-columns: minmax(0, 1fr); }
+    .panel-side { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); max-height: none; }
   }
   @media (max-width: 640px) {
-    .lgd { right: 3.6rem; }
-    .lgd, .ptitle { font-size: 0.66rem; gap: 0.15rem 0.6rem; }
+    .sym .faint, .tbtn .cnt, .flag, .sep { display: none; }
+    .tbtn span:not(.lbl) { display: none; }
+    .tbtn[data-ind] span:first-of-type { display: inline; }
+    .lgd { right: 4.2rem; left: 0.5rem; }
+    .ptitle { left: 0.5rem; }
     .curtain span, .xax .odd { display: none; }
-    .tags .tag { font-size: 0.6rem; }
-    .exit-tag { font-size: 0.66rem; }
+    .tags .tag { min-width: 50px; font-size: 0.58rem; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .ly, .curtain { transition: none; }
+    .ly, .curtain, .ind { transition: none; }
   }
 </style>

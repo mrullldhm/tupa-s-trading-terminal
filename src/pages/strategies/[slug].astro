@@ -78,14 +78,12 @@ const exits = Object.entries(b.exits).sort((a, c) => c[1] - a[1]);
   </div>
 
   {demo && (
-    <section class="panel" aria-labelledby="demo-h">
-      <div class="panel-head">
+    <section class="demo-sec" aria-labelledby="demo-h">
+      <div class="demo-head">
         <h2 id="demo-h">One trade, step by step</h2>
-        <p>Made-up candles · real strategy code · {demo.variant}</p>
+        <p>Made-up candles · real strategy code · best version: {demo.variant}</p>
       </div>
-      <div class="panel-body">
-        <StrategyDemo demo={demo} name={s.name} />
-      </div>
+      <StrategyDemo demo={demo} name={s.name} />
     </section>
   )}
 
@@ -195,6 +193,9 @@ const exits = Object.entries(b.exits).sort((a, c) => c[1] - a[1]);
   .verdict p { margin-top: 0.6rem; max-width: 75ch; font-size: 1rem; }
   .verdict ul { margin: 0.8rem 0 0; padding-left: 1.1rem; color: var(--ink-2); max-width: 75ch; }
   .verdict li + li { margin-top: 0.35rem; }
+  .demo-sec { margin: 2.25rem 0; }
+  .demo-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem 1rem; margin-bottom: 0.9rem; }
+  .demo-head p { font-size: 0.8rem; color: var(--ink-3); }
   .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .split .panel + .panel { margin-top: 0; }
   .prose h2 { color: var(--ink); margin-bottom: 0.8rem; }

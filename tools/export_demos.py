@@ -197,11 +197,13 @@ class Demo:
         ct = pd.DatetimeIndex(cd["ts"]).tz_convert("America/Chicago")
         day = cd["day"].to_numpy()
         candles = []
+        vol = self.df["volume"].to_numpy()
         for k in range(a, b):
+            v = int(vol[cd["first"].iat[k]:cd["last"].iat[k] + 1].sum())
             candles.append({"o": round(cd["open"].iat[k], 2), "h": round(cd["high"].iat[k], 2),
                             "l": round(cd["low"].iat[k], 2), "c": round(cd["close"].iat[k], 2),
                             "t": ct[k].strftime("%H:%M"), "d": ct[k].strftime("%a"),
-                            "nd": bool(k > a and day[k] != day[k - 1])})
+                            "nd": bool(k > a and day[k] != day[k - 1]), "v": v})
         side = int(t.side)
         stop0, target = float(self.sig_row["stop"]), self.sig_row.get("target")
         target = None if target is None or not np.isfinite(target) else float(target)

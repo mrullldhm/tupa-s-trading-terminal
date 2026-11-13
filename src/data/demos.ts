@@ -2,7 +2,7 @@
 // web/tools/export_demos.py builds by running the real strategy code and engine on made-up candles.
 import demos from "./demos.json";
 
-export interface DemoCandle { o: number; h: number; l: number; c: number; t: string; d: string; nd: boolean }
+export interface DemoCandle { o: number; h: number; l: number; c: number; t: string; d: string; nd: boolean; v: number }
 export interface DemoLine { key: string; name: string; color: string; dash?: boolean; step?: boolean; values: (number | null)[] }
 export interface DemoPane { key: string; title: string; lo: number | null; hi: number | null; guides: { v: number; label: string }[]; lines: DemoLine[] }
 export interface DemoMark {
