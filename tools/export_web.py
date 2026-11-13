@@ -38,6 +38,9 @@ def variant_label(strategy: str, p: dict) -> str:
         return "trailing exit" if p["exit"] == "trail" else "fixed 15-point target"
     if strategy == "ict_ea":
         return "all components (score 7)" if p["min_conf"] >= 7 else "source settings"
+    if strategy == "swing_point_failure":
+        target = int(p["risk"] * p["rr"])
+        return f"{p['swing_tf']} swings · stop ≤{p['risk']} / target {target} ticks · tie {p['tie']}"
     return ", ".join(f"{k}={v}" for k, v in p.items())
 
 

@@ -127,7 +127,7 @@ def run(sid: str, params: dict, df: pd.DataFrame):
             stops.setdefault(ctx.i, []).append((ctx.m, ctx.side * s * TICK))
             return s, close
     sig = strat.signals(df, p)
-    trades = strat.day_rules(backtest(Bars.from_frame(df), sig, Fills(), manage), p)
+    trades = strat.day_rules(backtest(Bars.from_frame(df), sig, Fills(), manage, overlap=strat.OVERLAP), p)
     return strat, p, sig, trades, stops
 
 
@@ -465,9 +465,44 @@ def ict_ea(d: Demo, p: dict):
                    risk_usd=p["risk_usd"], be_r=p["be_r"], timeout_min=p["timeout_min"])
 
 
+def swing_point_failure(d: Demo, p: dict):
+    """Marks come from the strategy's own setups() record for this trade (same code that made the signal)."""
+    s = load("swing_point_failure").setups(d.df, p)
+    rec = s[(s["end"] == d.t.signal_bar) & (s["why"] == "trigger")].iloc[-1]
+    side = int(rec["side"])
+    touch, hl = int(rec["touch"]), float(rec["hl"])
+    bars = d.df["low" if side == -1 else "high"].to_numpy()
+    hl_bar = int(np.flatnonzero(np.isclose(bars[touch:d.t.signal_bar], hl))[-1]) + touch
+    k_touch, k_hl = candle_of(d.cd, touch), candle_of(d.cd, hl_bar)
+    swing = "low" if side == -1 else "high"
+    d.mark(kind="hline", layer="setup", price=round(float(rec["level"]), 2), **{"from": max(d.a, k_touch - 12),
+           "to": d.b - 1}, label=f"{p['swing_tf']} swing {swing}", tone="level")
+    d.mark(kind="hline", layer="setup", price=round(float(rec["inval"]), 2), **{"from": k_touch, "to": d.k_sig},
+           label=f"Previous {p['swing_tf']} {'high' if side == -1 else 'low'}", tone="level", faint=True)
+    d.mark(kind="candle", layer="touch", i=k_touch, label="Touch")
+    d.mark(kind="candle", layer="touch", i=k_hl, label="HL" if side == -1 else "LH")
+    d.mark(kind="hline", layer="touch", price=round(hl, 2), **{"from": k_hl, "to": d.k_sig},
+           label="Higher low" if side == -1 else "Lower high", tone="sky")
+    d.mark(kind="candle", layer="signal", i=d.k_sig, label="Trigger")
+    close = float(d.cd["close"].iat[d.k_sig])
+    stop = float(rec["stop"])
+    d.facts.update(swing_tf=p["swing_tf"], tf=rec["tf"], level=round(float(rec["level"]), 2),
+                   inval=round(float(rec["inval"]), 2), hl=round(hl, 2), close=round(close, 2), stop=round(stop, 2),
+                   range_ticks=int(round(abs(stop - close) / TICK)), risk=int(p["risk"]),
+                   target_ticks=int(p["risk"] * p["rr"]), touch=d.w(k_touch), hl_i=d.w(k_hl), tie=p["tie"])
+
+
+def swing_point_failure_window(df: pd.DataFrame, params: dict) -> set[int]:
+    """Signal bars whose touch, higher low and trigger all fit in the shown window, locked on 1m (the display)."""
+    s = load("swing_point_failure").setups(df, {**load("swing_point_failure").PARAMS, **params})
+    ok = s[(s["why"] == "trigger") & (s["tf"] == "1m") & (s["end"] - s["touch"] <= LEAD - 6)]
+    return set(ok["end"].astype(int))
+
+
 BUILDERS = {"purple_pa": purple_pa, "swapnil_hm": swapnil_hm, "xtley_gap": xtley_gap,
-            "swapnil_momentum": swapnil_momentum, "scribd_supertrend": scribd_supertrend, "ict_ea": ict_ea}
-DISPLAY_TF = {"scribd_supertrend": "15m", "ict_ea": "5m"}
+            "swapnil_momentum": swapnil_momentum, "scribd_supertrend": scribd_supertrend, "ict_ea": ict_ea,
+            "swing_point_failure": swing_point_failure}
+DISPLAY_TF = {"scribd_supertrend": "15m", "ict_ea": "5m", "swing_point_failure": "1m"}
 PREFER = {  # which example reads clearest: exit reasons in order of preference, plus a check
     "purple_pa": ["target", "stop"],
     "swapnil_hm": ["target", "flatten", "stop"],
@@ -475,10 +510,11 @@ PREFER = {  # which example reads clearest: exit reasons in order of preference,
     "swapnil_momentum": ["target", "stop"],
     "scribd_supertrend": ["target", "stop", "flatten"],
     "ict_ea": ["target", "stop", "manage"],
+    "swing_point_failure": ["target", "stop"],
 }
 
 
-def pick(sid: str, cd: pd.DataFrame, trades: pd.DataFrame, stops: dict, warm: int):
+def pick(sid: str, cd: pd.DataFrame, trades: pd.DataFrame, stops: dict, warm: int, allowed: set[int] | None = None):
     best, best_score = None, -1e9
     first = cd["first"].to_numpy()
     for t in trades.itertuples():
@@ -488,7 +524,7 @@ def pick(sid: str, cd: pd.DataFrame, trades: pd.DataFrame, stops: dict, warm: in
         if k_sig < warm or k_out >= len(cd) - 6 or k_out - k_sig > MAX_WINDOW - LEAD - 6:
             continue
         pref = PREFER[sid]
-        if t.reason not in pref:
+        if t.reason not in pref or (allowed is not None and t.signal_bar not in allowed):
             continue
         s = 10 * (len(pref) - pref.index(t.reason))
         s += 4 * (k_out > k_in) + 3 * (k_in > k_sig)
@@ -508,7 +544,7 @@ def pick(sid: str, cd: pd.DataFrame, trades: pd.DataFrame, stops: dict, warm: in
 
 
 WARM = {"xtley_gap": 380, "swapnil_hm": 40, "scribd_supertrend": 40, "ict_ea": 30, "purple_pa": 0,
-        "swapnil_momentum": 40}
+        "swapnil_momentum": 40, "swing_point_failure": 300}
 
 
 def main() -> None:
@@ -527,7 +563,8 @@ def main() -> None:
                 continue
             cd = tf_candles(df, tf)
             cd = cd[cd["avail"].to_numpy() < len(df)].reset_index(drop=True)
-            t, score = pick(sid, cd, trades, stops, WARM[sid])
+            allowed = swing_point_failure_window(df, params) if sid == "swing_point_failure" else None
+            t, score = pick(sid, cd, trades, stops, WARM[sid], allowed)
             if t is not None and (found is None or score > found[0]):
                 found = (score, seed, df, cd, t, stops, sig, p)
             if found and found[0] >= 42:

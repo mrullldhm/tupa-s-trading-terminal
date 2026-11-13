@@ -8,7 +8,7 @@ import Icon from "../../components/Icon.astro";
 import ReadingGuide from "../../components/ReadingGuide.astro";
 import StrategyDemo from "../../components/StrategyDemo.astro";
 import { demoFor } from "../../data/demos";
-import { strategies, curve, gatesPassed, yearRange, VARIANT_COLORS, type Strategy } from "../../lib/data";
+import { strategies, curve, gatesPassed, yearRange, variantColors, type Strategy } from "../../lib/data";
 import { usdK, usd, int, pct, date } from "../../lib/format";
 
 export function getStaticPaths() {
@@ -23,7 +23,8 @@ const t = s.text;
 const demo = demoFor(s.id);
 const years = yearRange();
 const variants = [...s.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor);
-const series = variants.map((v, i) => ({ id: v.hash, name: v.label, color: VARIANT_COLORS[i % VARIANT_COLORS.length], points: curve(v) }));
+const colorOf = variantColors(variants);
+const series = variants.map((v) => ({ id: v.hash, name: v.label, color: colorOf.get(v.hash)!, points: curve(v) }));
 const b = s.best;
 const exitTotal = Object.values(b.exits).reduce((n, x) => n + x, 0);
 const exitWords: Record<string, string> = { stop: "Stop hit", target: "Target hit", flatten: "Closed at 3:10 PM", manage: "Closed by trade rules", day_end: "Closed at day end", roll: "Closed at contract roll", partial: "Part profit taken", time: "Time limit" };
@@ -110,7 +111,7 @@ const exits = Object.entries(b.exits).sort((a, c) => c[1] - a[1]);
         <tbody>
           {variants.map((v, i) => (
             <tr>
-              <td><span class="vname"><i style={`background:${VARIANT_COLORS[i % VARIANT_COLORS.length]}`}></i>{v.label}</span></td>
+              <td><span class="vname"><i style={`background:${colorOf.get(v.hash)}`}></i>{v.label}</span></td>
               <td class="r num strong">{usdK(v.net)}</td>
               <td class="r num">{pct(v.win_rate, 0)}</td>
               <td class="r num">{usdK(v.max_drawdown)}</td>

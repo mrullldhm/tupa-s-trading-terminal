@@ -160,6 +160,32 @@ export const STRATEGY_TEXT: StrategyText[] = [
       "Requiring every signal to agree (score 7 of 7) cut trades from 8,499 to 3,190 but lost more per trade. Full confluence adds no edge.",
     ],
   },
+  {
+    id: "swing_point_failure",
+    slug: "swing-point-failure",
+    name: "Swing Point Failure",
+    short: "Sell a swing low that fails before the next swing high (buy the mirror).",
+    source: {
+      label: "Owner's own setup",
+      url: null,
+      note: "Described by the owner with three chart examples from November 2026. The code matches all three.",
+    },
+    idea: "Swing points come in turns: low, high, low, high. When price makes a swing low but comes back to it before any swing high forms, the low has failed. Sellers are in control. We wait for the first small bounce to break, then sell with them.",
+    rules: [
+      "Structure on 1-hour candles (4-hour in one version), using the owner's swing point rule.",
+      "Setup: the newest point is a swing low, and price touches it again before a swing high is confirmed.",
+      "The setup is off if the bounce reaches the high of the 1-hour candle before the touch, or a new swing point forms.",
+      "Bounce: the first of the 1-minute or 5-minute charts to show a higher low. The trigger is the candle that breaks the newest higher low.",
+      "Stop: the highest high since that higher low. Entry: a limit at the trigger close, or 25 ticks below the stop when the stop is further away. Target: 50 ticks.",
+      "1 contract per setup. A new setup cancels an order that has not filled; filled trades keep running (up to 5 at once).",
+    ],
+    verdict: "Fails every check. All 12 versions lose money, before and after fees, and no version is positive in more than 3 of 12 years.",
+    lessons: [
+      "The stop sits on the bounce's swing high, which on 1-minute charts is usually only a few ticks away. Normal noise stops most trades out long before the 50-tick target.",
+      "The owner's chart examples had stops of 17 to 38 ticks. Most real setups are much smaller.",
+      "Which timeframe wins a tie barely matters: the 1-minute chart shows the higher low first almost every time.",
+    ],
+  },
 ];
 
 export const textFor = (id: string) => {

@@ -54,10 +54,23 @@ const COLORS: Record<string, string> = {
   swapnil_momentum: "#c98500",
   scribd_supertrend: "#d55181",
   ict_ea: "#9085e9",
+  swing_point_failure: "#008300",
 };
 
 /** Same validated set, in fixed order, for variants inside one strategy page. */
 export const VARIANT_COLORS = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#9085e9"];
+
+/** Colour per variant hash. Versions that differ only in their tie rule share one colour (same settings). */
+export function variantColors(vs: Variant[]): Map<string, string> {
+  const byGroup = new Map<string, string>();
+  const byHash = new Map<string, string>();
+  for (const v of vs) {
+    const group = v.label.replace(/ · tie \S+$/, "");
+    if (!byGroup.has(group)) byGroup.set(group, VARIANT_COLORS[byGroup.size % VARIANT_COLORS.length]);
+    byHash.set(v.hash, byGroup.get(group)!);
+  }
+  return byHash;
+}
 
 export const yearRange = () => {
   const d = R.periods.dev;

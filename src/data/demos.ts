@@ -262,6 +262,37 @@ const BUILD: Record<string, Builder> = {
     ];
     return steps.filter(Boolean) as Step[];
   },
+  swing_point_failure: (d) => {
+    const f = d.facts, t = d.trade, buy = t.side === 1;
+    const sw = buy ? "high" : "low";
+    const nextSw = buy ? "low" : "high";
+    const hl = buy ? "lower high" : "higher low";
+    const tfw = tfWords(f.swing_tf);
+    return [
+      { title: `Find the ${tfw} swing ${sw}`, text: `On ${tfw} candles (owner swing rule) the newest point is a swing ${sw} at ${$(f.level)}. Swing points take turns, so the next one should be a swing ${nextSw}.`, at: Math.max(0, f.touch - 1), show: ["setup"] },
+      {
+        title: `The swing ${sw} fails, price ${buy ? "dips" : "bounces"}`,
+        text: `Price comes back to ${$(f.level)} before any swing ${nextSw} is confirmed: the swing ${sw} failed. Then the first small ${buy ? "dip" : "bounce"} shows on the ${tfWords(f.tf)} chart: a ${hl} at ${$(f.hl)}. The faint line is the previous ${tfw} candle's ${buy ? "low" : "high"} (${$(f.inval)}). If the ${buy ? "dip" : "bounce"} reaches it, the setup is off.`,
+        at: f.hl_i + 1,
+        show: ["setup", "touch"],
+      },
+      {
+        title: `The ${hl} breaks`,
+        text: `This candle ${buy ? "rises through" : "falls through"} the ${hl}, so it is the trigger. We act at its close.`,
+        at: t.signal,
+        show: ["setup", "touch", "signal"],
+        checks: [
+          { label: `Swing ${sw} touched before a swing ${nextSw}`, value: $(f.level), ok: true },
+          { label: `${hl[0].toUpperCase()}${hl.slice(1)} on the ${tfWords(f.tf)} chart`, value: $(f.hl), ok: true },
+          { label: `Trigger candle ${buy ? "high" : "low"} reaches it`, value: `close ${$(f.close)}`, ok: true },
+          { label: `${buy ? "Dip" : "Bounce"} stayed short of the previous ${tfw} ${buy ? "low" : "high"}`, value: $(f.inval), ok: true },
+        ],
+      },
+      orderStep(d, `The stop is the ${buy ? "lowest low" : "highest high"} since the ${hl}, ${f.range_ticks} ticks from the close. ${f.range_ticks <= f.risk ? `That is within ${f.risk} ticks, so the limit goes at the close.` : `That is more than ${f.risk} ticks, so the limit goes ${f.risk} ticks from the stop and waits for price to come back.`} The target is a fixed ${f.target_ticks} ticks.`),
+      fillStep(d, "From here only the stop or the target can end it, or 3:10 PM."),
+      exitStep(d),
+    ];
+  },
 };
 
 export const stepsFor = (d: Demo): Step[] => BUILD[d.id]?.(d) ?? [];
