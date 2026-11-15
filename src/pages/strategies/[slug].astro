@@ -25,6 +25,11 @@ const years = yearRange();
 const variants = [...s.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor);
 const styleOf = variantStyles(variants);
 const series = variants.map((v) => ({ id: v.hash, name: v.label, ...styleOf.get(v.hash)!, points: curve(v) }));
+// Check runs reuse the colour of the build version with the same label, so a version keeps one colour on the page.
+const styleByLabel = new Map(variants.map((v) => [v.label, styleOf.get(v.hash)!]));
+const checks = [...s.checks].sort((a, c) => c.profit_factor - a.profit_factor);
+const checkSeries = checks.map((v) => ({ id: v.hash, name: v.label, ...(styleByLabel.get(v.label) ?? { color: "#7c818c", dash: false }), points: curve(v) }));
+const checkYears = `${R.periods.validation.start.slice(0, 4)}–${Number(R.periods.validation.end!.slice(0, 4)) - 1}`;
 const b = s.best;
 const exitTotal = (v: typeof b) => Object.values(v.exits).reduce((n, x) => n + x, 0);
 const exitWords: Record<string, string> = { stop: "Stop hit", target: "Target hit", flatten: "Closed at 3:10 PM", manage: "Closed by trade rules", day_end: "Closed at day end", roll: "Closed at contract roll", partial: "Part profit taken", time: "Time limit" };
@@ -94,7 +99,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
       <p>Build data {years} · in-sample · best of {s.variants.length}</p>
     </div>
     <div class="table-wrap">
-      <table>
+      <table data-sortable>
         <thead>
           <tr>
             <th>Version</th>
@@ -105,7 +110,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
             <th>Profit factor</th>
             <th>Years in profit</th>
             <th>Combine pass rate</th>
-            <th>Cost per pass</th>
+            <th data-dir="asc">Cost per pass</th>
           </tr>
         </thead>
         <tbody>
@@ -128,39 +133,45 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
     <section class="panel" aria-labelledby="chk-h">
       <div class="panel-head">
         <h2 id="chk-h">Check on new data</h2>
-        <p>Validation {R.periods.validation.start.slice(0, 4)}–{Number(R.periods.validation.end!.slice(0, 4)) - 1} · frozen settings · run once</p>
+        <p>Validation {checkYears} · frozen settings · run once</p>
       </div>
       <div class="table-wrap">
-        <table>
+        <table data-sortable>
           <thead>
             <tr>
               <th>Version</th>
               <th class="r">Trades</th>
               <th class="r">Net profit</th>
-              <th class="r">Profit factor</th>
+              <th class="r" aria-sort="descending">Profit factor</th>
               <th class="r">Years in profit</th>
               <th class="r">Combine pass rate</th>
-              <th class="r">Cost per pass</th>
+              <th class="r" data-dir="asc">Cost per pass</th>
               <th class="r">Biggest drop</th>
             </tr>
           </thead>
           <tbody>
-            {s.checks.map((v) => (
+            {checks.map((v) => {
+              const st = styleByLabel.get(v.label);
+              return (
               <tr>
-                <td>{v.label}</td>
+                <td><span class="vname">{st && <i class:list={[st.dash && "dash"]} style={st.dash ? `border-top-color:${st.color}` : `background:${st.color}`}></i>}{v.label}</span></td>
                 <td class="r num">{int(v.trades)}</td>
                 <td class="r num strong">{usdK(v.net)}</td>
                 <td class="r num">{v.profit_factor.toFixed(2)}</td>
                 <td class="r num">{v.years_positive}/{v.years_total}</td>
                 <td class="r num">{pct(v.pass_rate, 1)}</td>
-                <td class="r num">{v.cost_per_pass == null ? "no pass" : `$${int(v.cost_per_pass)}`}</td>
+                <td class="r num" data-v={v.cost_per_pass ?? undefined}>{v.cost_per_pass == null ? "no pass" : `$${int(Math.round(v.cost_per_pass))}`}</td>
                 <td class="r num">{usdK(v.max_drawdown)}</td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
       <p class="chk-note">The check uses easier bars than the build period: 60+ trades, profit factor 1.10+, Combine pass rate 40%+, cost per pass $750 or less. Years in profit is shown but not graded on three years.</p>
+      <div class="panel-body chk-chart">
+        <EquityChart series={checkSeries} height={220} label={`Running net profit by month on validation data ${checkYears} for each checked version of ${s.name}.`} />
+      </div>
     </section>
   )}
 
@@ -170,7 +181,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
       <p>One contract · after fees · {years}</p>
     </div>
     <div class="panel-body">
-      <EquityChart series={series} height={280} label={`Running net profit by month for each version of ${s.name}, ${years}.`} />
+      <EquityChart series={series} height={280} panels label={`Running net profit by month for each version of ${s.name}, ${years}.`} />
     </div>
   </section>
 
@@ -185,7 +196,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
         <YearBars years={v.years} label={`${s.name} ${v.label}: profit or loss per year`} />
         <details class="tbl">
           <summary>Show as table</summary>
-          <table>
+          <table data-sortable>
             <thead><tr><th>Year</th><th class="r">Net profit</th></tr></thead>
             <tbody>{v.years.map((y) => <tr><td class="num">{y.year}</td><td class="r num">{usd(y.net)}</td></tr>)}</tbody>
           </table>
@@ -237,6 +248,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
   .verdict ul { margin: 0.8rem 0 0; padding-left: 1.1rem; color: var(--ink-2); max-width: 75ch; }
   .verdict li + li { margin-top: 0.35rem; }
   .demo-sec { margin: 2.25rem 0; }
+  .chk-chart { border-top: 1px solid var(--line); }
   .chk-note { margin: 0; padding: 0.75rem 1rem 1rem; color: var(--ink-2); font-size: 0.85rem; max-width: 72ch; }
   .demo-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem 1rem; margin-bottom: 0.9rem; }
   .demo-head p { font-size: 0.8rem; color: var(--ink-3); }

@@ -12,12 +12,18 @@ import { usdK, int } from "../lib/format";
 const c = R.combine;
 const years = yearRange();
 const series = strategies.map((s) => ({ id: s.id, name: s.name, color: s.color, dash: s.dash, points: curve(s.best) }));
+// Ideas that reached each stage = strategies with at least one exported run on that period's data.
+const reached = (period: string) => new Set(R.variants.filter((v) => v.period === period).map((v) => v.strategy)).size;
+const span = (p: { start: string; end: string | null }) =>
+  p.end ? `${p.start.slice(0, 4)}–${Number(p.end.slice(0, 4)) - (p.end.endsWith("-01-01") ? 1 : 0)}` : `from ${new Date(p.start).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" })}`;
 const stages = [
   { name: "Build", range: years, count: totals.strategies, note: "Tune on old data" },
-  { name: "Check", range: "2022–2024", count: 0, note: "One run, settings frozen" },
-  { name: "Final exam", range: "2025–2026", count: 0, note: "One run, ever" },
-  { name: "Live paper", range: "from Nov 2026", count: 0, note: "New data only" },
+  { name: "Check", range: span(R.periods.validation), count: reached("validation"), note: "One run, settings frozen" },
+  { name: "Final exam", range: span(R.periods.holdout), count: reached("holdout"), note: "One run, ever" },
+  { name: "Live paper", range: span(R.periods.forward), count: reached("forward"), note: "New data only" },
 ];
+// The highlighted stage is the furthest one any idea has reached.
+const furthest = stages.reduce((k, st, i) => (st.count > 0 ? i : k), 0);
 const top = strategies[0];
 const topGates = gates(top.best);
 const topFails = topGates.filter((g) => !g.pass);
@@ -55,7 +61,7 @@ const topCheck = top.checks.find((v) => v.label === top.best.label);
         ))}
       </ul>
       <p class="cl-why">
-        Best version: {top.best.label}. {topFails.length ? `It misses ${topFails.map((g) => g.label.toLowerCase()).join(" and ")} on build data` : "It passes all five checks on build data"}{topCheck ? `, and the check on 2022–2024 data made money in only ${topCheck.years_positive} of ${topCheck.years_total} years` : ""}.
+        Best version: {top.best.label}. {topFails.length ? `It misses ${topFails.map((g) => g.label.toLowerCase()).join(" and ")} on build data` : "It passes all five checks on build data"}{topCheck ? `, and the check on ${span(R.periods.validation)} data made money in only ${topCheck.years_positive} of ${topCheck.years_total} years` : ""}.
       </p>
       <a class="more" href={`/strategies/${top.slug}/`}>Read the full results <Icon name="arrow" size={14} /></a>
     </article>
@@ -68,7 +74,7 @@ const topCheck = top.checks.find((v) => v.label === top.best.label);
     </div>
 
     <div class="table-wrap wide">
-      <table>
+      <table data-sortable>
         <thead>
           <tr>
             <th>Strategy</th>
@@ -78,7 +84,7 @@ const topCheck = top.checks.find((v) => v.label === top.best.label);
             <th>Profit factor<span class="need">1.25+</span></th>
             <th>Years in profit<span class="need">70%+</span></th>
             <th>Pass rate<span class="need">50%+</span></th>
-            <th>Cost per pass<span class="need">≤ $500</span></th>
+            <th data-dir="asc">Cost per pass<span class="need">≤ $500</span></th>
             <th class="r">Net profit</th>
           </tr>
         </thead>
@@ -95,7 +101,7 @@ const topCheck = top.checks.find((v) => v.label === top.best.label);
                 </a>
               </td>
               <td><Status state={s.status.state} /></td>
-              <td class="num score"><b>{gatesPassed(s.best)}</b> of 5</td>
+              <td class="num score" data-v={gatesPassed(s.best)}><b>{gatesPassed(s.best)}</b> of 5</td>
               <GateCells variant={s.best} />
               <td class="r num net">{usdK(s.best.net)}</td>
             </tr>
@@ -147,7 +153,7 @@ const topCheck = top.checks.find((v) => v.label === top.best.label);
       <div class="panel-body">
         <ol class="road">
           {stages.map((st, i) => (
-            <li class:list={[i === 0 && "now"]}>
+            <li class:list={[i === furthest && "now", st.count > 0 && "hit"]}>
               <span class="dot" aria-hidden="true"></span>
               <div>
                 <b>{st.name}</b> <span class="faint">{st.range}</span>
@@ -267,7 +273,8 @@ const topCheck = top.checks.find((v) => v.label === top.best.label);
   .road b { font-weight: 600; }
   .road p { font-size: 0.82rem; }
   .road .cnt { font-size: 0.82rem; color: var(--ink-3); padding-top: 0.15rem; }
-  .road .now .cnt { color: var(--ink); }
+  .road .hit .cnt { color: var(--ink); }
+  .road .hit:not(.now) .dot { border-color: var(--sky); }
   .road-note { margin-top: 0.75rem; font-size: 0.82rem; }
   .rules { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border-radius: var(--r-md); overflow: hidden; }
   .rules div { background: var(--solid); padding: 0.85rem 1rem; }

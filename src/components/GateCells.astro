@@ -6,7 +6,7 @@ interface Props { variant: Variant; rules?: boolean }
 const { variant, rules = false } = Astro.props;
 ---
 {gates(variant).map((g) => (
-  <td class:list={["gate", g.pass ? "ok" : "no"]} data-sort={g.key}>
+  <td class:list={["gate", g.pass ? "ok" : "no"]} data-v={g.raw ?? undefined}>
     <span class="gv num">
       <Icon name={g.pass ? "check" : "cross"} size={13} label={g.pass ? "passes" : "fails"} />
       {g.value}

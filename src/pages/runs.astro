@@ -27,36 +27,34 @@ const rows = [...devRuns].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.pr
       ))}
     </div>
     <div class="table-wrap">
-      <table>
+      <table data-sortable>
         <thead>
           <tr>
-            <th><button type="button" data-sort="name">Strategy · version</button></th>
-            <th class="r"><button type="button" data-sort="net">Net profit</button></th>
-            <th class="r"><button type="button" data-sort="win">Win rate</button></th>
-            <th class="r"><button type="button" data-sort="dd">Biggest drop</button></th>
-            <th><button type="button" data-sort="trades">Trades<span class="need">200+</span></button></th>
-            <th aria-sort="descending"><button type="button" data-sort="pf">Profit factor<span class="need">1.25+</span></button></th>
-            <th><button type="button" data-sort="years">Years in profit<span class="need">70%+</span></button></th>
-            <th><button type="button" data-sort="pass">Pass rate<span class="need">50%+</span></button></th>
-            <th><button type="button" data-sort="cost">Cost per pass<span class="need">≤ $500</span></button></th>
+            <th>Strategy · version</th>
+            <th class="r">Net profit</th>
+            <th class="r">Win rate</th>
+            <th class="r">Biggest drop</th>
+            <th>Trades<span class="need">200+</span></th>
+            <th>Profit factor<span class="need">1.25+</span></th>
+            <th>Years in profit<span class="need">70%+</span></th>
+            <th>Pass rate<span class="need">50%+</span></th>
+            <th data-dir="asc">Cost per pass<span class="need">≤ $500</span></th>
           </tr>
         </thead>
         <tbody>
           {rows.map((v) => {
             const s = strategyById(v.strategy);
             return (
-              <tr data-strategy={v.strategy} data-name={`${s.name} ${v.label}`} data-net={v.net} data-win={v.win_rate}
-                data-dd={v.max_drawdown} data-trades={v.trades} data-pf={v.profit_factor}
-                data-years={v.years_positive / v.years_total} data-pass={v.pass_rate} data-cost={v.cost_per_pass ?? 1e9}>
+              <tr data-strategy={v.strategy}>
                 <td>
                   <a class="sname" href={`/strategies/${s.slug}/`}>
                     <i style={swatch(s.color, s.dash)}></i>
                     <span><b>{s.name}</b><small>{v.label} · best of {v.best_of}</small></span>
                   </a>
                 </td>
-                <td class="r num strong">{usdK(v.net)}</td>
-                <td class="r num">{pct(v.win_rate, 0)}</td>
-                <td class="r num">{usdK(v.max_drawdown)}</td>
+                <td class="r num strong" data-v={v.net}>{usdK(v.net)}</td>
+                <td class="r num" data-v={v.win_rate}>{pct(v.win_rate, 0)}</td>
+                <td class="r num" data-v={v.max_drawdown}>{usdK(v.max_drawdown)}</td>
                 <GateCells variant={v} />
               </tr>
             );
@@ -90,14 +88,6 @@ const rows = [...devRuns].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.pr
   .pill i { width: 8px; height: 8px; border-radius: 2px; }
   .pill .num { opacity: 0.6; }
   .table-wrap { padding: 0 0.5rem; }
-  th button {
-    all: unset; cursor: pointer; display: inline-block; min-height: 1.6rem; padding-block: 0.15rem; border-radius: 4px;
-  }
-  th button:hover { color: var(--ink); }
-  th button:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
-  th[aria-sort] button::after { content: " ↓"; color: var(--sky-ink); }
-  th[aria-sort="ascending"] button::after { content: " ↑"; }
-  th.r button { text-align: right; }
   th .need { display: block; font-weight: 400; color: var(--ink-3); margin-top: 0.1rem; }
   .sname { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; }
   .sname i { flex: none; width: 4px; height: 2rem; border-radius: 2px; }

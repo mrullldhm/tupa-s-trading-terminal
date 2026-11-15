@@ -2,8 +2,9 @@
 // Cumulative net profit by month, one line per series. Server-drawn SVG; hover readout from equity.client.ts.
 import { usdK } from "../lib/format";
 interface Series { id: string; name: string; color: string; dash?: boolean; points: { t: string; y: number }[] }
-interface Props { series: Series[]; height?: number; label: string }
-const { series, height = 300, label } = Astro.props;
+/** panels: this chart's highlighted line picks which [data-vpanel] block shows. One chart per page may set it. */
+interface Props { series: Series[]; height?: number; label: string; panels?: boolean }
+const { series, height = 300, label, panels = false } = Astro.props;
 
 const W = 1000, H = height, PL = 56, PR = 16, PT = 14, PB = 28;
 const months = [...new Set(series.flatMap((s) => s.points.map((p) => p.t)))].sort();
@@ -31,7 +32,7 @@ const payload = JSON.stringify({
   box: { W, PL, PR },
 });
 ---
-<figure class="eq" data-equity={payload} data-focus={series.length > 1 ? "0" : undefined} style={`--h:${height}px`}>
+<figure class="eq" data-equity={payload} data-focus={series.length > 1 ? "0" : undefined} data-panels={panels ? "" : undefined} style={`--h:${height}px`}>
   <div class="eq-plot">
     <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={label}>
       {ticks.map((v) => (

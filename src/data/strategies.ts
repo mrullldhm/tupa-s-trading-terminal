@@ -256,13 +256,14 @@ export const STRATEGY_TEXT: StrategyText[] = [
       "Charts: 5-minute and 15-minute candles. Two later versions on 5-minute drop yesterday's levels.",
       "A sensitivity check fills an entry only when price trades 1 tick through the limit, instead of on a touch.",
     ],
-    verdict: "The best result on build data so far, and it failed the check on new data. All four level sets together on 5-minute candles trade about 100 times a year and pass 4 of the 5 checks on 2010–2021 (cost per pass $584 against $500). On 2022–2024, run once with frozen settings, it made money in only 1 of 3 years, and with strict fills it misses the check's profit factor and pass rate bars.",
+    verdict: "Dropped. The best result on build data so far, and it failed the check on new data twice. All four level sets together on 5-minute candles trade about 100 times a year and pass 4 of the 5 checks on 2010–2021. On 2022–2024, run once with frozen settings, it made money in only 1 of 3 years. The strongest build version (all levels except yesterday's) was then checked too and also missed the profit factor and pass rate bars, with touch fills and with strict fills.",
     lessons: [
       "The owner's swing points did not work as entry signals, but as levels fixed at the open they beat yesterday's high and low: daily swing levels make about $63 per trade before fees on 5-minute candles, against $26 for yesterday's levels.",
       "5-minute candles beat 15-minute candles for every level set.",
       "Strict fills (price must trade 1 tick through the limit) cut the build-period edge but do not remove it, most of all for week and swing levels. Yesterday's levels lose most of their edge under strict fills.",
       "On 2022–2024 the profit came from 10 days and from fills that only touched the limit; fills that traded through lost money. That pattern is what an edge from the fill rule looks like, not from the market.",
-      "All numbers are in-sample and best of 12 tries on build data.",
+      "Both checks on 2022–2024 were carried by 2023 and by about 10 good days; without them both lose money.",
+      "All numbers are in-sample and best of 16 tries on build data. The second check shares most of its trades with the first, so it is not fully independent.",
     ],
   },
   {

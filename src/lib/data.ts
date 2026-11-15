@@ -118,6 +118,8 @@ export interface Gate {
   label: string;
   rule: string;
   value: string;
+  /** Sort value: lower is better for cost; null when there is none (no pass). */
+  raw: number | null;
   pass: boolean;
 }
 
@@ -127,11 +129,11 @@ export function gates(v: Variant): Gate[] {
   const g = R.gates;
   const yp = v.years_positive / v.years_total;
   return [
-    { key: "trades", label: "Trades", rule: `${g.trades}+`, value: v.trades.toLocaleString("en-US"), pass: v.trades >= g.trades },
-    { key: "pf", label: "Profit factor", rule: `${g.profit_factor.toFixed(2)}+`, value: v.profit_factor.toFixed(2), pass: v.profit_factor >= g.profit_factor },
-    { key: "years", label: "Years in profit", rule: `${Math.round(g.years_positive * 100)}%+`, value: `${v.years_positive}/${v.years_total}`, pass: yp >= g.years_positive },
-    { key: "pass", label: "Combine pass rate", rule: `${Math.round(g.pass_rate * 100)}%+`, value: `${(v.pass_rate * 100).toFixed(1)}%`, pass: v.pass_rate >= g.pass_rate },
-    { key: "cost", label: "Cost per pass", rule: `≤ ${money(g.cost_per_pass)}`, value: v.cost_per_pass == null ? "no pass" : money(v.cost_per_pass), pass: v.cost_per_pass != null && v.cost_per_pass <= g.cost_per_pass },
+    { key: "trades", label: "Trades", rule: `${g.trades}+`, value: v.trades.toLocaleString("en-US"), raw: v.trades, pass: v.trades >= g.trades },
+    { key: "pf", label: "Profit factor", rule: `${g.profit_factor.toFixed(2)}+`, value: v.profit_factor.toFixed(2), raw: v.profit_factor, pass: v.profit_factor >= g.profit_factor },
+    { key: "years", label: "Years in profit", rule: `${Math.round(g.years_positive * 100)}%+`, value: `${v.years_positive}/${v.years_total}`, raw: yp, pass: yp >= g.years_positive },
+    { key: "pass", label: "Combine pass rate", rule: `${Math.round(g.pass_rate * 100)}%+`, value: `${(v.pass_rate * 100).toFixed(1)}%`, raw: v.pass_rate, pass: v.pass_rate >= g.pass_rate },
+    { key: "cost", label: "Cost per pass", rule: `≤ ${money(g.cost_per_pass)}`, value: v.cost_per_pass == null ? "no pass" : money(v.cost_per_pass), raw: v.cost_per_pass, pass: v.cost_per_pass != null && v.cost_per_pass <= g.cost_per_pass },
   ];
 }
 

@@ -250,6 +250,32 @@ td.r,
 th.r {
   text-align: right;
 }
+/* Sortable headers (sort.client.ts wraps each header's content in button.sort) */
+th button.sort {
+  all: unset;
+  cursor: pointer;
+  display: inline-block;
+  min-height: 1.6rem;
+  padding-block: 0.15rem;
+  border-radius: 4px;
+}
+th button.sort:hover {
+  color: var(--ink);
+}
+th button.sort:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
+}
+th[aria-sort] button.sort::after {
+  content: " ↓";
+  color: var(--sky-ink);
+}
+th[aria-sort="ascending"] button.sort::after {
+  content: " ↑";
+}
+th.r button.sort {
+  text-align: right;
+}
 
 .prose {
   max-width: 68ch;
