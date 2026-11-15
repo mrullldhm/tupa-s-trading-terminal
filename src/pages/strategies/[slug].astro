@@ -8,7 +8,7 @@ import Icon from "../../components/Icon.astro";
 import ReadingGuide from "../../components/ReadingGuide.astro";
 import StrategyDemo from "../../components/StrategyDemo.astro";
 import { demoFor } from "../../data/demos";
-import { strategies, curve, gatesPassed, yearRange, variantStyles, type Strategy, swatch } from "../../lib/data";
+import { R, strategies, curve, gatesPassed, yearRange, variantStyles, type Strategy, swatch } from "../../lib/data";
 import { usdK, usd, int, pct, date } from "../../lib/format";
 
 export function getStaticPaths() {
@@ -124,6 +124,46 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
     <ReadingGuide />
   </section>
 
+  {s.checks.length > 0 && (
+    <section class="panel" aria-labelledby="chk-h">
+      <div class="panel-head">
+        <h2 id="chk-h">Check on new data</h2>
+        <p>Validation {R.periods.validation.start.slice(0, 4)}–{Number(R.periods.validation.end!.slice(0, 4)) - 1} · frozen settings · run once</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th class="r">Trades</th>
+              <th class="r">Net profit</th>
+              <th class="r">Profit factor</th>
+              <th class="r">Years in profit</th>
+              <th class="r">Combine pass rate</th>
+              <th class="r">Cost per pass</th>
+              <th class="r">Biggest drop</th>
+            </tr>
+          </thead>
+          <tbody>
+            {s.checks.map((v) => (
+              <tr>
+                <td>{v.label}</td>
+                <td class="r num">{int(v.trades)}</td>
+                <td class="r num strong">{usdK(v.net)}</td>
+                <td class="r num">{v.profit_factor.toFixed(2)}</td>
+                <td class="r num">{v.years_positive}/{v.years_total}</td>
+                <td class="r num">{pct(v.pass_rate, 1)}</td>
+                <td class="r num">{v.cost_per_pass == null ? "no pass" : `$${int(v.cost_per_pass)}`}</td>
+                <td class="r num">{usdK(v.max_drawdown)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="chk-note">The check uses easier bars than the build period: 60+ trades, profit factor 1.10+, Combine pass rate 40%+, cost per pass $750 or less. Years in profit is shown but not graded on three years.</p>
+    </section>
+  )}
+
   <section class="panel" aria-labelledby="eq-h">
     <div class="panel-head">
       <h2 id="eq-h">Running profit by version</h2>
@@ -197,6 +237,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
   .verdict ul { margin: 0.8rem 0 0; padding-left: 1.1rem; color: var(--ink-2); max-width: 75ch; }
   .verdict li + li { margin-top: 0.35rem; }
   .demo-sec { margin: 2.25rem 0; }
+  .chk-note { margin: 0; padding: 0.75rem 1rem 1rem; color: var(--ink-2); font-size: 0.85rem; max-width: 72ch; }
   .demo-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem 1rem; margin-bottom: 0.9rem; }
   .demo-head p { font-size: 0.8rem; color: var(--ink-3); }
   .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }

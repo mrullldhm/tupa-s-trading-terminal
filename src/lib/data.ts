@@ -57,11 +57,13 @@ const COLORS: Record<string, string> = {
   swing_point_failure: "#008300",
   swing_point_failure_reversal: "#2aa1b3",
   swing_point_manipulation: "#008300",
+  purple_levels: "#3987e5",
+  pd_swing: "#c98500",
 };
 
 // The palette has eight validated hues; a ninth strategy reuses one and is drawn dashed (striped swatch), so identity
 // never rests on colour alone.
-const DASHED = new Set(["swing_point_manipulation"]);
+const DASHED = new Set(["swing_point_manipulation", "purple_levels", "pd_swing"]);
 
 /** Inline style for a strategy swatch: solid, or striped when the strategy is drawn dashed. */
 export const swatch = (color: string, dash = false) =>
@@ -144,26 +146,32 @@ export interface Strategy {
   dash: boolean;
   status: { state: string; date: string; reason: string };
   variants: Variant[];
+  checks: Variant[];
   best: Variant;
   text: ReturnType<typeof textFor>;
 }
+
+export const isStrictFills = (v: Variant) => v.label.endsWith("strict fills");
 
 /** Best variant = most gates passed, then highest profit factor. Labelled "best of N" wherever shown. */
 const rank = (a: Variant, b: Variant) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor;
 
 export const strategies: Strategy[] = STRATEGY_TEXT.map((t) => {
-  const variants = R.variants.filter((v) => v.strategy === t.id);
+  const variants = R.variants.filter((v) => v.strategy === t.id && v.period === "dev");
+  const checks = R.variants.filter((v) => v.strategy === t.id && v.period === "validation");
   const status = R.strategies.find((s) => s.id === t.id)?.status;
   if (!variants.length || !status) throw new Error(`No exported runs for ${t.id}`);
-  const best = [...variants].sort(rank)[0];
-  return { id: t.id, slug: t.slug, name: t.name, short: t.short, color: COLORS[t.id], dash: DASHED.has(t.id), status, variants, best, text: t };
+  // Strict-fill runs are a sensitivity check of the owner's fill rule, never the headline version.
+  const ownerFills = variants.filter((v) => !isStrictFills(v));
+  const best = [...(ownerFills.length ? ownerFills : variants)].sort(rank)[0];
+  return { id: t.id, slug: t.slug, name: t.name, short: t.short, color: COLORS[t.id], dash: DASHED.has(t.id), status, variants, checks, best, text: t };
 }).sort((a, b) => rank(a.best, b.best));
 
 export const strategyById = (id: string) => strategies.find((s) => s.id === id)!;
 
 export const totals = {
   strategies: strategies.length,
-  variants: R.variants.length,
+  variants: R.variants.filter((v) => v.period === "dev").length,
   runs: R.ledger_rows,
   passed: strategies.filter((s) => gates(s.best).every((g) => g.pass)).length,
   tradesTested: R.variants.reduce((n, v) => n + v.trades, 0),

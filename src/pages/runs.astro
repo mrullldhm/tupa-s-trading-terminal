@@ -5,7 +5,8 @@ import ReadingGuide from "../components/ReadingGuide.astro";
 import { R, strategies, strategyById, yearRange, gatesPassed, swatch } from "../lib/data";
 import { usdK, pct, int } from "../lib/format";
 const years = yearRange();
-const rows = [...R.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor);
+const devRuns = R.variants.filter((v) => v.period === "dev");
+const rows = [...devRuns].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor);
 ---
 <Base title="All test runs" description="Every version of every CL strategy tested, with all five pass checks, sortable and filterable." crumbs={[{ label: "All test runs" }]}>
   <header class="head">
@@ -66,7 +67,7 @@ const rows = [...R.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b
     <ReadingGuide />
     <p class="note">
       All runs: build data {years}, one contract, $4.04 fee per round trip, limit entries that fill on a touch. In-sample.
-      Showing <span data-count>{rows.length}</span> of {rows.length} versions · {int(R.variants.reduce((n, v) => n + v.trades, 0))} trades.
+      Showing <span data-count>{rows.length}</span> of {rows.length} versions · {int(devRuns.reduce((n, v) => n + v.trades, 0))} trades. Build-period (dev) runs only; validation checks are on each strategy page.
     </p>
   </section>
 </Base>

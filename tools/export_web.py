@@ -29,8 +29,21 @@ DOCS = ROOT / "docs" / "strategies"
 GATES = {"trades": 200, "profit_factor": 1.25, "years_positive": 0.70, "pass_rate": 0.50, "cost_per_pass": 500.0}
 
 
+LEVEL_FAMILIES = {"pd": "previous day", "pw": "previous week", "sw4h": "4h swings", "sw1d": "daily swings",
+                  "all": "all four level sets", "sw": "4h + daily swings", "nopd": "all but previous day"}
+PD_SWING = {"P1": "P1 higher-TF trend", "P2a": "P2-a HL break", "P2b": "P2-b LH reclaim",
+            "P3a": "P3-a manipulation candle", "P3b": "P3-b manipulation + reclaim"}
+
+
 def variant_label(strategy: str, p: dict) -> str:
     """Short human label for one parameter combination (only the parameters that vary in the trial budget)."""
+    label = _base_label(strategy, p)
+    if p.get("fills"):
+        label += " · strict fills"
+    return label
+
+
+def _base_label(strategy: str, p: dict) -> str:
     if strategy == "xtley_gap":
         return f"{p['tf']} · {'trailing stop' if p['trail'] else 'fixed stop'}"
     if strategy in ("swapnil_momentum", "swapnil_hm", "purple_pa"):
@@ -46,6 +59,10 @@ def variant_label(strategy: str, p: dict) -> str:
         target = int(p["risk"] * p["rr"])
         sl = "setup's 1m/5m chart" if p["sl_tf"] == "pullback" else f"{p['sl_tf']} chart"
         return f"stop ≤{p['risk']} / target {target} ticks · stop from {sl} swings"
+    if strategy == "purple_levels":
+        return f"{p['tf']} · {LEVEL_FAMILIES[p['levels']]}"
+    if strategy == "pd_swing":
+        return f"{p['tf']}/{p['ctx']} · {PD_SWING[p['variant']]}"
     if strategy == "swing_point_manipulation":
         swings = "outside-candle high ignored" if p["outside"] == "skip" else "strict swings"
         wait = " · waits one 15m candle" if p["confirm"] else ""
@@ -107,10 +124,11 @@ def main() -> None:
                 "params": params,
                 "trades": int(r["trades"]),
                 "net": clean(float(r["net"])),
-                "profit_factor": clean(float(r["profit_factor"])),
-                "win_rate": clean(float(r["win_rate"])),
-                "max_drawdown": clean(float(r["max_drawdown"])),
-                "pass_rate": clean(float(r["pass_rate"])),
+                # Tiny runs have no ratio (0 trades) or no finished Combine attempt: show 0, which fails the check.
+                "profit_factor": clean(float(r["profit_factor"])) or 0.0,
+                "win_rate": clean(float(r["win_rate"])) or 0.0,
+                "max_drawdown": clean(float(r["max_drawdown"])) or 0.0,
+                "pass_rate": clean(float(r["pass_rate"])) or 0.0,
                 "seq_passes": int(r["seq_passes"]),
                 "seq_fails": int(r["seq_fails"]),
                 "cost_per_pass": clean(float(r["seq_cost_per_pass_usd"])),

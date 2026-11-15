@@ -20,6 +20,8 @@ const stages = [
 ];
 const top = strategies[0];
 const topGates = gates(top.best);
+const topFails = topGates.filter((g) => !g.pass);
+const topCheck = top.checks.find((v) => v.label === top.best.label);
 ---
 <Base description="A research journal testing crude oil (CL) futures strategies against the Topstep 50K Trading Combine, in plain English, with every result labelled.">
   <section class="hero">
@@ -28,7 +30,7 @@ const topGates = gates(top.best);
       <p class="lead">
         We take trading ideas from the internet, rebuild them for CL futures, and replay 12 years of one-minute prices
         through Topstep's account rules. {totals.strategies} ideas and {totals.variants} versions tested so far. None
-        passed the first stage.
+        passed every check yet.
       </p>
       <div class="actions">
         <a class="btn btn-primary" href="#scoreboard">See the scoreboard <Icon name="arrow" /></a>
@@ -53,10 +55,9 @@ const topGates = gates(top.best);
         ))}
       </ul>
       <p class="cl-why">
-        It made money in most years, but each trade earned too little: ${top.best.profit_factor.toFixed(2)} won for
-        every $1 lost, under the $1.25 bar.
+        Best version: {top.best.label}. {topFails.length ? `It misses ${topFails.map((g) => g.label.toLowerCase()).join(" and ")} on build data` : "It passes all five checks on build data"}{topCheck ? `, and the check on 2022–2024 data made money in only ${topCheck.years_positive} of ${topCheck.years_total} years` : ""}.
       </p>
-      <a class="more" href={`/strategies/${top.slug}/`}>Read why it was dropped <Icon name="arrow" size={14} /></a>
+      <a class="more" href={`/strategies/${top.slug}/`}>Read the full results <Icon name="arrow" size={14} /></a>
     </article>
   </section>
 
