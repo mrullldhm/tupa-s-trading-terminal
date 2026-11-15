@@ -75,10 +75,28 @@ export interface VariantStyle { color: string; dash: boolean }
 /** Colour and line style per variant hash. Colour follows stop and target; versions that differ only in their tie
  * rule share one colour (same settings). 4-hour swing versions and strict-swing versions are dashed, so one colour
  * covers both. */
+// Neutral for versions folded into "Other" (opaque ink-3 on the ink-blue ground); never a ninth hue.
+const OTHER_COLOR = "#7c818c";
+const MANIPULATION_FAMILY = /^stop ≤15 ticks · strict swings · waits one 15m candle(?: · target (\d+) ticks)?$/;
+const MANIPULATION_TARGETS = ["swing", "15", "30", "45", "60", "75"];
+
+/** Swing Point Manipulation has 14 versions: the six targets of the 15-tick, strict, wait-one-candle family keep the
+ * six colours (by target, fixed); every other version is a grey "Other" line, dashed when it uses strict swings. */
+function manipulationStyle(label: string): VariantStyle {
+  const m = label.match(MANIPULATION_FAMILY);
+  const slot = m ? MANIPULATION_TARGETS.indexOf(m[1] ?? "swing") : -1;
+  if (slot >= 0) return { color: VARIANT_COLORS[slot], dash: false };
+  return { color: OTHER_COLOR, dash: label.includes("strict swings") };
+}
+
 export function variantStyles(vs: Variant[]): Map<string, VariantStyle> {
   const byGroup = new Map<string, string>();
   const byHash = new Map<string, VariantStyle>();
   for (const v of vs) {
+    if (v.strategy === "swing_point_manipulation") {
+      byHash.set(v.hash, manipulationStyle(v.label));
+      continue;
+    }
     const group = v.label.replace(/ · tie \S+$/, "").replace(/^\S+ swings · /, "")
       .replace(/ · (strict swings|outside-candle high ignored)/, "");
     if (!byGroup.has(group)) byGroup.set(group, VARIANT_COLORS[byGroup.size % VARIANT_COLORS.length]);

@@ -19,10 +19,11 @@ def test_variant_labels_name_only_the_parameters_that_vary():
     want = "stop ≤25 / target 50 ticks · stop from setup's 1m/5m chart swings"
     assert ex.variant_label("swing_point_failure_reversal", rev) == want
     assert ex.variant_label("swing_point_failure_reversal", {**rev, "sl_tf": "15m"}).endswith("from 15m chart swings")
-    spm = {"risk": 15, "outside": "strict", "confirm": 1, "swing_tf": "1h", "entry_tf": "15m"}
+    spm = {"risk": 15, "outside": "strict", "confirm": 1, "tp": "swing", "swing_tf": "1h", "entry_tf": "15m"}
     assert ex.variant_label("swing_point_manipulation", spm) == "stop ≤15 ticks · strict swings · waits one 15m candle"
     assert ex.variant_label("swing_point_manipulation", {**spm, "outside": "skip", "confirm": 0}) == (
         "stop ≤15 ticks · outside-candle high ignored")
+    assert ex.variant_label("swing_point_manipulation", {**spm, "tp": 60}).endswith("waits one 15m candle · target 60 ticks")
 
 
 def test_status_line_is_parsed(tmp_path, monkeypatch):
