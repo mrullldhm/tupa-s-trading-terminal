@@ -56,7 +56,16 @@ const COLORS: Record<string, string> = {
   ict_ea: "#9085e9",
   swing_point_failure: "#008300",
   swing_point_failure_reversal: "#2aa1b3",
+  swing_point_manipulation: "#008300",
 };
+
+// The palette has eight validated hues; a ninth strategy reuses one and is drawn dashed (striped swatch), so identity
+// never rests on colour alone.
+const DASHED = new Set(["swing_point_manipulation"]);
+
+/** Inline style for a strategy swatch: solid, or striped when the strategy is drawn dashed. */
+export const swatch = (color: string, dash = false) =>
+  dash ? `background:repeating-linear-gradient(90deg,${color} 0 3px,transparent 3px 5px)` : `background:${color}`;
 
 /** Same validated set, in fixed order, for variants inside one strategy page. */
 export const VARIANT_COLORS = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#9085e9"];
@@ -64,14 +73,17 @@ export const VARIANT_COLORS = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55
 export interface VariantStyle { color: string; dash: boolean }
 
 /** Colour and line style per variant hash. Colour follows stop and target; versions that differ only in their tie
- * rule share one colour (same settings). 4-hour swing versions are dashed, so one colour covers both swing sizes. */
+ * rule share one colour (same settings). 4-hour swing versions and strict-swing versions are dashed, so one colour
+ * covers both. */
 export function variantStyles(vs: Variant[]): Map<string, VariantStyle> {
   const byGroup = new Map<string, string>();
   const byHash = new Map<string, VariantStyle>();
   for (const v of vs) {
-    const group = v.label.replace(/ · tie \S+$/, "").replace(/^\S+ swings · /, "");
+    const group = v.label.replace(/ · tie \S+$/, "").replace(/^\S+ swings · /, "")
+      .replace(/ · (strict swings|outside-candle high ignored)/, "");
     if (!byGroup.has(group)) byGroup.set(group, VARIANT_COLORS[byGroup.size % VARIANT_COLORS.length]);
-    byHash.set(v.hash, { color: byGroup.get(group)!, dash: v.label.startsWith("4h swings") });
+    const dash = v.label.startsWith("4h swings") || v.label.includes("strict swings");
+    byHash.set(v.hash, { color: byGroup.get(group)!, dash });
   }
   return byHash;
 }
@@ -111,6 +123,7 @@ export interface Strategy {
   name: string;
   short: string;
   color: string;
+  dash: boolean;
   status: { state: string; date: string; reason: string };
   variants: Variant[];
   best: Variant;
@@ -125,7 +138,7 @@ export const strategies: Strategy[] = STRATEGY_TEXT.map((t) => {
   const status = R.strategies.find((s) => s.id === t.id)?.status;
   if (!variants.length || !status) throw new Error(`No exported runs for ${t.id}`);
   const best = [...variants].sort(rank)[0];
-  return { id: t.id, slug: t.slug, name: t.name, short: t.short, color: COLORS[t.id], status, variants, best, text: t };
+  return { id: t.id, slug: t.slug, name: t.name, short: t.short, color: COLORS[t.id], dash: DASHED.has(t.id), status, variants, best, text: t };
 }).sort((a, b) => rank(a.best, b.best));
 
 export const strategyById = (id: string) => strategies.find((s) => s.id === id)!;

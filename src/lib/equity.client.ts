@@ -1,7 +1,7 @@
 // Crosshair + readout for EquityChart. Reads the chart's data-equity payload; no inline script (CSP).
 type Payload = {
   months: string[];
-  series: { name: string; color: string; ys: number[] }[];
+  series: { name: string; color: string; dash: boolean; ys: number[] }[];
   box: { W: number; PL: number; PR: number };
 };
 
@@ -35,7 +35,8 @@ for (const fig of document.querySelectorAll<HTMLElement>("[data-equity]")) {
     for (const s of [...data.series].sort((a, b) => b.ys[i] - a.ys[i])) {
       const row = el("div", "display:flex;gap:.8rem;align-items:center;justify-content:space-between");
       const name = el("span", "display:flex;gap:.4rem;align-items:center;color:var(--ink-2)");
-      name.append(el("i", `width:8px;height:8px;border-radius:2px;background:${s.color}`), s.name);
+      const fill = s.dash ? `repeating-linear-gradient(90deg,${s.color} 0 3px,transparent 3px 5px)` : s.color;
+      name.append(el("i", `width:8px;height:8px;border-radius:2px;background:${fill}`), s.name);
       row.append(name, el("b", "font-weight:500;font-variant-numeric:tabular-nums", fmt(s.ys[i])));
       tip.append(row);
     }

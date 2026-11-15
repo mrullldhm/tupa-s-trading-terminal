@@ -6,12 +6,12 @@ import GateCells from "../components/GateCells.astro";
 import EquityChart from "../components/EquityChart.astro";
 import YearBars from "../components/YearBars.astro";
 import ReadingGuide from "../components/ReadingGuide.astro";
-import { R, strategies, totals, curve, yearRange, gatesPassed, gates } from "../lib/data";
+import { R, strategies, totals, curve, yearRange, gatesPassed, gates, swatch } from "../lib/data";
 import { usdK, int } from "../lib/format";
 
 const c = R.combine;
 const years = yearRange();
-const series = strategies.map((s) => ({ id: s.id, name: s.name, color: s.color, points: curve(s.best) }));
+const series = strategies.map((s) => ({ id: s.id, name: s.name, color: s.color, dash: s.dash, points: curve(s.best) }));
 const stages = [
   { name: "Build", range: years, count: totals.strategies, note: "Tune on old data" },
   { name: "Check", range: "2022–2024", count: 0, note: "One run, settings frozen" },
@@ -86,7 +86,7 @@ const topGates = gates(top.best);
             <tr>
               <td>
                 <a class="sname" href={`/strategies/${s.slug}/`}>
-                  <i style={`background:${s.color}`}></i>
+                  <i style={swatch(s.color, s.dash)}></i>
                   <span>
                     <b>{s.name}</b>
                     <small>{s.best.label} · best of {s.best.best_of}</small>
@@ -108,7 +108,7 @@ const topGates = gates(top.best);
         <li>
           <a href={`/strategies/${s.slug}/`}>
             <span class="c-top">
-              <i style={`background:${s.color}`}></i>
+              <i style={swatch(s.color, s.dash)}></i>
               <b>{s.name}</b>
             </span>
             <span class="c-mid">

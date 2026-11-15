@@ -2,7 +2,7 @@
 import Base from "../layouts/Base.astro";
 import GateCells from "../components/GateCells.astro";
 import ReadingGuide from "../components/ReadingGuide.astro";
-import { R, strategies, strategyById, yearRange, gatesPassed } from "../lib/data";
+import { R, strategies, strategyById, yearRange, gatesPassed, swatch } from "../lib/data";
 import { usdK, pct, int } from "../lib/format";
 const years = yearRange();
 const rows = [...R.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor);
@@ -21,7 +21,7 @@ const rows = [...R.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b
       <button type="button" class="pill" aria-pressed="true" data-filter="all">All <span class="num">{rows.length}</span></button>
       {strategies.map((s) => (
         <button type="button" class="pill" aria-pressed="false" data-filter={s.id}>
-          <i style={`background:${s.color}`}></i>{s.name} <span class="num">{s.variants.length}</span>
+          <i style={swatch(s.color, s.dash)}></i>{s.name} <span class="num">{s.variants.length}</span>
         </button>
       ))}
     </div>
@@ -49,7 +49,7 @@ const rows = [...R.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b
                 data-years={v.years_positive / v.years_total} data-pass={v.pass_rate} data-cost={v.cost_per_pass ?? 1e9}>
                 <td>
                   <a class="sname" href={`/strategies/${s.slug}/`}>
-                    <i style={`background:${s.color}`}></i>
+                    <i style={swatch(s.color, s.dash)}></i>
                     <span><b>{s.name}</b><small>{v.label} · best of {v.best_of}</small></span>
                   </a>
                 </td>

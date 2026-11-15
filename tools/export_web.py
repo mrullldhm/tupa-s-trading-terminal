@@ -46,6 +46,10 @@ def variant_label(strategy: str, p: dict) -> str:
         target = int(p["risk"] * p["rr"])
         sl = "setup's 1m/5m chart" if p["sl_tf"] == "pullback" else f"{p['sl_tf']} chart"
         return f"stop ≤{p['risk']} / target {target} ticks · stop from {sl} swings"
+    if strategy == "swing_point_manipulation":
+        swings = "outside-candle high ignored" if p["outside"] == "skip" else "strict swings"
+        wait = " · waits one 15m candle" if p["confirm"] else ""
+        return f"stop ≤{p['risk']} ticks · {swings}{wait}"
     return ", ".join(f"{k}={v}" for k, v in p.items())
 
 

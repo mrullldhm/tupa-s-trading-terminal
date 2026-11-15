@@ -3,7 +3,7 @@ import Base from "../../layouts/Base.astro";
 import Status from "../../components/Status.astro";
 import YearBars from "../../components/YearBars.astro";
 import Icon from "../../components/Icon.astro";
-import { strategies, gatesPassed, yearRange } from "../../lib/data";
+import { strategies, gatesPassed, yearRange, swatch } from "../../lib/data";
 import { usdK } from "../../lib/format";
 const years = yearRange();
 ---
@@ -22,7 +22,7 @@ const years = yearRange();
         <a class="cover" href={`/strategies/${s.slug}/`} aria-label={`Open ${s.name}`}></a>
         <div class="who">
           <div class="title">
-            <i style={`background:${s.color}`}></i>
+            <i style={swatch(s.color, s.dash)}></i>
             <h2>{s.name}</h2>
             <Status state={s.status.state} />
           </div>

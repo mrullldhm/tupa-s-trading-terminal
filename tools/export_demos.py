@@ -542,15 +542,71 @@ def swing_point_failure_reversal_window(df: pd.DataFrame, params: dict) -> set[i
     return set(ok["end"].astype(int))
 
 
+def swing_point_manipulation(d: Demo, p: dict):
+    """Marks come from the strategy's own setups() record for this trade (same code that made the signal)."""
+    from cltester.swings import build_candles
+    s = load("swing_point_manipulation").setups(d.df, p)
+    rec = s[(s["end"] == d.t.signal_bar) & (s["why"] == "trigger")].iloc[-1]
+    side, k = int(rec["side"]), int(rec["c3"])
+    h1 = build_candles(d.df, "1h")
+    c1, c2 = k - 2, k - 1
+    hi2, lo2 = h1.h[c2] * TICK, h1.l[c2] * TICK
+    first_of = lambda c: candle_of(d.cd, int(h1.first[c]))  # noqa: E731
+    last_of = lambda c: candle_of(d.cd, int(h1.last[c]))  # noqa: E731
+    st = swing_state(d.df, "1h", prev=True, newest=True).iloc[int(h1.avail[c2])]
+    swing = "low" if side == 1 else "high"
+    ts = pd.DatetimeIndex(d.df["ts"])
+    base_bar = int(ts.searchsorted(st[f"1h_s{swing[0]}_ts"]))
+    k_base = candle_of(d.cd, base_bar)
+    tp, base = float(rec["target"]), float(st[f"1h_s{swing[0]}"])
+    k_lo, k_hi = candle_of(d.cd, int(rec["lo_touch"])), candle_of(d.cd, int(rec["hi_touch"]))
+    k_break = k_hi
+    d.mark(kind="hline", layer="setup", price=round(tp, 2), **{"from": d.a, "to": d.b - 1},
+           label=f"1h swing {'high' if side == 1 else 'low'} (target)", tone="level")
+    if k_base >= d.a:
+        d.mark(kind="candle", layer="setup", i=k_base, label=f"1h swing {swing}")
+    for c, name in ((c1, "1"), (c2, "2")):
+        d.mark(kind="zone", layer="setup", i0=first_of(c), i1=last_of(c), lo=round(h1.l[c] * TICK, 2),
+               hi=round(h1.h[c] * TICK, 2), label=f"Candle {name}", tone="level")
+    d.mark(kind="hline", layer="touch", price=round(lo2 if side == 1 else hi2, 2),
+           **{"from": first_of(c2), "to": d.k_sig}, label=f"Candle 2 {'low' if side == 1 else 'high'}", tone="sky")
+    d.mark(kind="hline", layer="touch", price=round(hi2 if side == 1 else lo2, 2),
+           **{"from": first_of(c2), "to": d.k_sig}, label=f"Candle 2 {'high' if side == 1 else 'low'}", tone="sky")
+    d.mark(kind="candle", layer="touch", i=k_lo, label="Sweep")
+    d.mark(kind="candle", layer="signal", i=k_break, label="Break")
+    if p["confirm"]:
+        d.mark(kind="candle", layer="signal", i=d.k_sig, label="Holds")
+    close = float(d.cd["close"].iat[k_break])
+    stop = float(rec["stop"])
+    d.facts.update(tp=round(tp, 2), base=round(base, 2), base_i=d.w(max(k_base, d.a)), c1_i=d.w(first_of(c1)),
+                   c2_i=d.w(first_of(c2)), c3_i=d.w(first_of(k)), hi1=round(h1.h[c1] * TICK, 2),
+                   lo1=round(h1.l[c1] * TICK, 2), hi2=round(hi2, 2), lo2=round(lo2, 2), sweep_i=d.w(k_lo),
+                   break_i=d.w(k_break), close=round(close, 2), stop=round(stop, 2),
+                   range_ticks=int(round(abs(close - stop) / TICK)), risk=int(p["risk"]),
+                   confirm=bool(p["confirm"]), outside=p["outside"])
+
+
+def swing_point_manipulation_window(df: pd.DataFrame, params: dict) -> set[int]:
+    """Signal bars whose candle 1 starts at most LEAD - 6 display (15m) candles before the signal."""
+    from cltester.swings import build_candles
+    s = load("swing_point_manipulation").setups(df, {**load("swing_point_manipulation").PARAMS, **params})
+    s = s[s["why"] == "trigger"]
+    first = build_candles(df, "1h").first
+    ok = [int(e) for e, k in zip(s["end"], s["c3"], strict=True) if e - first[int(k) - 2] <= (LEAD - 6) * 15]
+    return set(ok)
+
+
 WINDOWS = {"swing_point_failure": swing_point_failure_window,
-           "swing_point_failure_reversal": swing_point_failure_reversal_window}
+           "swing_point_failure_reversal": swing_point_failure_reversal_window,
+           "swing_point_manipulation": swing_point_manipulation_window}
 
 
 BUILDERS = {"purple_pa": purple_pa, "swapnil_hm": swapnil_hm, "xtley_gap": xtley_gap,
             "swapnil_momentum": swapnil_momentum, "scribd_supertrend": scribd_supertrend, "ict_ea": ict_ea,
-            "swing_point_failure": swing_point_failure, "swing_point_failure_reversal": swing_point_failure_reversal}
+            "swing_point_failure": swing_point_failure, "swing_point_failure_reversal": swing_point_failure_reversal,
+            "swing_point_manipulation": swing_point_manipulation}
 DISPLAY_TF = {"scribd_supertrend": "15m", "ict_ea": "5m", "swing_point_failure": "1m",
-              "swing_point_failure_reversal": "1m"}
+              "swing_point_failure_reversal": "1m", "swing_point_manipulation": "15m"}
 PREFER = {  # which example reads clearest: exit reasons in order of preference, plus a check
     "purple_pa": ["target", "stop"],
     "swapnil_hm": ["target", "flatten", "stop"],
@@ -560,6 +616,7 @@ PREFER = {  # which example reads clearest: exit reasons in order of preference,
     "ict_ea": ["target", "stop", "manage"],
     "swing_point_failure": ["target", "stop"],
     "swing_point_failure_reversal": ["target", "stop"],
+    "swing_point_manipulation": ["target", "stop"],
 }
 
 
@@ -593,7 +650,8 @@ def pick(sid: str, cd: pd.DataFrame, trades: pd.DataFrame, stops: dict, warm: in
 
 
 WARM = {"xtley_gap": 380, "swapnil_hm": 40, "scribd_supertrend": 40, "ict_ea": 30, "purple_pa": 0,
-        "swapnil_momentum": 40, "swing_point_failure": 300, "swing_point_failure_reversal": 300}
+        "swapnil_momentum": 40, "swing_point_failure": 300, "swing_point_failure_reversal": 300,
+        "swing_point_manipulation": 40}
 
 
 def main() -> None:

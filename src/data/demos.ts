@@ -319,6 +319,44 @@ const BUILD: Record<string, Builder> = {
       exitStep(d),
     ];
   },
+  swing_point_manipulation: (d) => {
+    const f = d.facts, t = d.trade, buy = t.side === 1;
+    const top = buy ? "high" : "low", bot = buy ? "low" : "high";
+    const [sweep, brk] = buy ? [f.lo2, f.hi2] : [f.hi2, f.lo2];
+    const limitWords = f.range_ticks <= f.risk
+      ? `The close is ${f.range_ticks} ticks from the stop, within ${f.risk}, so the limit goes at the close.`
+      : `The close is ${f.range_ticks} ticks from the stop, more than ${f.risk}, so the limit goes ${f.risk} ticks from the stop and waits for price to come back.`;
+    const steps: Step[] = [
+      { title: `1-hour swing ${top}, then swing ${bot}`, text: `On 1-hour candles (owner swing rule) the newest points are a swing ${top} at ${$(f.tp)} and then a swing ${bot} at ${$(f.base)}. The next point should be a swing ${top}; ${$(f.tp)} is the target.`, at: f.c1_i - 1, show: ["setup"] },
+      {
+        title: `Candles 1 and 2 try for a swing ${top}`,
+        text: `Candle 1 (each 1-hour candle is four 15-minute candles here) reaches ${$(buy ? f.hi1 : f.lo1)}. Candle 2 reaches ${$(buy ? f.hi2 : f.lo2)}, ${buy ? "at or above" : "at or below"} it. If candle 3 stays ${buy ? "under" : "over"} candle 2, candle 2 becomes the new swing ${top}.`,
+        at: f.c3_i - 1,
+        show: ["setup"],
+      },
+      {
+        title: `Candle 3 sweeps the ${bot}, then breaks the ${top}`,
+        text: `Inside candle 3, price first takes candle 2's ${bot} (${$(sweep)}), then its ${top} (${$(brk)}), in the same hour. The dip ran the stops under candle 2; the break says ${buy ? "buyers" : "sellers"} are in control.`,
+        at: f.break_i,
+        show: ["setup", "touch", "signal"],
+        checks: [
+          { label: `Swing ${top} then swing ${bot} on 1-hour candles`, value: `${$(f.tp)} / ${$(f.base)}`, ok: true },
+          { label: `Candle 2 ${top} ${buy ? "≥" : "≤"} candle 1 ${top}`, value: `${$(buy ? f.hi2 : f.lo2)} vs ${$(buy ? f.hi1 : f.lo1)}`, ok: true },
+          { label: `Candle 3 takes candle 2's ${bot} first`, value: $(sweep), ok: true },
+          { label: `Then candle 2's ${top}, same hour`, value: $(brk), ok: true },
+        ],
+      },
+    ];
+    if (f.confirm) {
+      steps.push({ title: "The next 15-minute candle holds", text: `This version waits one more 15-minute candle. It stays ${buy ? "above" : "below"} the break candle's ${bot} (${$(f.stop)}), so the setup stands. If it had touched it, there would be no trade.`, at: t.signal, show: ["setup", "touch", "signal"] });
+    }
+    steps.push(
+      orderStep(d, `The stop is the break candle's ${bot}. ${limitWords} The target is the last 1-hour swing ${top}.`),
+      fillStep(d, `From here only the stop or the target can end it, or 3:10 PM. Had price reached ${$(f.tp)} before filling, the order would have been cancelled.`),
+      exitStep(d),
+    );
+    return steps;
+  },
 };
 
 export const stepsFor = (d: Demo): Step[] => BUILD[d.id]?.(d) ?? [];

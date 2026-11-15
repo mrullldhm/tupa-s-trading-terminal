@@ -213,6 +213,34 @@ export const STRATEGY_TEXT: StrategyText[] = [
       "The better versions make money before fees (up to +$8,880 over 12 years). Fees on about 6,500 trades turn every one into a loss.",
     ],
   },
+  {
+    id: "swing_point_manipulation",
+    slug: "swing-point-manipulation",
+    name: "Swing Point Manipulation",
+    short: "A 1-hour candle sweeps the last candle's low, then breaks its high: buy the break (and the mirror).",
+    source: {
+      label: "Owner's own setup",
+      url: null,
+      note: "Proposed by the owner in November 2026, with a worked example from 13 November 2026.",
+    },
+    idea: "After a 1-hour swing high and then a swing low, price tries to build the next swing high. If the next 1-hour candle first takes the previous candle's low and then its high, the dip was a run on the stops below that low, not a turn down. Buy the break and aim for the last swing high.",
+    rules: [
+      "Setup (1-hour candles, owner swing rule): the newest points are a swing high, then a swing low. Candle 2's high is equal to or above candle 1's high.",
+      "Trigger: inside candle 3, price first touches candle 2's low and later touches candle 2's high, in the same hour. A touch of the high first, or both in one minute, does not count.",
+      "Entry: at the close of the 15-minute candle that broke candle 2's high. Stop: that 15-minute candle's low. Limit at its close, or 15, 20 or 25 ticks above the stop when the close is further away. Target: the last 1-hour swing high.",
+      "Later version: wait one more 15-minute candle; if it touches the break candle's low, skip the trade, otherwise place the same order at its close.",
+      "An unfilled order is cancelled when price reaches the target first or the next setup comes. 1 contract, one trade at a time. Sells are the mirror.",
+      "One candle can be both swing low and swing high. One version ignores a swing high sitting on the swing low's own candle (the owner's example needs this); the strict version does not.",
+    ],
+    verdict: "Fails every check. 8 of 9 versions lose money; the best (strict swings, wait one 15-minute candle, 15-tick stop) makes a small profit but passes the Combine in only about 1 attempt in 4.",
+    lessons: [
+      "Before fees, the first six versions are about break-even. Fees on about 1,200 trades decide the result.",
+      "Waiting one more 15-minute candle that holds above the break candle's low removes about 40% of trades and turns the before-fees result positive for all three stop sizes.",
+      "Only the 15-tick stop is profitable after fees. 20 and 25 ticks are not, so the edge is thin and rests on one setting.",
+      "The wait-one-candle version was added after seeing the first results, so its numbers are the best of 9 tries and need clean data to mean anything.",
+      "Ignoring a swing high on the swing low's own candle changes almost nothing (about 35 extra trades in 12 years).",
+    ],
+  },
 ];
 
 export const textFor = (id: string) => {

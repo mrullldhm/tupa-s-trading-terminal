@@ -1,6 +1,6 @@
 ---
 import Icon, { type IconName } from "./Icon.astro";
-import { strategies } from "../lib/data";
+import { strategies, swatch } from "../lib/data";
 interface Props { current: string }
 const { current } = Astro.props;
 const items: { href: string; label: string; icon: IconName }[] = [
@@ -23,7 +23,7 @@ const active = (href: string) => (href === "/" ? current === "/" : current.start
             {strategies.map((s) => (
               <li>
                 <a href={`/strategies/${s.slug}/`} aria-current={current === `/strategies/${s.slug}/` ? "page" : undefined}>
-                  <i style={`background:${s.color}`}></i>
+                  <i style={swatch(s.color, s.dash)}></i>
                   <span>{s.name}</span>
                 </a>
               </li>

@@ -8,7 +8,7 @@ import Icon from "../../components/Icon.astro";
 import ReadingGuide from "../../components/ReadingGuide.astro";
 import StrategyDemo from "../../components/StrategyDemo.astro";
 import { demoFor } from "../../data/demos";
-import { strategies, curve, gatesPassed, yearRange, variantStyles, type Strategy } from "../../lib/data";
+import { strategies, curve, gatesPassed, yearRange, variantStyles, type Strategy, swatch } from "../../lib/data";
 import { usdK, usd, int, pct, date } from "../../lib/format";
 
 export function getStaticPaths() {
@@ -33,7 +33,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
 <Base title={s.name} description={`${s.name}: ${s.short} Tested on CL futures against the Topstep 50K Combine.`} crumbs={[{ href: "/strategies/", label: "Strategies" }, { label: s.name }]}>
   <header class="head">
     <div class="title">
-      <i style={`background:${s.color}`}></i>
+      <i style={swatch(s.color, s.dash)}></i>
       <Status state={s.status.state} />
       <span class="faint">Updated {date(b.run_utc)}</span>
     </div>

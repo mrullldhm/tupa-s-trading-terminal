@@ -27,7 +27,7 @@ const path = (ys: number[]) => ys.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(
 const years = months.map((m, i) => [m, i] as const).filter(([m]) => m.endsWith("-01"));
 const payload = JSON.stringify({
   months,
-  series: full.map((s) => ({ name: s.name, color: s.color, ys: s.ys.map((v) => Math.round(v)) })),
+  series: full.map((s) => ({ name: s.name, color: s.color, dash: !!s.dash, ys: s.ys.map((v) => Math.round(v)) })),
   box: { W, PL, PR },
 });
 ---
