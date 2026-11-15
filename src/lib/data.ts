@@ -55,19 +55,23 @@ const COLORS: Record<string, string> = {
   scribd_supertrend: "#d55181",
   ict_ea: "#9085e9",
   swing_point_failure: "#008300",
+  swing_point_failure_reversal: "#2aa1b3",
 };
 
 /** Same validated set, in fixed order, for variants inside one strategy page. */
 export const VARIANT_COLORS = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#9085e9"];
 
-/** Colour per variant hash. Versions that differ only in their tie rule share one colour (same settings). */
-export function variantColors(vs: Variant[]): Map<string, string> {
+export interface VariantStyle { color: string; dash: boolean }
+
+/** Colour and line style per variant hash. Colour follows stop and target; versions that differ only in their tie
+ * rule share one colour (same settings). 4-hour swing versions are dashed, so one colour covers both swing sizes. */
+export function variantStyles(vs: Variant[]): Map<string, VariantStyle> {
   const byGroup = new Map<string, string>();
-  const byHash = new Map<string, string>();
+  const byHash = new Map<string, VariantStyle>();
   for (const v of vs) {
-    const group = v.label.replace(/ · tie \S+$/, "");
+    const group = v.label.replace(/ · tie \S+$/, "").replace(/^\S+ swings · /, "");
     if (!byGroup.has(group)) byGroup.set(group, VARIANT_COLORS[byGroup.size % VARIANT_COLORS.length]);
-    byHash.set(v.hash, byGroup.get(group)!);
+    byHash.set(v.hash, { color: byGroup.get(group)!, dash: v.label.startsWith("4h swings") });
   }
   return byHash;
 }

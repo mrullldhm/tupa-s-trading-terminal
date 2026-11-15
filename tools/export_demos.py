@@ -499,10 +499,58 @@ def swing_point_failure_window(df: pd.DataFrame, params: dict) -> set[int]:
     return set(ok["end"].astype(int))
 
 
+def _reversal_records(df: pd.DataFrame, p: dict) -> pd.DataFrame:
+    """Reversal setups joined to their source signal (the sell or buy whose stop got touched)."""
+    rev = load("swing_point_failure_reversal").setups(df, p)
+    spf = load("swing_point_failure").setups(df, p)
+    spf = spf[spf["limit"].notna()][["end", "side", "stop", "tf"]].rename(
+        columns={"end": "src", "side": "src_side", "stop": "src_stop", "tf": "src_tf"})
+    return rev.merge(spf, on="src", how="left")
+
+
+def swing_point_failure_reversal(d: Demo, p: dict):
+    """Marks come from the strategy's own setups() record for this trade (same code that made the signal)."""
+    s = _reversal_records(d.df, p)
+    rec = s[(s["end"] == d.t.signal_bar) & (s["why"] == "trigger")].iloc[-1]
+    side = int(rec["side"])
+    src, touch = int(rec["src"]), int(rec["touch"])
+    ts = pd.DatetimeIndex(d.df["ts"]).as_unit("ns").asi8
+    ref_bar = int(np.searchsorted(ts, int(rec["ref_ts"])))
+    k_src, k_touch, k_ref = candle_of(d.cd, src), candle_of(d.cd, touch), candle_of(d.cd, ref_bar)
+    h, stop = float(rec["src_stop"]), float(rec["stop"])
+    hb = int(np.flatnonzero(np.isclose(d.df["high" if side == 1 else "low"].to_numpy()[:src + 1], h))[-1])
+    ref_is_h = candle_of(d.cd, hb) == k_ref
+    d.mark(kind="candle", layer="setup", i=k_src, label="Sell" if side == 1 else "Buy")
+    d.mark(kind="hline", layer="setup", price=round(h, 2), **{"from": k_src, "to": d.k_sig},
+           label="Its stop", tone="level")
+    d.mark(kind="candle", layer="touch", i=k_ref, label="Stop high" if ref_is_h and side == 1 else
+           "Stop low" if ref_is_h else ("Swing high" if side == 1 else "Swing low"))
+    d.mark(kind="hline", layer="touch", price=round(stop, 2), **{"from": k_ref, "to": d.k_sig},
+           label="Lowest low since" if side == 1 else "Highest high since", tone="sky")
+    d.mark(kind="candle", layer="signal", i=d.k_sig, label="Trigger")
+    close = float(d.cd["close"].iat[d.k_sig])
+    d.facts.update(h=round(h, 2), src_i=d.w(k_src), touch=d.w(k_touch), ref_i=d.w(k_ref), ref_is_h=bool(ref_is_h),
+                   stop=round(stop, 2), close=round(close, 2), range_ticks=int(round(abs(close - stop) / TICK)),
+                   risk=int(p["risk"]), target_ticks=int(p["risk"] * p["rr"]), sl_tf=p["sl_tf"],
+                   tf=rec["src_tf"])
+
+
+def swing_point_failure_reversal_window(df: pd.DataFrame, params: dict) -> set[int]:
+    """Signal bars whose source signal, touch and trigger fit in the shown window, on 1m (the display)."""
+    s = _reversal_records(df, {**load("swing_point_failure_reversal").PARAMS, **params})
+    ok = s[(s["why"] == "trigger") & (s["src_tf"] == "1m") & (s["end"] - s["src"] <= LEAD - 6)]
+    return set(ok["end"].astype(int))
+
+
+WINDOWS = {"swing_point_failure": swing_point_failure_window,
+           "swing_point_failure_reversal": swing_point_failure_reversal_window}
+
+
 BUILDERS = {"purple_pa": purple_pa, "swapnil_hm": swapnil_hm, "xtley_gap": xtley_gap,
             "swapnil_momentum": swapnil_momentum, "scribd_supertrend": scribd_supertrend, "ict_ea": ict_ea,
-            "swing_point_failure": swing_point_failure}
-DISPLAY_TF = {"scribd_supertrend": "15m", "ict_ea": "5m", "swing_point_failure": "1m"}
+            "swing_point_failure": swing_point_failure, "swing_point_failure_reversal": swing_point_failure_reversal}
+DISPLAY_TF = {"scribd_supertrend": "15m", "ict_ea": "5m", "swing_point_failure": "1m",
+              "swing_point_failure_reversal": "1m"}
 PREFER = {  # which example reads clearest: exit reasons in order of preference, plus a check
     "purple_pa": ["target", "stop"],
     "swapnil_hm": ["target", "flatten", "stop"],
@@ -511,6 +559,7 @@ PREFER = {  # which example reads clearest: exit reasons in order of preference,
     "scribd_supertrend": ["target", "stop", "flatten"],
     "ict_ea": ["target", "stop", "manage"],
     "swing_point_failure": ["target", "stop"],
+    "swing_point_failure_reversal": ["target", "stop"],
 }
 
 
@@ -544,7 +593,7 @@ def pick(sid: str, cd: pd.DataFrame, trades: pd.DataFrame, stops: dict, warm: in
 
 
 WARM = {"xtley_gap": 380, "swapnil_hm": 40, "scribd_supertrend": 40, "ict_ea": 30, "purple_pa": 0,
-        "swapnil_momentum": 40, "swing_point_failure": 300}
+        "swapnil_momentum": 40, "swing_point_failure": 300, "swing_point_failure_reversal": 300}
 
 
 def main() -> None:
@@ -563,7 +612,7 @@ def main() -> None:
                 continue
             cd = tf_candles(df, tf)
             cd = cd[cd["avail"].to_numpy() < len(df)].reset_index(drop=True)
-            allowed = swing_point_failure_window(df, params) if sid == "swing_point_failure" else None
+            allowed = WINDOWS[sid](df, params) if sid in WINDOWS else None
             t, score = pick(sid, cd, trades, stops, WARM[sid], allowed)
             if t is not None and (found is None or score > found[0]):
                 found = (score, seed, df, cd, t, stops, sig, p)

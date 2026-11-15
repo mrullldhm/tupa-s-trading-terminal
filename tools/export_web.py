@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from cltester.config import COMBINE_50K, FEE_ROUND_TURN, LEDGER, PERIODS, RESULTS  # noqa: E402
+from cltester.strategy import load  # noqa: E402
 
 OUT = ROOT / "web" / "src" / "data" / "research.json"
 DOCS = ROOT / "docs" / "strategies"
@@ -41,6 +42,10 @@ def variant_label(strategy: str, p: dict) -> str:
     if strategy == "swing_point_failure":
         target = int(p["risk"] * p["rr"])
         return f"{p['swing_tf']} swings · stop ≤{p['risk']} / target {target} ticks · tie {p['tie']}"
+    if strategy == "swing_point_failure_reversal":
+        target = int(p["risk"] * p["rr"])
+        sl = "setup's 1m/5m chart" if p["sl_tf"] == "pullback" else f"{p['sl_tf']} chart"
+        return f"stop ≤{p['risk']} / target {target} ticks · stop from {sl} swings"
     return ", ".join(f"{k}={v}" for k, v in p.items())
 
 
@@ -74,6 +79,10 @@ def aggregates(strategy: str, run_hash: str, period: str) -> dict:
 
 def main() -> None:
     ledger = pd.read_csv(LEDGER)
+    # Rows from before a parameter was added get its default, so the same version is one version on the site.
+    defaults = {name: load(name).PARAMS for name in ledger["strategy"].unique()}
+    ledger["params"] = [json.dumps({**defaults[n], **json.loads(q)}, sort_keys=True)
+                        for n, q in zip(ledger["strategy"], ledger["params"], strict=True)]
     ledger["key"] = ledger["strategy"] + "|" + ledger["period"] + "|" + ledger["params"]
     tried = ledger.groupby(["strategy", "period"])["params"].nunique().to_dict()
 

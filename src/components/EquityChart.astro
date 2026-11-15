@@ -1,7 +1,7 @@
 ---
 // Cumulative net profit by month, one line per series. Server-drawn SVG; hover readout from equity.client.ts.
 import { usdK } from "../lib/format";
-interface Series { id: string; name: string; color: string; points: { t: string; y: number }[] }
+interface Series { id: string; name: string; color: string; dash?: boolean; points: { t: string; y: number }[] }
 interface Props { series: Series[]; height?: number; label: string }
 const { series, height = 300, label } = Astro.props;
 
@@ -38,7 +38,7 @@ const payload = JSON.stringify({
         <line x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} class:list={["grid", v === 0 && "zero"]} vector-effect="non-scaling-stroke" />
       ))}
       {full.map((s, i) => (
-        <path d={path(s.ys)} stroke={s.color} class:list={["line", i === 0 && full.length > 1 && "on"]} data-i={i} vector-effect="non-scaling-stroke" />
+        <path d={path(s.ys)} stroke={s.color} class:list={["line", s.dash && "dash", i === 0 && full.length > 1 && "on"]} data-i={i} vector-effect="non-scaling-stroke" />
       ))}
       <line class="cross" x1="0" x2="0" y1={PT} y2={H - PB} vector-effect="non-scaling-stroke" />
     </svg>
@@ -58,7 +58,7 @@ const payload = JSON.stringify({
       <span class="lg-hint faint">Highlight a line:</span>
       {full.map((s, i) => (
         <button type="button" class="lg" data-i={i} aria-pressed={i === 0 ? "true" : "false"}>
-          <i style={`background:${s.color}`}></i>{s.name}<b class="num">{usdK(s.ys.at(-1)!)}</b>
+          <i class:list={[s.dash && "dash"]} style={s.dash ? `border-top-color:${s.color}` : `background:${s.color}`}></i>{s.name}<b class="num">{usdK(s.ys.at(-1)!)}</b>
         </button>
       ))}
     </figcaption>
@@ -99,5 +99,7 @@ const payload = JSON.stringify({
   .lg:hover { background: rgb(255 255 255 / 0.05); color: var(--ink); }
   .lg[aria-pressed="true"] { border-color: var(--line-hi); background: rgb(255 255 255 / 0.06); color: var(--ink); }
   .lg i { width: 10px; height: 3px; border-radius: 2px; }
+  .lg i.dash { height: 0; border-top: 2px dashed; border-radius: 0; }
+  .line.dash { stroke-dasharray: 6 4; }
   .lg b { font-weight: 500; }
 </style>

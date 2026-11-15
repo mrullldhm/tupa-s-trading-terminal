@@ -13,6 +13,12 @@ def test_variant_labels_name_only_the_parameters_that_vary():
     assert ex.variant_label("scribd_supertrend", {"exit": "fixed"}) == "fixed 15-point target"
     assert ex.variant_label("ict_ea", {"min_conf": 3}) == "source settings"
     assert ex.variant_label("ict_ea", {"min_conf": 7}) == "all components (score 7)"
+    spf = {"swing_tf": "1h", "risk": 15, "rr": 1, "tie": "5m"}
+    assert ex.variant_label("swing_point_failure", spf) == "1h swings · stop ≤15 / target 15 ticks · tie 5m"
+    rev = {"risk": 25, "rr": 2, "sl_tf": "pullback"}
+    want = "stop ≤25 / target 50 ticks · stop from setup's 1m/5m chart swings"
+    assert ex.variant_label("swing_point_failure_reversal", rev) == want
+    assert ex.variant_label("swing_point_failure_reversal", {**rev, "sl_tf": "15m"}).endswith("from 15m chart swings")
 
 
 def test_status_line_is_parsed(tmp_path, monkeypatch):

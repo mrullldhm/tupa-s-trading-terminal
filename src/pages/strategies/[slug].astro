@@ -8,7 +8,7 @@ import Icon from "../../components/Icon.astro";
 import ReadingGuide from "../../components/ReadingGuide.astro";
 import StrategyDemo from "../../components/StrategyDemo.astro";
 import { demoFor } from "../../data/demos";
-import { strategies, curve, gatesPassed, yearRange, variantColors, type Strategy } from "../../lib/data";
+import { strategies, curve, gatesPassed, yearRange, variantStyles, type Strategy } from "../../lib/data";
 import { usdK, usd, int, pct, date } from "../../lib/format";
 
 export function getStaticPaths() {
@@ -23,8 +23,8 @@ const t = s.text;
 const demo = demoFor(s.id);
 const years = yearRange();
 const variants = [...s.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor);
-const colorOf = variantColors(variants);
-const series = variants.map((v) => ({ id: v.hash, name: v.label, color: colorOf.get(v.hash)!, points: curve(v) }));
+const styleOf = variantStyles(variants);
+const series = variants.map((v) => ({ id: v.hash, name: v.label, ...styleOf.get(v.hash)!, points: curve(v) }));
 const b = s.best;
 const exitTotal = (v: typeof b) => Object.values(v.exits).reduce((n, x) => n + x, 0);
 const exitWords: Record<string, string> = { stop: "Stop hit", target: "Target hit", flatten: "Closed at 3:10 PM", manage: "Closed by trade rules", day_end: "Closed at day end", roll: "Closed at contract roll", partial: "Part profit taken", time: "Time limit" };
@@ -111,7 +111,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
         <tbody>
           {variants.map((v, i) => (
             <tr>
-              <td><span class="vname"><i style={`background:${colorOf.get(v.hash)}`}></i>{v.label}</span></td>
+              <td><span class="vname"><i class:list={[styleOf.get(v.hash)!.dash && "dash"]} style={styleOf.get(v.hash)!.dash ? `border-top-color:${styleOf.get(v.hash)!.color}` : `background:${styleOf.get(v.hash)!.color}`}></i>{v.label}</span></td>
               <td class="r num strong">{usdK(v.net)}</td>
               <td class="r num">{pct(v.win_rate, 0)}</td>
               <td class="r num">{usdK(v.max_drawdown)}</td>
@@ -207,6 +207,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
   .table-wrap { padding: 0.6rem 0.5rem 0.4rem; }
   .vname { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500; }
   .vname i { width: 10px; height: 3px; border-radius: 2px; }
+  .vname i.dash { height: 0; border-top: 2px dashed; border-radius: 0; }
   .strong { font-weight: 600; }
   .tbl { margin-top: 1rem; font-size: 0.82rem; }
   .tbl summary { cursor: pointer; color: var(--sky-ink); width: max-content; min-height: 1.75rem; display: flex; align-items: center; }

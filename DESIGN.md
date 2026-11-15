@@ -26,6 +26,7 @@ colors:
   series-rose: "#d55181"
   series-lavender: "#9085e9"
   series-green: "#008300"
+  series-cyan: "#2aa1b3"
 typography:
   display:
     fontFamily: "Geist Variable, ui-sans-serif, system-ui, sans-serif"
@@ -137,7 +138,7 @@ components:
 
 A research terminal read at night: a near-black ink-blue ground, a darker sunk sidebar, and thin veiled panels that hold numbers rather than decoration. The only atmosphere is a cool blue sky glow that rises behind each page head and fades before the first panel. Everything below the head is quiet, dense and tabular, so the answer and the evidence carry the page.
 
-The visual language follows a modern trading-app dashboard (look only): bold tight Geist headings, a pale gray primary button with dark ink, pill chips for status, white-alpha panels with hairline borders. Colour is rationed by meaning. Green and red speak only about pass/fail checks and year bars; amber marks values that are not confirmed; the seven categorical series colours identify strategies. Money is printed in neutral ink with a sign, never tinted.
+The visual language follows a modern trading-app dashboard (look only): bold tight Geist headings, a pale gray primary button with dark ink, pill chips for status, white-alpha panels with hairline borders. Colour is rationed by meaning. Green and red speak only about pass/fail checks and year bars; amber marks values that are not confirmed; the eight categorical series colours identify strategies. Money is printed in neutral ink with a sign, never tinted.
 
 The voice is plain and honest. Labels say what a thing is in simple English, status is always icon plus word, and the system has no marketing surfaces: no hero imagery, no signal-seller glow on numbers.
 
@@ -151,7 +152,7 @@ The voice is plain and honest. Labels say what a thing is in simple English, sta
 
 ## Colors
 
-A cold, low-chroma dark palette where hue is spent only on meaning: sky for focus and the answer, green/red for checks, amber for unconfirmed, seven series colours for strategies.
+A cold, low-chroma dark palette where hue is spent only on meaning: sky for focus and the answer, green/red for checks, amber for unconfirmed, eight series colours for strategies.
 
 ### Primary
 - **Sky** (sky): focus rings, the current step in a progress track, exit-share bars, the active sort arrow's ink. The system's one interactive accent.
@@ -163,7 +164,7 @@ A cold, low-chroma dark palette where hue is spent only on meaning: sky for focu
 - **Unconfirmed Amber** (unconfirmed-amber): the "Testing" chip, the live status dot, and warning lines for Topstep values not yet confirmed.
 
 ### Tertiary
-- **Strategy series** (series-blue, series-rust, series-jade, series-ochre, series-rose, series-lavender, series-green): a fixed categorical set validated on the dark ground (adjacent-pair CVD and normal-vision checks pass with green as the seventh). Each strategy owns one colour for its nav swatch, table name bar, equity line and legend dash. Assignment is fixed per strategy, never by sort order.
+- **Strategy series** (series-blue, series-rust, series-jade, series-ochre, series-rose, series-lavender, series-green, series-cyan): a fixed categorical set validated on the dark ground (adjacent-pair CVD and normal-vision checks pass with green seventh and cyan eighth; the reference palette's red eighth was refused because it matches fail-red). Each strategy owns one colour for its nav swatch, table name bar, equity line and legend dash. Assignment is fixed per strategy, never by sort order. Inside one strategy page, version colours follow stop and target; a second swing size (4-hour) is a dashed line and dashed swatch in the same colour, so identity is never colour alone.
 
 ### Neutral
 - **Ink-Blue Ground** (ink-blue-ground): page background and `theme-color`.

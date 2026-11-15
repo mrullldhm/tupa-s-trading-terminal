@@ -293,6 +293,32 @@ const BUILD: Record<string, Builder> = {
       exitStep(d),
     ];
   },
+  swing_point_failure_reversal: (d) => {
+    const f = d.facts, t = d.trade, buy = t.side === 1;
+    const src = buy ? "sell" : "buy";
+    const ext = buy ? "high" : "low";
+    const slChart = f.sl_tf === "pullback" ? tfWords(f.tf) : tfWords(f.sl_tf);
+    const ref = f.ref_is_h
+      ? `No newer swing ${ext} has formed, so the stop is the ${buy ? "lowest low" : "highest high"} since the ${src}'s stop candle.`
+      : `The newest swing ${ext} on the ${slChart} chart came after the ${src}'s stop, so the stop is the ${buy ? "lowest low" : "highest high"} since that swing ${ext}.`;
+    return [
+      { title: `A Swing Point Failure ${src}`, text: `The Swing Point Failure strategy ${buy ? "sells" : "buys"} here. Its stop is at ${$(f.h)}. Those trades are stopped out most of the time, so this strategy waits for that stop.`, at: f.src_i, show: ["setup"] },
+      {
+        title: `Price comes back to the ${src}'s stop`,
+        text: `Price ${buy ? "rises" : "falls"} back to ${$(f.h)} the same day: the move the ${src} went against is not over. We wait for this ${tfWords(f.tf)} candle to close.`,
+        at: t.signal,
+        show: ["setup", "touch", "signal"],
+        checks: [
+          { label: `Touches the ${src}'s stop`, value: $(f.h), ok: true },
+          { label: "Same day, before the next Swing Point Failure signal", value: "yes", ok: true },
+          { label: `Stop below the close`, value: `close ${$(f.close)}`, ok: true },
+        ],
+      },
+      orderStep(d, `${ref} That is ${f.range_ticks} ticks from the close. ${f.range_ticks <= f.risk ? `That is within ${f.risk} ticks, so the limit goes at the close.` : `That is more than ${f.risk} ticks, so the limit goes ${f.risk} ticks from the stop and waits for price to come back.`} The target is a fixed ${f.target_ticks} ticks.`),
+      fillStep(d, "From here only the stop or the target can end it, or 3:10 PM."),
+      exitStep(d),
+    ];
+  },
 };
 
 export const stepsFor = (d: Demo): Step[] => BUILD[d.id]?.(d) ?? [];
