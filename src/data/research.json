@@ -1,8 +1,8 @@
 {
- "exported_utc": "2026-11-15T21:27:59+00:00",
- "ledger_rows": 209,
+ "exported_utc": "2026-11-15T21:58:43+00:00",
+ "ledger_rows": 251,
  "first_run_utc": "2026-11-12T16:43:13+00:00",
- "last_run_utc": "2026-11-15T21:26:33+00:00",
+ "last_run_utc": "2026-11-15T21:56:55+00:00",
  "periods": {
   "dev": {
    "start": "2010-06-01",
@@ -31351,33 +31351,1305 @@
    }
   },
   {
+   "strategy": "pd_swing",
+   "label": "5m/1h \u00b7 P1 higher-TF trend",
+   "hash": "8324aaacd58c",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:45:54+00:00",
+   "params": {
+    "ctx": "1h",
+    "expire_candles": 4,
+    "rr": 1.0,
+    "tf": "5m",
+    "variant": "P1"
+   },
+   "trades": 11,
+   "net": 625.56,
+   "profit_factor": 1.983,
+   "win_rate": 0.6364,
+   "max_drawdown": -428.08,
+   "pass_rate": 0.0,
+   "seq_passes": 0,
+   "seq_fails": 0,
+   "cost_per_pass": null,
+   "years_positive": 5,
+   "years_total": 8,
+   "best_of": 10,
+   "years": [
+    {
+     "year": 2011,
+     "net": -154.04
+    },
+    {
+     "year": 2012,
+     "net": 121.92
+    },
+    {
+     "year": 2013,
+     "net": 95.96
+    },
+    {
+     "year": 2014,
+     "net": 625.96
+    },
+    {
+     "year": 2016,
+     "net": 301.92
+    },
+    {
+     "year": 2017,
+     "net": 35.96
+    },
+    {
+     "year": 2019,
+     "net": -118.08
+    },
+    {
+     "year": 2021,
+     "net": -284.04
+    }
+   ],
+   "equity": [
+    {
+     "month": "2011-10",
+     "net": -154.04
+    },
+    {
+     "month": "2012-10",
+     "net": 175.96
+    },
+    {
+     "month": "2012-12",
+     "net": -54.04
+    },
+    {
+     "month": "2013-10",
+     "net": 95.96
+    },
+    {
+     "month": "2014-12",
+     "net": 625.96
+    },
+    {
+     "month": "2016-01",
+     "net": 125.96
+    },
+    {
+     "month": "2016-04",
+     "net": 175.96
+    },
+    {
+     "month": "2017-11",
+     "net": 35.96
+    },
+    {
+     "month": "2019-02",
+     "net": 25.96
+    },
+    {
+     "month": "2019-06",
+     "net": -144.04
+    },
+    {
+     "month": "2021-06",
+     "net": -284.04
+    }
+   ],
+   "exits": {
+    "target": 5,
+    "stop": 4,
+    "roll": 2
+   }
+  },
+  {
+   "strategy": "pd_swing",
+   "label": "15m/4h \u00b7 P1 higher-TF trend",
+   "hash": "bdbb6a97be37",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:46:11+00:00",
+   "params": {
+    "ctx": "4h",
+    "expire_candles": 4,
+    "rr": 1.0,
+    "tf": "15m",
+    "variant": "P1"
+   },
+   "trades": 15,
+   "net": -1680.6,
+   "profit_factor": 0.41,
+   "win_rate": 0.4,
+   "max_drawdown": -2046.56,
+   "pass_rate": 0.0,
+   "seq_passes": 0,
+   "seq_fails": 1,
+   "cost_per_pass": null,
+   "years_positive": 3,
+   "years_total": 8,
+   "best_of": 10,
+   "years": [
+    {
+     "year": 2011,
+     "net": -144.04
+    },
+    {
+     "year": 2012,
+     "net": -1162.12
+    },
+    {
+     "year": 2014,
+     "net": -78.08
+    },
+    {
+     "year": 2016,
+     "net": 225.96
+    },
+    {
+     "year": 2017,
+     "net": -328.08
+    },
+    {
+     "year": 2018,
+     "net": 75.96
+    },
+    {
+     "year": 2020,
+     "net": -562.12
+    },
+    {
+     "year": 2021,
+     "net": 291.92
+    }
+   ],
+   "equity": [
+    {
+     "month": "2011-04",
+     "net": -144.04
+    },
+    {
+     "month": "2012-01",
+     "net": 135.96
+    },
+    {
+     "month": "2012-06",
+     "net": -704.04
+    },
+    {
+     "month": "2012-07",
+     "net": -594.04
+    },
+    {
+     "month": "2014-02",
+     "net": 155.96
+    },
+    {
+     "month": "2014-06",
+     "net": -234.04
+    },
+    {
+     "month": "2016-06",
+     "net": 225.96
+    },
+    {
+     "month": "2017-11",
+     "net": -328.08
+    },
+    {
+     "month": "2018-09",
+     "net": 75.96
+    },
+    {
+     "month": "2020-01",
+     "net": 205.96
+    },
+    {
+     "month": "2020-10",
+     "net": -264.04
+    },
+    {
+     "month": "2020-11",
+     "net": -504.04
+    },
+    {
+     "month": "2021-07",
+     "net": -74.04
+    },
+    {
+     "month": "2021-11",
+     "net": 365.96
+    }
+   ],
+   "exits": {
+    "stop": 8,
+    "target": 6,
+    "flatten": 1
+   }
+  },
+  {
+   "strategy": "pd_swing",
+   "label": "5m/1h \u00b7 P2-a HL break",
+   "hash": "27f66dad5d6d",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:46:35+00:00",
+   "params": {
+    "ctx": "1h",
+    "expire_candles": 4,
+    "rr": 1.0,
+    "tf": "5m",
+    "variant": "P2a"
+   },
+   "trades": 21,
+   "net": -884.84,
+   "profit_factor": 0.465,
+   "win_rate": 0.381,
+   "max_drawdown": -884.84,
+   "pass_rate": 0.0,
+   "seq_passes": 0,
+   "seq_fails": 0,
+   "cost_per_pass": null,
+   "years_positive": 5,
+   "years_total": 9,
+   "best_of": 10,
+   "years": [
+    {
+     "year": 2011,
+     "net": -402.12
+    },
+    {
+     "year": 2012,
+     "net": 85.96
+    },
+    {
+     "year": 2013,
+     "net": 11.92
+    },
+    {
+     "year": 2014,
+     "net": -228.08
+    },
+    {
+     "year": 2016,
+     "net": 147.88
+    },
+    {
+     "year": 2017,
+     "net": 37.88
+    },
+    {
+     "year": 2019,
+     "net": -366.16
+    },
+    {
+     "year": 2020,
+     "net": 111.92
+    },
+    {
+     "year": 2021,
+     "net": -284.04
+    }
+   ],
+   "equity": [
+    {
+     "month": "2011-04",
+     "net": -84.04
+    },
+    {
+     "month": "2011-10",
+     "net": -154.04
+    },
+    {
+     "month": "2011-12",
+     "net": -164.04
+    },
+    {
+     "month": "2012-09",
+     "net": 85.96
+    },
+    {
+     "month": "2013-10",
+     "net": 11.92
+    },
+    {
+     "month": "2014-06",
+     "net": -124.04
+    },
+    {
+     "month": "2014-10",
+     "net": -104.04
+    },
+    {
+     "month": "2016-04",
+     "net": 175.96
+    },
+    {
+     "month": "2016-08",
+     "net": -74.04
+    },
+    {
+     "month": "2016-10",
+     "net": 45.96
+    },
+    {
+     "month": "2017-08",
+     "net": 1.92
+    },
+    {
+     "month": "2017-11",
+     "net": 35.96
+    },
+    {
+     "month": "2019-01",
+     "net": -204.04
+    },
+    {
+     "month": "2019-02",
+     "net": 25.96
+    },
+    {
+     "month": "2019-06",
+     "net": -144.04
+    },
+    {
+     "month": "2019-10",
+     "net": -44.04
+    },
+    {
+     "month": "2020-01",
+     "net": -94.04
+    },
+    {
+     "month": "2020-06",
+     "net": 205.96
+    },
+    {
+     "month": "2021-06",
+     "net": -284.04
+    }
+   ],
+   "exits": {
+    "stop": 12,
+    "target": 7,
+    "roll": 2
+   }
+  },
+  {
+   "strategy": "pd_swing",
+   "label": "15m/4h \u00b7 P2-a HL break",
+   "hash": "efce631da1a0",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:46:50+00:00",
+   "params": {
+    "ctx": "4h",
+    "expire_candles": 4,
+    "rr": 1.0,
+    "tf": "15m",
+    "variant": "P2a"
+   },
+   "trades": 38,
+   "net": -2703.52,
+   "profit_factor": 0.621,
+   "win_rate": 0.4737,
+   "max_drawdown": -4679.28,
+   "pass_rate": 0.0,
+   "seq_passes": 0,
+   "seq_fails": 2,
+   "cost_per_pass": null,
+   "years_positive": 5,
+   "years_total": 11,
+   "best_of": 10,
+   "years": [
+    {
+     "year": 2010,
+     "net": 125.96
+    },
+    {
+     "year": 2011,
+     "net": 1713.84
+    },
+    {
+     "year": 2012,
+     "net": -1888.28
+    },
+    {
+     "year": 2014,
+     "net": -436.16
+    },
+    {
+     "year": 2015,
+     "net": -1292.12
+    },
+    {
+     "year": 2016,
+     "net": 677.88
+    },
+    {
+     "year": 2017,
+     "net": 157.88
+    },
+    {
+     "year": 2018,
+     "net": 75.96
+    },
+    {
+     "year": 2019,
+     "net": -428.08
+    },
+    {
+     "year": 2020,
+     "net": -638.28
+    },
+    {
+     "year": 2021,
+     "net": -772.12
+    }
+   ],
+   "equity": [
+    {
+     "month": "2010-10",
+     "net": 125.96
+    },
+    {
+     "month": "2011-04",
+     "net": -284.04
+    },
+    {
+     "month": "2011-06",
+     "net": 1241.92
+    },
+    {
+     "month": "2011-11",
+     "net": 755.96
+    },
+    {
+     "month": "2012-01",
+     "net": 135.96
+    },
+    {
+     "month": "2012-02",
+     "net": -344.04
+    },
+    {
+     "month": "2012-04",
+     "net": 175.96
+    },
+    {
+     "month": "2012-06",
+     "net": -1068.08
+    },
+    {
+     "month": "2012-07",
+     "net": -594.04
+    },
+    {
+     "month": "2012-09",
+     "net": -194.04
+    },
+    {
+     "month": "2014-02",
+     "net": 155.96
+    },
+    {
+     "month": "2014-05",
+     "net": 45.96
+    },
+    {
+     "month": "2014-06",
+     "net": -234.04
+    },
+    {
+     "month": "2014-11",
+     "net": -404.04
+    },
+    {
+     "month": "2015-02",
+     "net": -1154.04
+    },
+    {
+     "month": "2015-06",
+     "net": -304.04
+    },
+    {
+     "month": "2015-09",
+     "net": 165.96
+    },
+    {
+     "month": "2016-02",
+     "net": 255.96
+    },
+    {
+     "month": "2016-04",
+     "net": 195.96
+    },
+    {
+     "month": "2016-06",
+     "net": 225.96
+    },
+    {
+     "month": "2017-01",
+     "net": 245.96
+    },
+    {
+     "month": "2017-08",
+     "net": 145.96
+    },
+    {
+     "month": "2017-11",
+     "net": -234.04
+    },
+    {
+     "month": "2018-09",
+     "net": 75.96
+    },
+    {
+     "month": "2019-04",
+     "net": -184.04
+    },
+    {
+     "month": "2019-06",
+     "net": -244.04
+    },
+    {
+     "month": "2020-01",
+     "net": 205.96
+    },
+    {
+     "month": "2020-02",
+     "net": -134.04
+    },
+    {
+     "month": "2020-07",
+     "net": 75.96
+    },
+    {
+     "month": "2020-10",
+     "net": -68.08
+    },
+    {
+     "month": "2020-11",
+     "net": -718.08
+    },
+    {
+     "month": "2021-04",
+     "net": -344.04
+    },
+    {
+     "month": "2021-10",
+     "net": -254.04
+    },
+    {
+     "month": "2021-12",
+     "net": -174.04
+    }
+   ],
+   "exits": {
+    "stop": 19,
+    "target": 17,
+    "flatten": 2
+   }
+  },
+  {
+   "strategy": "pd_swing",
+   "label": "5m/1h \u00b7 P2-b LH reclaim",
+   "hash": "564a29c1c738",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:47:14+00:00",
+   "params": {
+    "ctx": "1h",
+    "expire_candles": 4,
+    "rr": 1.0,
+    "tf": "5m",
+    "variant": "P2b"
+   },
+   "trades": 27,
+   "net": -579.08,
+   "profit_factor": 0.81,
+   "win_rate": 0.4074,
+   "max_drawdown": -1994.84,
+   "pass_rate": 0.0,
+   "seq_passes": 0,
+   "seq_fails": 1,
+   "cost_per_pass": null,
+   "years_positive": 5,
+   "years_total": 11,
+   "best_of": 10,
+   "years": [
+    {
+     "year": 2010,
+     "net": 95.96
+    },
+    {
+     "year": 2011,
+     "net": 491.92
+    },
+    {
+     "year": 2012,
+     "net": -234.04
+    },
+    {
+     "year": 2013,
+     "net": -642.12
+    },
+    {
+     "year": 2014,
+     "net": 125.96
+    },
+    {
+     "year": 2015,
+     "net": -608.08
+    },
+    {
+     "year": 2016,
+     "net": 283.84
+    },
+    {
+     "year": 2017,
+     "net": -16.16
+    },
+    {
+     "year": 2018,
+     "net": -28.08
+    },
+    {
+     "year": 2019,
+     "net": -640.2
+    },
+    {
+     "year": 2020,
+     "net": 591.92
+    }
+   ],
+   "equity": [
+    {
+     "month": "2010-09",
+     "net": 95.96
+    },
+    {
+     "month": "2011-04",
+     "net": -154.04
+    },
+    {
+     "month": "2011-10",
+     "net": 645.96
+    },
+    {
+     "month": "2012-09",
+     "net": -234.04
+    },
+    {
+     "month": "2013-07",
+     "net": -354.04
+    },
+    {
+     "month": "2013-10",
+     "net": -154.04
+    },
+    {
+     "month": "2013-12",
+     "net": -134.04
+    },
+    {
+     "month": "2014-04",
+     "net": 125.96
+    },
+    {
+     "month": "2015-09",
+     "net": -214.04
+    },
+    {
+     "month": "2015-12",
+     "net": -394.04
+    },
+    {
+     "month": "2016-04",
+     "net": 175.96
+    },
+    {
+     "month": "2016-10",
+     "net": -134.04
+    },
+    {
+     "month": "2016-11",
+     "net": 315.96
+    },
+    {
+     "month": "2016-12",
+     "net": -74.04
+    },
+    {
+     "month": "2017-04",
+     "net": 65.96
+    },
+    {
+     "month": "2017-08",
+     "net": 155.96
+    },
+    {
+     "month": "2017-11",
+     "net": -114.04
+    },
+    {
+     "month": "2017-12",
+     "net": -124.04
+    },
+    {
+     "month": "2018-01",
+     "net": -84.04
+    },
+    {
+     "month": "2018-08",
+     "net": 55.96
+    },
+    {
+     "month": "2019-04",
+     "net": -268.08
+    },
+    {
+     "month": "2019-06",
+     "net": -608.08
+    },
+    {
+     "month": "2019-12",
+     "net": 235.96
+    },
+    {
+     "month": "2020-03",
+     "net": 405.96
+    },
+    {
+     "month": "2020-10",
+     "net": 185.96
+    }
+   ],
+   "exits": {
+    "stop": 15,
+    "target": 11,
+    "flatten": 1
+   }
+  },
+  {
+   "strategy": "pd_swing",
+   "label": "15m/4h \u00b7 P2-b LH reclaim",
+   "hash": "dab69db11f6d",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:47:31+00:00",
+   "params": {
+    "ctx": "4h",
+    "expire_candles": 4,
+    "rr": 1.0,
+    "tf": "15m",
+    "variant": "P2b"
+   },
+   "trades": 72,
+   "net": 989.12,
+   "profit_factor": 1.086,
+   "win_rate": 0.5,
+   "max_drawdown": -2104.24,
+   "pass_rate": 0.688,
+   "seq_passes": 1,
+   "seq_fails": 2,
+   "cost_per_pass": 7056.0,
+   "years_positive": 5,
+   "years_total": 12,
+   "best_of": 10,
+   "years": [
+    {
+     "year": 2010,
+     "net": -996.16
+    },
+    {
+     "year": 2011,
+     "net": -160.2
+    },
+    {
+     "year": 2012,
+     "net": 483.84
+    },
+    {
+     "year": 2013,
+     "net": 209.8
+    },
+    {
+     "year": 2014,
+     "net": -136.36
+    },
+    {
+     "year": 2015,
+     "net": 2497.68
+    },
+    {
+     "year": 2016,
+     "net": -1146.36
+    },
+    {
+     "year": 2017,
+     "net": -178.28
+    },
+    {
+     "year": 2018,
+     "net": 115.96
+    },
+    {
+     "year": 2019,
+     "net": -444.24
+    },
+    {
+     "year": 2020,
+     "net": 1601.72
+    },
+    {
+     "year": 2021,
+     "net": -858.28
+    }
+   ],
+   "equity": [
+    {
+     "month": "2010-06",
+     "net": -244.04
+    },
+    {
+     "month": "2010-09",
+     "net": -384.04
+    },
+    {
+     "month": "2010-11",
+     "net": -368.08
+    },
+    {
+     "month": "2011-04",
+     "net": -464.04
+    },
+    {
+     "month": "2011-05",
+     "net": -644.04
+    },
+    {
+     "month": "2011-06",
+     "net": 435.96
+    },
+    {
+     "month": "2011-08",
+     "net": -264.04
+    },
+    {
+     "month": "2011-12",
+     "net": 775.96
+    },
+    {
+     "month": "2012-01",
+     "net": -344.04
+    },
+    {
+     "month": "2012-09",
+     "net": -264.04
+    },
+    {
+     "month": "2012-10",
+     "net": 885.96
+    },
+    {
+     "month": "2012-12",
+     "net": 205.96
+    },
+    {
+     "month": "2013-02",
+     "net": 385.96
+    },
+    {
+     "month": "2013-03",
+     "net": 365.96
+    },
+    {
+     "month": "2013-08",
+     "net": -944.04
+    },
+    {
+     "month": "2013-10",
+     "net": 265.96
+    },
+    {
+     "month": "2013-11",
+     "net": 135.96
+    },
+    {
+     "month": "2014-01",
+     "net": -414.04
+    },
+    {
+     "month": "2014-02",
+     "net": -244.04
+    },
+    {
+     "month": "2014-03",
+     "net": 295.96
+    },
+    {
+     "month": "2014-04",
+     "net": -78.08
+    },
+    {
+     "month": "2014-06",
+     "net": -394.04
+    },
+    {
+     "month": "2014-07",
+     "net": 205.96
+    },
+    {
+     "month": "2014-10",
+     "net": -174.04
+    },
+    {
+     "month": "2014-12",
+     "net": 665.96
+    },
+    {
+     "month": "2015-02",
+     "net": 375.96
+    },
+    {
+     "month": "2015-03",
+     "net": 545.96
+    },
+    {
+     "month": "2015-05",
+     "net": 275.96
+    },
+    {
+     "month": "2015-06",
+     "net": 615.96
+    },
+    {
+     "month": "2015-08",
+     "net": -134.04
+    },
+    {
+     "month": "2015-09",
+     "net": 105.96
+    },
+    {
+     "month": "2015-11",
+     "net": 711.92
+    },
+    {
+     "month": "2016-01",
+     "net": -384.04
+    },
+    {
+     "month": "2016-02",
+     "net": 517.88
+    },
+    {
+     "month": "2016-03",
+     "net": -384.04
+    },
+    {
+     "month": "2016-05",
+     "net": -294.04
+    },
+    {
+     "month": "2016-06",
+     "net": -234.04
+    },
+    {
+     "month": "2016-08",
+     "net": -368.08
+    },
+    {
+     "month": "2017-01",
+     "net": -14.04
+    },
+    {
+     "month": "2017-03",
+     "net": 65.96
+    },
+    {
+     "month": "2017-04",
+     "net": -314.04
+    },
+    {
+     "month": "2017-07",
+     "net": 115.96
+    },
+    {
+     "month": "2017-08",
+     "net": 145.96
+    },
+    {
+     "month": "2017-09",
+     "net": -174.04
+    },
+    {
+     "month": "2017-11",
+     "net": -4.04
+    },
+    {
+     "month": "2018-09",
+     "net": 115.96
+    },
+    {
+     "month": "2019-04",
+     "net": 181.92
+    },
+    {
+     "month": "2019-06",
+     "net": -354.04
+    },
+    {
+     "month": "2019-08",
+     "net": -18.08
+    },
+    {
+     "month": "2019-10",
+     "net": -254.04
+    },
+    {
+     "month": "2020-02",
+     "net": 527.88
+    },
+    {
+     "month": "2020-04",
+     "net": 415.96
+    },
+    {
+     "month": "2020-09",
+     "net": 481.92
+    },
+    {
+     "month": "2020-10",
+     "net": 175.96
+    },
+    {
+     "month": "2021-03",
+     "net": 815.96
+    },
+    {
+     "month": "2021-05",
+     "net": -68.08
+    },
+    {
+     "month": "2021-08",
+     "net": -534.04
+    },
+    {
+     "month": "2021-10",
+     "net": -558.08
+    },
+    {
+     "month": "2021-12",
+     "net": -514.04
+    }
+   ],
+   "exits": {
+    "target": 31,
+    "stop": 30,
+    "flatten": 9,
+    "day_end": 2
+   }
+  },
+  {
+   "strategy": "pd_swing",
+   "label": "5m/1h \u00b7 P3-a manipulation candle",
+   "hash": "a4f1c122f832",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:47:54+00:00",
+   "params": {
+    "ctx": "1h",
+    "expire_candles": 4,
+    "rr": 1.0,
+    "tf": "5m",
+    "variant": "P3a"
+   },
+   "trades": 1,
+   "net": -164.04,
+   "profit_factor": 0.0,
+   "win_rate": 0.0,
+   "max_drawdown": -164.04,
+   "pass_rate": 0.0,
+   "seq_passes": 0,
+   "seq_fails": 0,
+   "cost_per_pass": null,
+   "years_positive": 0,
+   "years_total": 1,
+   "best_of": 10,
+   "years": [
+    {
+     "year": 2011,
+     "net": -164.04
+    }
+   ],
+   "equity": [
+    {
+     "month": "2011-12",
+     "net": -164.04
+    }
+   ],
+   "exits": {
+    "stop": 1
+   }
+  },
+  {
+   "strategy": "pd_swing",
+   "label": "15m/4h \u00b7 P3-a manipulation candle",
+   "hash": "6a7aa01f3c73",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:48:10+00:00",
+   "params": {
+    "ctx": "4h",
+    "expire_candles": 4,
+    "rr": 1.0,
+    "tf": "15m",
+    "variant": "P3a"
+   },
+   "trades": 4,
+   "net": -396.16,
+   "profit_factor": 0.491,
+   "win_rate": 0.5,
+   "max_drawdown": -704.04,
+   "pass_rate": 0.0,
+   "seq_passes": 0,
+   "seq_fails": 0,
+   "cost_per_pass": null,
+   "years_positive": 2,
+   "years_total": 4,
+   "best_of": 10,
+   "years": [
+    {
+     "year": 2010,
+     "net": 135.96
+    },
+    {
+     "year": 2012,
+     "net": -704.04
+    },
+    {
+     "year": 2017,
+     "net": 245.96
+    },
+    {
+     "year": 2021,
+     "net": -74.04
+    }
+   ],
+   "equity": [
+    {
+     "month": "2010-08",
+     "net": 135.96
+    },
+    {
+     "month": "2012-06",
+     "net": -704.04
+    },
+    {
+     "month": "2017-01",
+     "net": 245.96
+    },
+    {
+     "month": "2021-07",
+     "net": -74.04
+    }
+   ],
+   "exits": {
+    "target": 2,
+    "stop": 2
+   }
+  },
+  {
+   "strategy": "pd_swing",
+   "label": "5m/1h \u00b7 P3-b manipulation + reclaim",
+   "hash": "f4e27d4f2d0f",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:48:33+00:00",
+   "params": {
+    "ctx": "1h",
+    "expire_candles": 4,
+    "rr": 1.0,
+    "tf": "5m",
+    "variant": "P3b"
+   },
+   "trades": 1,
+   "net": -164.04,
+   "profit_factor": 0.0,
+   "win_rate": 0.0,
+   "max_drawdown": -164.04,
+   "pass_rate": 0.0,
+   "seq_passes": 0,
+   "seq_fails": 0,
+   "cost_per_pass": null,
+   "years_positive": 0,
+   "years_total": 1,
+   "best_of": 10,
+   "years": [
+    {
+     "year": 2011,
+     "net": -164.04
+    }
+   ],
+   "equity": [
+    {
+     "month": "2011-12",
+     "net": -164.04
+    }
+   ],
+   "exits": {
+    "stop": 1
+   }
+  },
+  {
+   "strategy": "pd_swing",
+   "label": "15m/4h \u00b7 P3-b manipulation + reclaim",
+   "hash": "4364386f15a1",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:48:50+00:00",
+   "params": {
+    "ctx": "4h",
+    "expire_candles": 4,
+    "rr": 1.0,
+    "tf": "15m",
+    "variant": "P3b"
+   },
+   "trades": 0,
+   "net": 0.0,
+   "profit_factor": 0.0,
+   "win_rate": 0.0,
+   "max_drawdown": 0.0,
+   "pass_rate": 0.0,
+   "seq_passes": 0,
+   "seq_fails": 0,
+   "cost_per_pass": null,
+   "years_positive": 0,
+   "years_total": 0,
+   "best_of": 10,
+   "years": [],
+   "equity": [],
+   "exits": {}
+  },
+  {
    "strategy": "purple_pa",
    "label": "5m candles",
-   "hash": "82329909b22a",
+   "hash": "e84669abca12",
    "period": "dev",
-   "run_utc": "2026-11-15T19:36:26+00:00",
+   "run_utc": "2026-11-15T21:53:23+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
     "rr": 1.0,
     "tf": "5m"
    },
-   "trades": 591,
-   "net": 12732.36,
-   "profit_factor": 1.239,
-   "win_rate": 0.5448,
-   "max_drawdown": -5513.36,
-   "pass_rate": 0.5504,
+   "trades": 587,
+   "net": 13598.52,
+   "profit_factor": 1.259,
+   "win_rate": 0.5468,
+   "max_drawdown": -5429.32,
+   "pass_rate": 0.5549,
    "seq_passes": 5,
-   "seq_fails": 6,
-   "cost_per_pass": 1470.0,
+   "seq_fails": 5,
+   "cost_per_pass": 1450.4,
    "years_positive": 7,
    "years_total": 12,
    "best_of": 2,
    "years": [
     {
      "year": 2010,
-     "net": -1147.16
+     "net": -423.12
     },
     {
      "year": 2011,
@@ -31389,7 +32661,7 @@
     },
     {
      "year": 2013,
-     "net": 2581.64
+     "net": 2685.68
     },
     {
      "year": 2014,
@@ -31397,7 +32669,7 @@
     },
     {
      "year": 2015,
-     "net": 1166.08
+     "net": 1120.12
     },
     {
      "year": 2016,
@@ -31409,7 +32681,7 @@
     },
     {
      "year": 2018,
-     "net": -650.08
+     "net": -566.04
     },
     {
      "year": 2019,
@@ -31447,7 +32719,7 @@
     },
     {
      "month": "2010-11",
-     "net": -1290.2
+     "net": -566.16
     },
     {
      "month": "2010-12",
@@ -31571,7 +32843,7 @@
     },
     {
      "month": "2013-06",
-     "net": -352.12
+     "net": -248.08
     },
     {
      "month": "2013-07",
@@ -31683,7 +32955,7 @@
     },
     {
      "month": "2015-11",
-     "net": -304.24
+     "net": -350.2
     },
     {
      "month": "2015-12",
@@ -31811,7 +33083,7 @@
     },
     {
      "month": "2018-08",
-     "net": -676.16
+     "net": -592.12
     },
     {
      "month": "2018-09",
@@ -31975,8 +33247,8 @@
     }
    ],
    "exits": {
-    "target": 309,
-    "stop": 258,
+    "target": 308,
+    "stop": 255,
     "flatten": 20,
     "roll": 4
    }
@@ -31984,31 +33256,31 @@
   {
    "strategy": "purple_pa",
    "label": "15m candles",
-   "hash": "3d5c120f1b1e",
+   "hash": "c8e29f8c2529",
    "period": "dev",
-   "run_utc": "2026-11-15T19:36:40+00:00",
+   "run_utc": "2026-11-15T21:53:30+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
     "rr": 1.0,
     "tf": "15m"
    },
-   "trades": 545,
-   "net": 14508.2,
-   "profit_factor": 1.196,
-   "win_rate": 0.5413,
+   "trades": 541,
+   "net": 14314.36,
+   "profit_factor": 1.195,
+   "win_rate": 0.5397,
    "max_drawdown": -5174.72,
-   "pass_rate": 0.386,
+   "pass_rate": 0.3393,
    "seq_passes": 7,
    "seq_fails": 7,
-   "cost_per_pass": 1064.0,
-   "years_positive": 10,
+   "cost_per_pass": 1057.0,
+   "years_positive": 9,
    "years_total": 12,
    "best_of": 2,
    "years": [
     {
      "year": 2010,
-     "net": 1161.12
+     "net": 1739.2
     },
     {
      "year": 2011,
@@ -32032,7 +33304,7 @@
     },
     {
      "year": 2016,
-     "net": 2637.8
+     "net": 2401.84
     },
     {
      "year": 2017,
@@ -32040,7 +33312,7 @@
     },
     {
      "year": 2018,
-     "net": 95.88
+     "net": -440.08
     },
     {
      "year": 2019,
@@ -32078,11 +33350,11 @@
     },
     {
      "month": "2010-11",
-     "net": -512.12
+     "net": 151.92
     },
     {
      "month": "2010-12",
-     "net": 501.92
+     "net": 415.96
     },
     {
      "month": "2011-01",
@@ -32322,7 +33594,7 @@
     },
     {
      "month": "2016-01",
-     "net": 1123.84
+     "net": 887.88
     },
     {
      "month": "2016-02",
@@ -32450,7 +33722,7 @@
     },
     {
      "month": "2018-09",
-     "net": 75.76
+     "net": -460.2
     },
     {
      "month": "2018-10",
@@ -32610,19 +33882,18 @@
     }
    ],
    "exits": {
-    "target": 260,
-    "stop": 214,
+    "target": 258,
+    "stop": 213,
     "flatten": 66,
-    "roll": 4,
-    "day_end": 1
+    "roll": 4
    }
   },
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 previous day",
-   "hash": "b29d51b075ee",
+   "hash": "1adcd6544381",
    "period": "dev",
-   "run_utc": "2026-11-15T20:17:08+00:00",
+   "run_utc": "2026-11-15T21:53:39+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -32630,22 +33901,22 @@
     "rr": 1.0,
     "tf": "5m"
    },
-   "trades": 591,
-   "net": 12732.36,
-   "profit_factor": 1.239,
-   "win_rate": 0.5448,
-   "max_drawdown": -5513.36,
-   "pass_rate": 0.5504,
+   "trades": 587,
+   "net": 13598.52,
+   "profit_factor": 1.259,
+   "win_rate": 0.5468,
+   "max_drawdown": -5429.32,
+   "pass_rate": 0.5549,
    "seq_passes": 5,
-   "seq_fails": 6,
-   "cost_per_pass": 1470.0,
+   "seq_fails": 5,
+   "cost_per_pass": 1450.4,
    "years_positive": 7,
    "years_total": 12,
    "best_of": 16,
    "years": [
     {
      "year": 2010,
-     "net": -1147.16
+     "net": -423.12
     },
     {
      "year": 2011,
@@ -32657,7 +33928,7 @@
     },
     {
      "year": 2013,
-     "net": 2581.64
+     "net": 2685.68
     },
     {
      "year": 2014,
@@ -32665,7 +33936,7 @@
     },
     {
      "year": 2015,
-     "net": 1166.08
+     "net": 1120.12
     },
     {
      "year": 2016,
@@ -32677,7 +33948,7 @@
     },
     {
      "year": 2018,
-     "net": -650.08
+     "net": -566.04
     },
     {
      "year": 2019,
@@ -32715,7 +33986,7 @@
     },
     {
      "month": "2010-11",
-     "net": -1290.2
+     "net": -566.16
     },
     {
      "month": "2010-12",
@@ -32839,7 +34110,7 @@
     },
     {
      "month": "2013-06",
-     "net": -352.12
+     "net": -248.08
     },
     {
      "month": "2013-07",
@@ -32951,7 +34222,7 @@
     },
     {
      "month": "2015-11",
-     "net": -304.24
+     "net": -350.2
     },
     {
      "month": "2015-12",
@@ -33079,7 +34350,7 @@
     },
     {
      "month": "2018-08",
-     "net": -676.16
+     "net": -592.12
     },
     {
      "month": "2018-09",
@@ -33243,8 +34514,8 @@
     }
    ],
    "exits": {
-    "target": 309,
-    "stop": 258,
+    "target": 308,
+    "stop": 255,
     "flatten": 20,
     "roll": 4
    }
@@ -33252,9 +34523,9 @@
   {
    "strategy": "purple_levels",
    "label": "15m \u00b7 previous day",
-   "hash": "219ca4c7af51",
+   "hash": "f181a84ee477",
    "period": "dev",
-   "run_utc": "2026-11-15T20:17:24+00:00",
+   "run_utc": "2026-11-15T21:53:46+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -33262,22 +34533,22 @@
     "rr": 1.0,
     "tf": "15m"
    },
-   "trades": 545,
-   "net": 14508.2,
-   "profit_factor": 1.196,
-   "win_rate": 0.5413,
+   "trades": 541,
+   "net": 14314.36,
+   "profit_factor": 1.195,
+   "win_rate": 0.5397,
    "max_drawdown": -5174.72,
-   "pass_rate": 0.386,
+   "pass_rate": 0.3393,
    "seq_passes": 7,
    "seq_fails": 7,
-   "cost_per_pass": 1064.0,
-   "years_positive": 10,
+   "cost_per_pass": 1057.0,
+   "years_positive": 9,
    "years_total": 12,
    "best_of": 16,
    "years": [
     {
      "year": 2010,
-     "net": 1161.12
+     "net": 1739.2
     },
     {
      "year": 2011,
@@ -33301,7 +34572,7 @@
     },
     {
      "year": 2016,
-     "net": 2637.8
+     "net": 2401.84
     },
     {
      "year": 2017,
@@ -33309,7 +34580,7 @@
     },
     {
      "year": 2018,
-     "net": 95.88
+     "net": -440.08
     },
     {
      "year": 2019,
@@ -33347,11 +34618,11 @@
     },
     {
      "month": "2010-11",
-     "net": -512.12
+     "net": 151.92
     },
     {
      "month": "2010-12",
-     "net": 501.92
+     "net": 415.96
     },
     {
      "month": "2011-01",
@@ -33591,7 +34862,7 @@
     },
     {
      "month": "2016-01",
-     "net": 1123.84
+     "net": 887.88
     },
     {
      "month": "2016-02",
@@ -33719,7 +34990,7 @@
     },
     {
      "month": "2018-09",
-     "net": 75.76
+     "net": -460.2
     },
     {
      "month": "2018-10",
@@ -33879,19 +35150,18 @@
     }
    ],
    "exits": {
-    "target": 260,
-    "stop": 214,
+    "target": 258,
+    "stop": 213,
     "flatten": 66,
-    "roll": 4,
-    "day_end": 1
+    "roll": 4
    }
   },
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 previous week",
-   "hash": "3904aeffef2a",
+   "hash": "469fb7f040cc",
    "period": "dev",
-   "run_utc": "2026-11-15T20:17:50+00:00",
+   "run_utc": "2026-11-15T21:53:55+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -33899,22 +35169,22 @@
     "rr": 1.0,
     "tf": "5m"
    },
-   "trades": 281,
-   "net": 11724.76,
-   "profit_factor": 1.483,
-   "win_rate": 0.5765,
-   "max_drawdown": -3054.0,
-   "pass_rate": 0.4473,
-   "seq_passes": 3,
+   "trades": 279,
+   "net": 12132.84,
+   "profit_factor": 1.508,
+   "win_rate": 0.5806,
+   "max_drawdown": -2979.96,
+   "pass_rate": 0.4723,
+   "seq_passes": 4,
    "seq_fails": 1,
-   "cost_per_pass": 2368.33,
+   "cost_per_pass": 1776.25,
    "years_positive": 8,
    "years_total": 12,
    "best_of": 16,
    "years": [
     {
      "year": 2010,
-     "net": 817.48
+     "net": 1151.52
     },
     {
      "year": 2011,
@@ -33950,7 +35220,7 @@
     },
     {
      "year": 2019,
-     "net": -1022.92
+     "net": -948.88
     },
     {
      "year": 2020,
@@ -33964,7 +35234,7 @@
    "equity": [
     {
      "month": "2010-06",
-     "net": 81.92
+     "net": 415.96
     },
     {
      "month": "2010-07",
@@ -34344,7 +35614,7 @@
     },
     {
      "month": "2019-09",
-     "net": 221.92
+     "net": 295.96
     },
     {
      "month": "2019-10",
@@ -34449,7 +35719,7 @@
    ],
    "exits": {
     "target": 149,
-    "stop": 119,
+    "stop": 117,
     "flatten": 9,
     "roll": 4
    }
@@ -34457,9 +35727,9 @@
   {
    "strategy": "purple_levels",
    "label": "15m \u00b7 previous week",
-   "hash": "a84e4ebac2dd",
+   "hash": "decaf3aa946d",
    "period": "dev",
-   "run_utc": "2026-11-15T20:18:13+00:00",
+   "run_utc": "2026-11-15T21:54:02+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -34467,22 +35737,22 @@
     "rr": 1.0,
     "tf": "15m"
    },
-   "trades": 236,
-   "net": 8376.56,
-   "profit_factor": 1.259,
-   "win_rate": 0.5508,
+   "trades": 233,
+   "net": 7818.68,
+   "profit_factor": 1.242,
+   "win_rate": 0.5494,
    "max_drawdown": -4658.08,
-   "pass_rate": 0.4293,
+   "pass_rate": 0.4017,
    "seq_passes": 4,
-   "seq_fails": 2,
-   "cost_per_pass": 1788.5,
+   "seq_fails": 3,
+   "cost_per_pass": 1800.75,
    "years_positive": 6,
    "years_total": 12,
    "best_of": 16,
    "years": [
     {
      "year": 2010,
-     "net": 3171.52
+     "net": 2775.56
     },
     {
      "year": 2011,
@@ -34506,7 +35776,7 @@
     },
     {
      "year": 2016,
-     "net": -229.08
+     "net": -465.04
     },
     {
      "year": 2017,
@@ -34518,7 +35788,7 @@
     },
     {
      "year": 2019,
-     "net": -201.0
+     "net": -126.96
     },
     {
      "year": 2020,
@@ -34532,7 +35802,7 @@
    "equity": [
     {
      "month": "2010-06",
-     "net": 1121.92
+     "net": 725.96
     },
     {
      "month": "2010-07",
@@ -34715,10 +35985,6 @@
      "net": -128.08
     },
     {
-     "month": "2016-01",
-     "net": 235.96
-    },
-    {
      "month": "2016-02",
      "net": 891.92
     },
@@ -34864,7 +36130,7 @@
     },
     {
      "month": "2019-09",
-     "net": -84.24
+     "net": -10.2
     },
     {
      "month": "2019-11",
@@ -34968,19 +36234,18 @@
     }
    ],
    "exits": {
-    "target": 115,
-    "stop": 93,
+    "target": 114,
+    "stop": 92,
     "flatten": 25,
-    "roll": 2,
-    "day_end": 1
+    "roll": 2
    }
   },
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 4h swings",
-   "hash": "ac626fc1aa31",
+   "hash": "2a61a4b83574",
    "period": "dev",
-   "run_utc": "2026-11-15T20:19:00+00:00",
+   "run_utc": "2026-11-15T21:54:14+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -34988,12 +36253,12 @@
     "rr": 1.0,
     "tf": "5m"
    },
-   "trades": 490,
-   "net": 16060.4,
-   "profit_factor": 1.404,
-   "win_rate": 0.5612,
+   "trades": 485,
+   "net": 16990.6,
+   "profit_factor": 1.438,
+   "win_rate": 0.5649,
    "max_drawdown": -2786.56,
-   "pass_rate": 0.8057,
+   "pass_rate": 0.8429,
    "seq_passes": 5,
    "seq_fails": 1,
    "cost_per_pass": 1421.0,
@@ -35003,7 +36268,7 @@
    "years": [
     {
      "year": 2010,
-     "net": 313.04
+     "net": 347.08
     },
     {
      "year": 2011,
@@ -35023,7 +36288,7 @@
     },
     {
      "year": 2015,
-     "net": 1276.28
+     "net": 1230.32
     },
     {
      "year": 2016,
@@ -35031,11 +36296,11 @@
     },
     {
      "year": 2017,
-     "net": 1960.52
+     "net": 2524.56
     },
     {
      "year": 2018,
-     "net": 4120.32
+     "net": 4204.36
     },
     {
      "year": 2019,
@@ -35043,7 +36308,7 @@
     },
     {
      "year": 2020,
-     "net": 1716.48
+     "net": 2010.52
     },
     {
      "year": 2021,
@@ -35065,7 +36330,7 @@
     },
     {
      "month": "2010-09",
-     "net": 141.92
+     "net": 175.96
     },
     {
      "month": "2010-10",
@@ -35309,7 +36574,7 @@
     },
     {
      "month": "2015-11",
-     "net": -482.12
+     "net": -528.08
     },
     {
      "month": "2015-12",
@@ -35369,7 +36634,7 @@
     },
     {
      "month": "2017-03",
-     "net": -158.28
+     "net": 405.76
     },
     {
      "month": "2017-04",
@@ -35433,7 +36698,7 @@
     },
     {
      "month": "2018-08",
-     "net": -12.12
+     "net": 71.92
     },
     {
      "month": "2018-09",
@@ -35512,10 +36777,6 @@
      "net": -188.08
     },
     {
-     "month": "2020-05",
-     "net": -294.04
-    },
-    {
      "month": "2020-06",
      "net": 207.88
     },
@@ -35589,8 +36850,8 @@
     }
    ],
    "exits": {
-    "target": 265,
-    "stop": 202,
+    "target": 264,
+    "stop": 198,
     "flatten": 20,
     "roll": 3
    }
@@ -35598,9 +36859,9 @@
   {
    "strategy": "purple_levels",
    "label": "15m \u00b7 4h swings",
-   "hash": "afd7232773fe",
+   "hash": "2e18d5b31444",
    "period": "dev",
-   "run_utc": "2026-11-15T20:19:21+00:00",
+   "run_utc": "2026-11-15T21:54:24+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -35608,12 +36869,12 @@
     "rr": 1.0,
     "tf": "15m"
    },
-   "trades": 489,
-   "net": 8974.44,
-   "profit_factor": 1.142,
-   "win_rate": 0.5399,
+   "trades": 485,
+   "net": 9250.6,
+   "profit_factor": 1.148,
+   "win_rate": 0.5402,
    "max_drawdown": -5226.72,
-   "pass_rate": 0.3951,
+   "pass_rate": 0.4087,
    "seq_passes": 4,
    "seq_fails": 8,
    "cost_per_pass": 1862.0,
@@ -35623,7 +36884,7 @@
    "years": [
     {
      "year": 2010,
-     "net": -452.72
+     "net": -538.68
     },
     {
      "year": 2011,
@@ -35647,11 +36908,11 @@
     },
     {
      "year": 2016,
-     "net": 1493.76
+     "net": 1371.84
     },
     {
      "year": 2017,
-     "net": 104.96
+     "net": 589.0
     },
     {
      "year": 2018,
@@ -35697,7 +36958,7 @@
     },
     {
      "month": "2010-12",
-     "net": -612.12
+     "net": -698.08
     },
     {
      "month": "2011-01",
@@ -35933,7 +37194,7 @@
     },
     {
      "month": "2016-01",
-     "net": 709.8
+     "net": 473.84
     },
     {
      "month": "2016-02",
@@ -35957,7 +37218,7 @@
     },
     {
      "month": "2016-07",
-     "net": 353.84
+     "net": 467.88
     },
     {
      "month": "2016-08",
@@ -35989,7 +37250,7 @@
     },
     {
      "month": "2017-03",
-     "net": -990.2
+     "net": -506.16
     },
     {
      "month": "2017-04",
@@ -36213,19 +37474,18 @@
     }
    ],
    "exits": {
-    "target": 228,
-    "stop": 193,
+    "target": 227,
+    "stop": 191,
     "flatten": 64,
-    "roll": 3,
-    "day_end": 1
+    "roll": 3
    }
   },
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 daily swings",
-   "hash": "45af30ea0d41",
+   "hash": "a53df5ea2952",
    "period": "dev",
-   "run_utc": "2026-11-15T20:19:48+00:00",
+   "run_utc": "2026-11-15T21:54:37+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -36759,9 +38019,9 @@
   {
    "strategy": "purple_levels",
    "label": "15m \u00b7 daily swings",
-   "hash": "186fd2d2f373",
+   "hash": "2baff1d04e32",
    "period": "dev",
-   "run_utc": "2026-11-15T20:20:06+00:00",
+   "run_utc": "2026-11-15T21:54:46+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -36769,11 +38029,11 @@
     "rr": 1.0,
     "tf": "15m"
    },
-   "trades": 219,
-   "net": 5525.24,
-   "profit_factor": 1.181,
-   "win_rate": 0.5525,
-   "max_drawdown": -7123.72,
+   "trades": 217,
+   "net": 5473.32,
+   "profit_factor": 1.18,
+   "win_rate": 0.553,
+   "max_drawdown": -7339.68,
    "pass_rate": 0.4805,
    "seq_passes": 3,
    "seq_fails": 3,
@@ -36796,7 +38056,7 @@
     },
     {
      "year": 2013,
-     "net": 365.36
+     "net": 529.4
     },
     {
      "year": 2014,
@@ -36820,7 +38080,7 @@
     },
     {
      "year": 2019,
-     "net": -72.92
+     "net": -288.88
     },
     {
      "year": 2020,
@@ -36947,10 +38207,6 @@
     {
      "month": "2013-06",
      "net": -254.04
-    },
-    {
-     "month": "2013-08",
-     "net": -164.04
     },
     {
      "month": "2013-10",
@@ -37150,7 +38406,7 @@
     },
     {
      "month": "2019-02",
-     "net": 333.84
+     "net": 117.88
     },
     {
      "month": "2019-03",
@@ -37271,18 +38527,657 @@
    ],
    "exits": {
     "target": 108,
-    "stop": 78,
+    "stop": 77,
     "flatten": 30,
-    "roll": 2,
-    "day_end": 1
+    "roll": 2
+   }
+  },
+  {
+   "strategy": "purple_levels",
+   "label": "5m \u00b7 all four level sets",
+   "hash": "4c89a2ae4d47",
+   "period": "dev",
+   "run_utc": "2026-11-15T21:55:01+00:00",
+   "params": {
+    "confirm": 4,
+    "expire_candles": 4,
+    "levels": "all",
+    "rr": 1.0,
+    "tf": "5m"
+   },
+   "trades": 1153,
+   "net": 38131.88,
+   "profit_factor": 1.394,
+   "win_rate": 0.5646,
+   "max_drawdown": -4722.08,
+   "pass_rate": 0.628,
+   "seq_passes": 14,
+   "seq_fails": 7,
+   "cost_per_pass": 542.5,
+   "years_positive": 11,
+   "years_total": 12,
+   "best_of": 16,
+   "years": [
+    {
+     "year": 2010,
+     "net": 1947.8
+    },
+    {
+     "year": 2011,
+     "net": 9041.16
+    },
+    {
+     "year": 2012,
+     "net": 3221.36
+    },
+    {
+     "year": 2013,
+     "net": 6759.44
+    },
+    {
+     "year": 2014,
+     "net": 3746.0
+    },
+    {
+     "year": 2015,
+     "net": 1365.8
+    },
+    {
+     "year": 2016,
+     "net": 4074.48
+    },
+    {
+     "year": 2017,
+     "net": 1802.76
+    },
+    {
+     "year": 2018,
+     "net": 2636.6
+    },
+    {
+     "year": 2019,
+     "net": -2971.28
+    },
+    {
+     "year": 2020,
+     "net": 4644.48
+    },
+    {
+     "year": 2021,
+     "net": 1863.28
+    }
+   ],
+   "equity": [
+    {
+     "month": "2010-06",
+     "net": 287.68
+    },
+    {
+     "month": "2010-07",
+     "net": -1006.16
+    },
+    {
+     "month": "2010-08",
+     "net": -404.24
+    },
+    {
+     "month": "2010-09",
+     "net": 239.8
+    },
+    {
+     "month": "2010-10",
+     "net": 1663.44
+    },
+    {
+     "month": "2010-11",
+     "net": 459.6
+    },
+    {
+     "month": "2010-12",
+     "net": 707.68
+    },
+    {
+     "month": "2011-01",
+     "net": 245.76
+    },
+    {
+     "month": "2011-02",
+     "net": 1825.56
+    },
+    {
+     "month": "2011-03",
+     "net": -384.24
+    },
+    {
+     "month": "2011-04",
+     "net": 603.44
+    },
+    {
+     "month": "2011-05",
+     "net": 1409.8
+    },
+    {
+     "month": "2011-06",
+     "net": 1847.68
+    },
+    {
+     "month": "2011-07",
+     "net": 285.56
+    },
+    {
+     "month": "2011-08",
+     "net": 1501.52
+    },
+    {
+     "month": "2011-09",
+     "net": 3143.64
+    },
+    {
+     "month": "2011-10",
+     "net": 85.56
+    },
+    {
+     "month": "2011-11",
+     "net": -1960.6
+    },
+    {
+     "month": "2011-12",
+     "net": 437.48
+    },
+    {
+     "month": "2012-01",
+     "net": 1079.6
+    },
+    {
+     "month": "2012-02",
+     "net": 205.76
+    },
+    {
+     "month": "2012-03",
+     "net": 261.72
+    },
+    {
+     "month": "2012-04",
+     "net": -42.52
+    },
+    {
+     "month": "2012-05",
+     "net": -852.72
+    },
+    {
+     "month": "2012-06",
+     "net": -312.52
+    },
+    {
+     "month": "2012-07",
+     "net": -154.24
+    },
+    {
+     "month": "2012-08",
+     "net": 1197.48
+    },
+    {
+     "month": "2012-09",
+     "net": 145.76
+    },
+    {
+     "month": "2012-10",
+     "net": 801.72
+    },
+    {
+     "month": "2012-11",
+     "net": 723.84
+    },
+    {
+     "month": "2012-12",
+     "net": 167.48
+    },
+    {
+     "month": "2013-01",
+     "net": 931.52
+    },
+    {
+     "month": "2013-02",
+     "net": 19.6
+    },
+    {
+     "month": "2013-03",
+     "net": 961.72
+    },
+    {
+     "month": "2013-04",
+     "net": 811.72
+    },
+    {
+     "month": "2013-05",
+     "net": 1015.56
+    },
+    {
+     "month": "2013-06",
+     "net": 1189.8
+    },
+    {
+     "month": "2013-07",
+     "net": 189.6
+    },
+    {
+     "month": "2013-08",
+     "net": 823.64
+    },
+    {
+     "month": "2013-09",
+     "net": 735.76
+    },
+    {
+     "month": "2013-10",
+     "net": -352.52
+    },
+    {
+     "month": "2013-11",
+     "net": 163.44
+    },
+    {
+     "month": "2013-12",
+     "net": 269.6
+    },
+    {
+     "month": "2014-01",
+     "net": 587.68
+    },
+    {
+     "month": "2014-02",
+     "net": 183.64
+    },
+    {
+     "month": "2014-03",
+     "net": 119.6
+    },
+    {
+     "month": "2014-04",
+     "net": -528.28
+    },
+    {
+     "month": "2014-05",
+     "net": -24.24
+    },
+    {
+     "month": "2014-06",
+     "net": 393.64
+    },
+    {
+     "month": "2014-07",
+     "net": -158.28
+    },
+    {
+     "month": "2014-08",
+     "net": 323.84
+    },
+    {
+     "month": "2014-09",
+     "net": -356.36
+    },
+    {
+     "month": "2014-10",
+     "net": 1257.48
+    },
+    {
+     "month": "2014-11",
+     "net": -194.24
+    },
+    {
+     "month": "2014-12",
+     "net": 2141.52
+    },
+    {
+     "month": "2015-01",
+     "net": 1357.68
+    },
+    {
+     "month": "2015-02",
+     "net": 567.48
+    },
+    {
+     "month": "2015-03",
+     "net": 73.84
+    },
+    {
+     "month": "2015-04",
+     "net": 445.76
+    },
+    {
+     "month": "2015-05",
+     "net": -60.2
+    },
+    {
+     "month": "2015-06",
+     "net": -972.32
+    },
+    {
+     "month": "2015-07",
+     "net": 1143.44
+    },
+    {
+     "month": "2015-08",
+     "net": 277.68
+    },
+    {
+     "month": "2015-09",
+     "net": -468.28
+    },
+    {
+     "month": "2015-10",
+     "net": -732.52
+    },
+    {
+     "month": "2015-11",
+     "net": -942.32
+    },
+    {
+     "month": "2015-12",
+     "net": 675.56
+    },
+    {
+     "month": "2016-01",
+     "net": 249.4
+    },
+    {
+     "month": "2016-02",
+     "net": -290.2
+    },
+    {
+     "month": "2016-03",
+     "net": 715.76
+    },
+    {
+     "month": "2016-04",
+     "net": 709.8
+    },
+    {
+     "month": "2016-05",
+     "net": 171.72
+    },
+    {
+     "month": "2016-06",
+     "net": 1509.6
+    },
+    {
+     "month": "2016-07",
+     "net": 585.76
+    },
+    {
+     "month": "2016-08",
+     "net": 731.72
+    },
+    {
+     "month": "2016-09",
+     "net": 453.84
+    },
+    {
+     "month": "2016-10",
+     "net": -426.36
+    },
+    {
+     "month": "2016-11",
+     "net": -272.32
+    },
+    {
+     "month": "2016-12",
+     "net": -64.24
+    },
+    {
+     "month": "2017-01",
+     "net": 45.96
+    },
+    {
+     "month": "2017-02",
+     "net": 175.56
+    },
+    {
+     "month": "2017-03",
+     "net": -220.4
+    },
+    {
+     "month": "2017-04",
+     "net": 805.56
+    },
+    {
+     "month": "2017-05",
+     "net": 111.92
+    },
+    {
+     "month": "2017-06",
+     "net": -80.2
+    },
+    {
+     "month": "2017-07",
+     "net": -138.28
+    },
+    {
+     "month": "2017-08",
+     "net": 705.56
+    },
+    {
+     "month": "2017-09",
+     "net": -56.36
+    },
+    {
+     "month": "2017-10",
+     "net": 401.72
+    },
+    {
+     "month": "2017-11",
+     "net": 115.96
+    },
+    {
+     "month": "2017-12",
+     "net": -64.24
+    },
+    {
+     "month": "2018-01",
+     "net": 501.72
+    },
+    {
+     "month": "2018-02",
+     "net": 171.72
+    },
+    {
+     "month": "2018-03",
+     "net": 547.68
+    },
+    {
+     "month": "2018-04",
+     "net": 891.72
+    },
+    {
+     "month": "2018-05",
+     "net": -916.16
+    },
+    {
+     "month": "2018-06",
+     "net": 337.68
+    },
+    {
+     "month": "2018-07",
+     "net": -16.16
+    },
+    {
+     "month": "2018-08",
+     "net": -852.32
+    },
+    {
+     "month": "2018-09",
+     "net": 899.8
+    },
+    {
+     "month": "2018-10",
+     "net": 487.68
+    },
+    {
+     "month": "2018-11",
+     "net": -250.2
+    },
+    {
+     "month": "2018-12",
+     "net": 833.44
+    },
+    {
+     "month": "2019-01",
+     "net": -34.44
+    },
+    {
+     "month": "2019-02",
+     "net": -252.32
+    },
+    {
+     "month": "2019-03",
+     "net": 111.72
+    },
+    {
+     "month": "2019-04",
+     "net": -858.28
+    },
+    {
+     "month": "2019-05",
+     "net": -208.28
+    },
+    {
+     "month": "2019-06",
+     "net": -584.24
+    },
+    {
+     "month": "2019-07",
+     "net": 459.8
+    },
+    {
+     "month": "2019-08",
+     "net": 199.8
+    },
+    {
+     "month": "2019-09",
+     "net": 95.76
+    },
+    {
+     "month": "2019-10",
+     "net": -308.28
+    },
+    {
+     "month": "2019-11",
+     "net": -758.28
+    },
+    {
+     "month": "2019-12",
+     "net": -834.24
+    },
+    {
+     "month": "2020-01",
+     "net": -574.24
+    },
+    {
+     "month": "2020-02",
+     "net": -432.32
+    },
+    {
+     "month": "2020-03",
+     "net": -294.44
+    },
+    {
+     "month": "2020-04",
+     "net": 2069.8
+    },
+    {
+     "month": "2020-05",
+     "net": 539.8
+    },
+    {
+     "month": "2020-06",
+     "net": 503.44
+    },
+    {
+     "month": "2020-07",
+     "net": -28.28
+    },
+    {
+     "month": "2020-08",
+     "net": 103.84
+    },
+    {
+     "month": "2020-09",
+     "net": 1165.76
+    },
+    {
+     "month": "2020-10",
+     "net": 247.68
+    },
+    {
+     "month": "2020-11",
+     "net": 271.72
+    },
+    {
+     "month": "2020-12",
+     "net": 1071.72
+    },
+    {
+     "month": "2021-01",
+     "net": -528.48
+    },
+    {
+     "month": "2021-02",
+     "net": 1489.6
+    },
+    {
+     "month": "2021-03",
+     "net": -114.24
+    },
+    {
+     "month": "2021-04",
+     "net": -32.32
+    },
+    {
+     "month": "2021-05",
+     "net": 193.64
+    },
+    {
+     "month": "2021-06",
+     "net": -218.68
+    },
+    {
+     "month": "2021-07",
+     "net": 1129.6
+    },
+    {
+     "month": "2021-08",
+     "net": 979.8
+    },
+    {
+     "month": "2021-09",
+     "net": -796.56
+    },
+    {
+     "month": "2021-10",
+     "net": -568.28
+    },
+    {
+     "month": "2021-11",
+     "net": -1686.36
+    },
+    {
+     "month": "2021-12",
+     "net": 2015.56
+    }
+   ],
+   "exits": {
+    "target": 624,
+    "stop": 482,
+    "flatten": 41,
+    "roll": 6
    }
   },
   {
    "strategy": "purple_levels",
    "label": "15m \u00b7 all four level sets",
-   "hash": "f3d5cb329b4b",
+   "hash": "611909163de7",
    "period": "dev",
-   "run_utc": "2026-11-15T20:21:05+00:00",
+   "run_utc": "2026-11-15T21:55:15+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -37290,22 +39185,22 @@
     "rr": 1.0,
     "tf": "15m"
    },
-   "trades": 1009,
-   "net": 22173.64,
-   "profit_factor": 1.165,
-   "win_rate": 0.5461,
+   "trades": 1000,
+   "net": 22600.0,
+   "profit_factor": 1.17,
+   "win_rate": 0.547,
    "max_drawdown": -5978.16,
-   "pass_rate": 0.4456,
+   "pass_rate": 0.4237,
    "seq_passes": 9,
-   "seq_fails": 12,
-   "cost_per_pass": 860.22,
+   "seq_fails": 10,
+   "cost_per_pass": 838.44,
    "years_positive": 10,
    "years_total": 12,
    "best_of": 16,
    "years": [
     {
      "year": 2010,
-     "net": 1916.28
+     "net": 2494.36
     },
     {
      "year": 2011,
@@ -37317,7 +39212,7 @@
     },
     {
      "year": 2013,
-     "net": 3088.92
+     "net": 3252.96
     },
     {
      "year": 2014,
@@ -37329,19 +39224,19 @@
     },
     {
      "year": 2016,
-     "net": 3345.8
+     "net": 3223.88
     },
     {
      "year": 2017,
-     "net": 2201.44
+     "net": 2685.48
     },
     {
      "year": 2018,
-     "net": 968.52
+     "net": 432.56
     },
     {
      "year": 2019,
-     "net": 396.4
+     "net": 254.48
     },
     {
      "year": 2020,
@@ -37375,11 +39270,11 @@
     },
     {
      "month": "2010-11",
-     "net": -610.2
+     "net": 53.84
     },
     {
      "month": "2010-12",
-     "net": 1141.72
+     "net": 1055.76
     },
     {
      "month": "2011-01",
@@ -37507,7 +39402,7 @@
     },
     {
      "month": "2013-08",
-     "net": -420.2
+     "net": -256.16
     },
     {
      "month": "2013-09",
@@ -37623,7 +39518,7 @@
     },
     {
      "month": "2016-01",
-     "net": 1325.76
+     "net": 1089.8
     },
     {
      "month": "2016-02",
@@ -37647,7 +39542,7 @@
     },
     {
      "month": "2016-07",
-     "net": 255.76
+     "net": 369.8
     },
     {
      "month": "2016-08",
@@ -37679,7 +39574,7 @@
     },
     {
      "month": "2017-03",
-     "net": -260.4
+     "net": 223.64
     },
     {
      "month": "2017-04",
@@ -37751,7 +39646,7 @@
     },
     {
      "month": "2018-09",
-     "net": -86.36
+     "net": -622.32
     },
     {
      "month": "2018-10",
@@ -37771,7 +39666,7 @@
     },
     {
      "month": "2019-02",
-     "net": 479.8
+     "net": 263.84
     },
     {
      "month": "2019-03",
@@ -37799,7 +39694,7 @@
     },
     {
      "month": "2019-09",
-     "net": -464.44
+     "net": -390.4
     },
     {
      "month": "2019-10",
@@ -37911,659 +39806,18 @@
     }
    ],
    "exits": {
-    "target": 488,
-    "stop": 404,
+    "target": 486,
+    "stop": 399,
     "flatten": 107,
-    "roll": 8,
-    "day_end": 2
-   }
-  },
-  {
-   "strategy": "purple_levels",
-   "label": "5m \u00b7 all four level sets",
-   "hash": "0d7bec09b33d",
-   "period": "dev",
-   "run_utc": "2026-11-15T20:32:57+00:00",
-   "params": {
-    "confirm": 4,
-    "expire_candles": 4,
-    "levels": "all",
-    "rr": 1.0,
-    "tf": "5m"
-   },
-   "trades": 1161,
-   "net": 36299.56,
-   "profit_factor": 1.368,
-   "win_rate": 0.5616,
-   "max_drawdown": -4796.12,
-   "pass_rate": 0.6284,
-   "seq_passes": 13,
-   "seq_fails": 7,
-   "cost_per_pass": 584.23,
-   "years_positive": 11,
-   "years_total": 12,
-   "best_of": 16,
-   "years": [
-    {
-     "year": 2010,
-     "net": 1189.72
-    },
-    {
-     "year": 2011,
-     "net": 9041.16
-    },
-    {
-     "year": 2012,
-     "net": 3221.36
-    },
-    {
-     "year": 2013,
-     "net": 6655.4
-    },
-    {
-     "year": 2014,
-     "net": 3746.0
-    },
-    {
-     "year": 2015,
-     "net": 1411.76
-    },
-    {
-     "year": 2016,
-     "net": 4074.48
-    },
-    {
-     "year": 2017,
-     "net": 1238.72
-    },
-    {
-     "year": 2018,
-     "net": 2552.56
-    },
-    {
-     "year": 2019,
-     "net": -3045.32
-    },
-    {
-     "year": 2020,
-     "net": 4350.44
-    },
-    {
-     "year": 2021,
-     "net": 1863.28
-    }
-   ],
-   "equity": [
-    {
-     "month": "2010-06",
-     "net": 287.68
-    },
-    {
-     "month": "2010-07",
-     "net": -1006.16
-    },
-    {
-     "month": "2010-08",
-     "net": -404.24
-    },
-    {
-     "month": "2010-09",
-     "net": 205.76
-    },
-    {
-     "month": "2010-10",
-     "net": 1663.44
-    },
-    {
-     "month": "2010-11",
-     "net": -264.44
-    },
-    {
-     "month": "2010-12",
-     "net": 707.68
-    },
-    {
-     "month": "2011-01",
-     "net": 245.76
-    },
-    {
-     "month": "2011-02",
-     "net": 1825.56
-    },
-    {
-     "month": "2011-03",
-     "net": -384.24
-    },
-    {
-     "month": "2011-04",
-     "net": 603.44
-    },
-    {
-     "month": "2011-05",
-     "net": 1409.8
-    },
-    {
-     "month": "2011-06",
-     "net": 1847.68
-    },
-    {
-     "month": "2011-07",
-     "net": 285.56
-    },
-    {
-     "month": "2011-08",
-     "net": 1501.52
-    },
-    {
-     "month": "2011-09",
-     "net": 3143.64
-    },
-    {
-     "month": "2011-10",
-     "net": 85.56
-    },
-    {
-     "month": "2011-11",
-     "net": -1960.6
-    },
-    {
-     "month": "2011-12",
-     "net": 437.48
-    },
-    {
-     "month": "2012-01",
-     "net": 1079.6
-    },
-    {
-     "month": "2012-02",
-     "net": 205.76
-    },
-    {
-     "month": "2012-03",
-     "net": 261.72
-    },
-    {
-     "month": "2012-04",
-     "net": -42.52
-    },
-    {
-     "month": "2012-05",
-     "net": -852.72
-    },
-    {
-     "month": "2012-06",
-     "net": -312.52
-    },
-    {
-     "month": "2012-07",
-     "net": -154.24
-    },
-    {
-     "month": "2012-08",
-     "net": 1197.48
-    },
-    {
-     "month": "2012-09",
-     "net": 145.76
-    },
-    {
-     "month": "2012-10",
-     "net": 801.72
-    },
-    {
-     "month": "2012-11",
-     "net": 723.84
-    },
-    {
-     "month": "2012-12",
-     "net": 167.48
-    },
-    {
-     "month": "2013-01",
-     "net": 931.52
-    },
-    {
-     "month": "2013-02",
-     "net": 19.6
-    },
-    {
-     "month": "2013-03",
-     "net": 961.72
-    },
-    {
-     "month": "2013-04",
-     "net": 811.72
-    },
-    {
-     "month": "2013-05",
-     "net": 1015.56
-    },
-    {
-     "month": "2013-06",
-     "net": 1085.76
-    },
-    {
-     "month": "2013-07",
-     "net": 189.6
-    },
-    {
-     "month": "2013-08",
-     "net": 823.64
-    },
-    {
-     "month": "2013-09",
-     "net": 735.76
-    },
-    {
-     "month": "2013-10",
-     "net": -352.52
-    },
-    {
-     "month": "2013-11",
-     "net": 163.44
-    },
-    {
-     "month": "2013-12",
-     "net": 269.6
-    },
-    {
-     "month": "2014-01",
-     "net": 587.68
-    },
-    {
-     "month": "2014-02",
-     "net": 183.64
-    },
-    {
-     "month": "2014-03",
-     "net": 119.6
-    },
-    {
-     "month": "2014-04",
-     "net": -528.28
-    },
-    {
-     "month": "2014-05",
-     "net": -24.24
-    },
-    {
-     "month": "2014-06",
-     "net": 393.64
-    },
-    {
-     "month": "2014-07",
-     "net": -158.28
-    },
-    {
-     "month": "2014-08",
-     "net": 323.84
-    },
-    {
-     "month": "2014-09",
-     "net": -356.36
-    },
-    {
-     "month": "2014-10",
-     "net": 1257.48
-    },
-    {
-     "month": "2014-11",
-     "net": -194.24
-    },
-    {
-     "month": "2014-12",
-     "net": 2141.52
-    },
-    {
-     "month": "2015-01",
-     "net": 1357.68
-    },
-    {
-     "month": "2015-02",
-     "net": 567.48
-    },
-    {
-     "month": "2015-03",
-     "net": 73.84
-    },
-    {
-     "month": "2015-04",
-     "net": 445.76
-    },
-    {
-     "month": "2015-05",
-     "net": -60.2
-    },
-    {
-     "month": "2015-06",
-     "net": -972.32
-    },
-    {
-     "month": "2015-07",
-     "net": 1143.44
-    },
-    {
-     "month": "2015-08",
-     "net": 277.68
-    },
-    {
-     "month": "2015-09",
-     "net": -468.28
-    },
-    {
-     "month": "2015-10",
-     "net": -732.52
-    },
-    {
-     "month": "2015-11",
-     "net": -896.36
-    },
-    {
-     "month": "2015-12",
-     "net": 675.56
-    },
-    {
-     "month": "2016-01",
-     "net": 249.4
-    },
-    {
-     "month": "2016-02",
-     "net": -290.2
-    },
-    {
-     "month": "2016-03",
-     "net": 715.76
-    },
-    {
-     "month": "2016-04",
-     "net": 709.8
-    },
-    {
-     "month": "2016-05",
-     "net": 171.72
-    },
-    {
-     "month": "2016-06",
-     "net": 1509.6
-    },
-    {
-     "month": "2016-07",
-     "net": 585.76
-    },
-    {
-     "month": "2016-08",
-     "net": 731.72
-    },
-    {
-     "month": "2016-09",
-     "net": 453.84
-    },
-    {
-     "month": "2016-10",
-     "net": -426.36
-    },
-    {
-     "month": "2016-11",
-     "net": -272.32
-    },
-    {
-     "month": "2016-12",
-     "net": -64.24
-    },
-    {
-     "month": "2017-01",
-     "net": 45.96
-    },
-    {
-     "month": "2017-02",
-     "net": 175.56
-    },
-    {
-     "month": "2017-03",
-     "net": -784.44
-    },
-    {
-     "month": "2017-04",
-     "net": 805.56
-    },
-    {
-     "month": "2017-05",
-     "net": 111.92
-    },
-    {
-     "month": "2017-06",
-     "net": -80.2
-    },
-    {
-     "month": "2017-07",
-     "net": -138.28
-    },
-    {
-     "month": "2017-08",
-     "net": 705.56
-    },
-    {
-     "month": "2017-09",
-     "net": -56.36
-    },
-    {
-     "month": "2017-10",
-     "net": 401.72
-    },
-    {
-     "month": "2017-11",
-     "net": 115.96
-    },
-    {
-     "month": "2017-12",
-     "net": -64.24
-    },
-    {
-     "month": "2018-01",
-     "net": 501.72
-    },
-    {
-     "month": "2018-02",
-     "net": 171.72
-    },
-    {
-     "month": "2018-03",
-     "net": 547.68
-    },
-    {
-     "month": "2018-04",
-     "net": 891.72
-    },
-    {
-     "month": "2018-05",
-     "net": -916.16
-    },
-    {
-     "month": "2018-06",
-     "net": 337.68
-    },
-    {
-     "month": "2018-07",
-     "net": -16.16
-    },
-    {
-     "month": "2018-08",
-     "net": -936.36
-    },
-    {
-     "month": "2018-09",
-     "net": 899.8
-    },
-    {
-     "month": "2018-10",
-     "net": 487.68
-    },
-    {
-     "month": "2018-11",
-     "net": -250.2
-    },
-    {
-     "month": "2018-12",
-     "net": 833.44
-    },
-    {
-     "month": "2019-01",
-     "net": -34.44
-    },
-    {
-     "month": "2019-02",
-     "net": -252.32
-    },
-    {
-     "month": "2019-03",
-     "net": 111.72
-    },
-    {
-     "month": "2019-04",
-     "net": -858.28
-    },
-    {
-     "month": "2019-05",
-     "net": -208.28
-    },
-    {
-     "month": "2019-06",
-     "net": -584.24
-    },
-    {
-     "month": "2019-07",
-     "net": 459.8
-    },
-    {
-     "month": "2019-08",
-     "net": 199.8
-    },
-    {
-     "month": "2019-09",
-     "net": 21.72
-    },
-    {
-     "month": "2019-10",
-     "net": -308.28
-    },
-    {
-     "month": "2019-11",
-     "net": -758.28
-    },
-    {
-     "month": "2019-12",
-     "net": -834.24
-    },
-    {
-     "month": "2020-01",
-     "net": -574.24
-    },
-    {
-     "month": "2020-02",
-     "net": -432.32
-    },
-    {
-     "month": "2020-03",
-     "net": -294.44
-    },
-    {
-     "month": "2020-04",
-     "net": 2069.8
-    },
-    {
-     "month": "2020-05",
-     "net": 245.76
-    },
-    {
-     "month": "2020-06",
-     "net": 503.44
-    },
-    {
-     "month": "2020-07",
-     "net": -28.28
-    },
-    {
-     "month": "2020-08",
-     "net": 103.84
-    },
-    {
-     "month": "2020-09",
-     "net": 1165.76
-    },
-    {
-     "month": "2020-10",
-     "net": 247.68
-    },
-    {
-     "month": "2020-11",
-     "net": 271.72
-    },
-    {
-     "month": "2020-12",
-     "net": 1071.72
-    },
-    {
-     "month": "2021-01",
-     "net": -528.48
-    },
-    {
-     "month": "2021-02",
-     "net": 1489.6
-    },
-    {
-     "month": "2021-03",
-     "net": -114.24
-    },
-    {
-     "month": "2021-04",
-     "net": -32.32
-    },
-    {
-     "month": "2021-05",
-     "net": 193.64
-    },
-    {
-     "month": "2021-06",
-     "net": -218.68
-    },
-    {
-     "month": "2021-07",
-     "net": 1129.6
-    },
-    {
-     "month": "2021-08",
-     "net": 979.8
-    },
-    {
-     "month": "2021-09",
-     "net": -796.56
-    },
-    {
-     "month": "2021-10",
-     "net": -568.28
-    },
-    {
-     "month": "2021-11",
-     "net": -1686.36
-    },
-    {
-     "month": "2021-12",
-     "net": 2015.56
-    }
-   ],
-   "exits": {
-    "target": 625,
-    "stop": 489,
-    "flatten": 41,
-    "roll": 6
+    "roll": 8
    }
   },
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 4h + daily swings",
-   "hash": "bb31fdf99f48",
+   "hash": "a352c1f348e6",
    "period": "dev",
-   "run_utc": "2026-11-15T20:33:30+00:00",
+   "run_utc": "2026-11-15T21:55:30+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -38571,22 +39825,22 @@
     "rr": 1.0,
     "tf": "5m"
    },
-   "trades": 705,
-   "net": 26011.8,
-   "profit_factor": 1.448,
-   "win_rate": 0.5674,
-   "max_drawdown": -3050.8,
-   "pass_rate": 0.7336,
+   "trades": 700,
+   "net": 26942.0,
+   "profit_factor": 1.472,
+   "win_rate": 0.57,
+   "max_drawdown": -3096.76,
+   "pass_rate": 0.7329,
    "seq_passes": 9,
    "seq_fails": 3,
-   "cost_per_pass": 800.33,
+   "cost_per_pass": 805.78,
    "years_positive": 11,
    "years_total": 12,
    "best_of": 16,
    "years": [
     {
      "year": 2010,
-     "net": 536.68
+     "net": 570.72
     },
     {
      "year": 2011,
@@ -38606,7 +39860,7 @@
     },
     {
      "year": 2015,
-     "net": 739.52
+     "net": 693.56
     },
     {
      "year": 2016,
@@ -38614,11 +39868,11 @@
     },
     {
      "year": 2017,
-     "net": 1855.88
+     "net": 2419.92
     },
     {
      "year": 2018,
-     "net": 3399.72
+     "net": 3483.76
     },
     {
      "year": 2019,
@@ -38626,7 +39880,7 @@
     },
     {
      "year": 2020,
-     "net": 5141.84
+     "net": 5435.88
     },
     {
      "year": 2021,
@@ -38648,7 +39902,7 @@
     },
     {
      "month": "2010-09",
-     "net": 423.84
+     "net": 457.88
     },
     {
      "month": "2010-10",
@@ -38896,7 +40150,7 @@
     },
     {
      "month": "2015-11",
-     "net": -990.2
+     "net": -1036.16
     },
     {
      "month": "2015-12",
@@ -38956,7 +40210,7 @@
     },
     {
      "month": "2017-03",
-     "net": -312.32
+     "net": 251.72
     },
     {
      "month": "2017-04",
@@ -39020,7 +40274,7 @@
     },
     {
      "month": "2018-08",
-     "net": -410.2
+     "net": -326.16
     },
     {
      "month": "2018-09",
@@ -39104,7 +40358,7 @@
     },
     {
      "month": "2020-05",
-     "net": 459.8
+     "net": 753.84
     },
     {
      "month": "2020-06",
@@ -39184,8 +40438,8 @@
     }
    ],
    "exits": {
-    "target": 384,
-    "stop": 288,
+    "target": 383,
+    "stop": 284,
     "flatten": 29,
     "roll": 4
    }
@@ -39193,9 +40447,9 @@
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 all but previous day",
-   "hash": "83645049492b",
+   "hash": "1b1e706439fe",
    "period": "dev",
-   "run_utc": "2026-11-15T20:34:03+00:00",
+   "run_utc": "2026-11-15T21:55:45+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -39203,12 +40457,12 @@
     "rr": 1.0,
     "tf": "5m"
    },
-   "trades": 849,
-   "net": 32980.04,
-   "profit_factor": 1.474,
-   "win_rate": 0.5724,
-   "max_drawdown": -3133.2,
-   "pass_rate": 0.7405,
+   "trades": 843,
+   "net": 33984.28,
+   "profit_factor": 1.496,
+   "win_rate": 0.5753,
+   "max_drawdown": -3059.16,
+   "pass_rate": 0.7415,
    "seq_passes": 12,
    "seq_fails": 4,
    "cost_per_pass": 616.58,
@@ -39218,7 +40472,7 @@
    "years": [
     {
      "year": 2010,
-     "net": 1652.44
+     "net": 1686.48
     },
     {
      "year": 2011,
@@ -39238,7 +40492,7 @@
     },
     {
      "year": 2015,
-     "net": 1687.0
+     "net": 1641.04
     },
     {
      "year": 2016,
@@ -39246,19 +40500,19 @@
     },
     {
      "year": 2017,
-     "net": 1257.4
+     "net": 1821.44
     },
     {
      "year": 2018,
-     "net": 3899.52
+     "net": 3983.56
     },
     {
      "year": 2019,
-     "net": -2366.64
+     "net": -2292.6
     },
     {
      "year": 2020,
-     "net": 6529.32
+     "net": 6823.36
     },
     {
      "year": 2021,
@@ -39280,7 +40534,7 @@
     },
     {
      "month": "2010-09",
-     "net": 309.8
+     "net": 343.84
     },
     {
      "month": "2010-10",
@@ -39528,7 +40782,7 @@
     },
     {
      "month": "2015-11",
-     "net": -1074.24
+     "net": -1120.2
     },
     {
      "month": "2015-12",
@@ -39592,7 +40846,7 @@
     },
     {
      "month": "2017-03",
-     "net": -406.36
+     "net": 157.68
     },
     {
      "month": "2017-04",
@@ -39656,7 +40910,7 @@
     },
     {
      "month": "2018-08",
-     "net": -344.24
+     "net": -260.2
     },
     {
      "month": "2018-09",
@@ -39708,7 +40962,7 @@
     },
     {
      "month": "2019-09",
-     "net": -114.24
+     "net": -40.2
     },
     {
      "month": "2019-10",
@@ -39740,7 +40994,7 @@
     },
     {
      "month": "2020-05",
-     "net": 459.8
+     "net": 753.84
     },
     {
      "month": "2020-06",
@@ -39820,210 +41074,18 @@
     }
    ],
    "exits": {
-    "target": 465,
-    "stop": 346,
+    "target": 464,
+    "stop": 341,
     "flatten": 32,
     "roll": 6
    }
   },
   {
    "strategy": "purple_levels",
-   "label": "5m \u00b7 all four level sets",
-   "hash": "0d7bec09b33d",
-   "period": "validation",
-   "run_utc": "2026-11-15T20:34:20+00:00",
-   "params": {
-    "confirm": 4,
-    "expire_candles": 4,
-    "levels": "all",
-    "rr": 1.0,
-    "tf": "5m"
-   },
-   "trades": 353,
-   "net": 6323.88,
-   "profit_factor": 1.125,
-   "win_rate": 0.5156,
-   "max_drawdown": -7452.0,
-   "pass_rate": 0.4736,
-   "seq_passes": 3,
-   "seq_fails": 6,
-   "cost_per_pass": 718.67,
-   "years_positive": 1,
-   "years_total": 3,
-   "best_of": 4,
-   "years": [
-    {
-     "year": 2022,
-     "net": -1598.44
-    },
-    {
-     "year": 2023,
-     "net": 8125.4
-    },
-    {
-     "year": 2024,
-     "net": -203.08
-    }
-   ],
-   "equity": [
-    {
-     "month": "2022-01",
-     "net": 663.84
-    },
-    {
-     "month": "2022-02",
-     "net": -214.24
-    },
-    {
-     "month": "2022-03",
-     "net": -436.36
-    },
-    {
-     "month": "2022-04",
-     "net": 2531.52
-    },
-    {
-     "month": "2022-05",
-     "net": -2882.72
-    },
-    {
-     "month": "2022-06",
-     "net": -1474.24
-    },
-    {
-     "month": "2022-07",
-     "net": -776.36
-    },
-    {
-     "month": "2022-08",
-     "net": 75.56
-    },
-    {
-     "month": "2022-09",
-     "net": -1060.4
-    },
-    {
-     "month": "2022-10",
-     "net": 1105.76
-    },
-    {
-     "month": "2022-11",
-     "net": -300.4
-    },
-    {
-     "month": "2022-12",
-     "net": 1169.6
-    },
-    {
-     "month": "2023-01",
-     "net": 1485.56
-    },
-    {
-     "month": "2023-02",
-     "net": -512.32
-    },
-    {
-     "month": "2023-03",
-     "net": 1405.56
-    },
-    {
-     "month": "2023-04",
-     "net": 1071.52
-    },
-    {
-     "month": "2023-05",
-     "net": 1343.64
-    },
-    {
-     "month": "2023-06",
-     "net": 1527.68
-    },
-    {
-     "month": "2023-07",
-     "net": -682.32
-    },
-    {
-     "month": "2023-08",
-     "net": -480.4
-    },
-    {
-     "month": "2023-09",
-     "net": 325.76
-    },
-    {
-     "month": "2023-10",
-     "net": -34.64
-    },
-    {
-     "month": "2023-11",
-     "net": 1679.8
-    },
-    {
-     "month": "2023-12",
-     "net": 995.56
-    },
-    {
-     "month": "2024-01",
-     "net": -950.4
-    },
-    {
-     "month": "2024-02",
-     "net": -668.28
-    },
-    {
-     "month": "2024-03",
-     "net": 475.56
-    },
-    {
-     "month": "2024-04",
-     "net": -62.52
-    },
-    {
-     "month": "2024-05",
-     "net": -190.4
-    },
-    {
-     "month": "2024-06",
-     "net": 191.52
-    },
-    {
-     "month": "2024-07",
-     "net": 323.44
-    },
-    {
-     "month": "2024-08",
-     "net": 199.6
-    },
-    {
-     "month": "2024-09",
-     "net": 649.6
-    },
-    {
-     "month": "2024-10",
-     "net": 409.6
-    },
-    {
-     "month": "2024-11",
-     "net": -818.28
-    },
-    {
-     "month": "2024-12",
-     "net": 237.48
-    }
-   ],
-   "exits": {
-    "target": 175,
-    "stop": 161,
-    "flatten": 16,
-    "roll": 1
-   }
-  },
-  {
-   "strategy": "purple_levels",
    "label": "5m \u00b7 previous day \u00b7 strict fills",
-   "hash": "f64db9e67861",
+   "hash": "6d5d9c0bfbe0",
    "period": "dev",
-   "run_utc": "2026-11-15T20:41:00+00:00",
+   "run_utc": "2026-11-15T21:55:54+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -40032,14 +41094,14 @@
     "rr": 1.0,
     "tf": "5m"
    },
-   "trades": 537,
-   "net": 6600.52,
-   "profit_factor": 1.129,
-   "win_rate": 0.514,
+   "trades": 535,
+   "net": 7428.6,
+   "profit_factor": 1.147,
+   "win_rate": 0.5159,
    "max_drawdown": -7062.56,
-   "pass_rate": 0.4853,
+   "pass_rate": 0.4953,
    "seq_passes": 4,
-   "seq_fails": 7,
+   "seq_fails": 6,
    "cost_per_pass": 1837.5,
    "years_positive": 7,
    "years_total": 12,
@@ -40047,7 +41109,7 @@
    "years": [
     {
      "year": 2010,
-     "net": -1501.0
+     "net": -776.96
     },
     {
      "year": 2011,
@@ -40059,7 +41121,7 @@
     },
     {
      "year": 2013,
-     "net": 1716.08
+     "net": 1820.12
     },
     {
      "year": 2014,
@@ -40113,7 +41175,7 @@
     },
     {
      "month": "2010-11",
-     "net": -1290.2
+     "net": -566.16
     },
     {
      "month": "2010-12",
@@ -40237,7 +41299,7 @@
     },
     {
      "month": "2013-06",
-     "net": -342.12
+     "net": -238.08
     },
     {
      "month": "2013-07",
@@ -40642,7 +41704,7 @@
    ],
    "exits": {
     "target": 263,
-    "stop": 250,
+    "stop": 248,
     "flatten": 20,
     "roll": 4
    }
@@ -40650,9 +41712,9 @@
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 all four level sets \u00b7 strict fills",
-   "hash": "246991053739",
+   "hash": "d7ca953dedf1",
    "period": "dev",
-   "run_utc": "2026-11-15T20:41:34+00:00",
+   "run_utc": "2026-11-15T21:56:09+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -40661,22 +41723,22 @@
     "rr": 1.0,
     "tf": "5m"
    },
-   "trades": 1055,
-   "net": 23867.8,
-   "profit_factor": 1.249,
-   "win_rate": 0.5299,
-   "max_drawdown": -5567.64,
-   "pass_rate": 0.5551,
-   "seq_passes": 11,
-   "seq_fails": 9,
-   "cost_per_pass": 686.0,
+   "trades": 1049,
+   "net": 25662.04,
+   "profit_factor": 1.273,
+   "win_rate": 0.5329,
+   "max_drawdown": -5493.6,
+   "pass_rate": 0.579,
+   "seq_passes": 9,
+   "seq_fails": 7,
+   "cost_per_pass": 833.0,
    "years_positive": 10,
    "years_total": 12,
    "best_of": 16,
    "years": [
     {
      "year": 2010,
-     "net": 593.96
+     "net": 1352.04
     },
     {
      "year": 2011,
@@ -40688,7 +41750,7 @@
     },
     {
      "year": 2013,
-     "net": 4944.28
+     "net": 5048.32
     },
     {
      "year": 2014,
@@ -40704,7 +41766,7 @@
     },
     {
      "year": 2017,
-     "net": 721.04
+     "net": 1285.08
     },
     {
      "year": 2018,
@@ -40712,11 +41774,11 @@
     },
     {
      "year": 2019,
-     "net": -3928.96
+     "net": -3854.92
     },
     {
      "year": 2020,
-     "net": 2858.92
+     "net": 3152.96
     },
     {
      "year": 2021,
@@ -40738,7 +41800,7 @@
     },
     {
      "month": "2010-09",
-     "net": 233.84
+     "net": 267.88
     },
     {
      "month": "2010-10",
@@ -40746,7 +41808,7 @@
     },
     {
      "month": "2010-11",
-     "net": -440.4
+     "net": 283.64
     },
     {
      "month": "2010-12",
@@ -40870,7 +41932,7 @@
     },
     {
      "month": "2013-06",
-     "net": 463.84
+     "net": 567.88
     },
     {
      "month": "2013-07",
@@ -41046,7 +42108,7 @@
     },
     {
      "month": "2017-03",
-     "net": -810.4
+     "net": -246.36
     },
     {
      "month": "2017-04",
@@ -41166,7 +42228,7 @@
     },
     {
      "month": "2019-09",
-     "net": -274.24
+     "net": -200.2
     },
     {
      "month": "2019-10",
@@ -41198,7 +42260,7 @@
     },
     {
      "month": "2020-05",
-     "net": 245.76
+     "net": 539.8
     },
     {
      "month": "2020-06",
@@ -41279,7 +42341,7 @@
    ],
    "exits": {
     "target": 535,
-    "stop": 477,
+    "stop": 471,
     "flatten": 38,
     "roll": 5
    }
@@ -41287,9 +42349,9 @@
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 all but previous day \u00b7 strict fills",
-   "hash": "2d216a6286d7",
+   "hash": "27eb6fd3b33f",
    "period": "dev",
-   "run_utc": "2026-11-15T20:42:08+00:00",
+   "run_utc": "2026-11-15T21:56:24+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -41298,22 +42360,22 @@
     "rr": 1.0,
     "tf": "5m"
    },
-   "trades": 770,
-   "net": 24009.2,
-   "profit_factor": 1.356,
-   "win_rate": 0.5429,
-   "max_drawdown": -4086.84,
-   "pass_rate": 0.6672,
+   "trades": 766,
+   "net": 24975.36,
+   "profit_factor": 1.376,
+   "win_rate": 0.5457,
+   "max_drawdown": -4012.8,
+   "pass_rate": 0.6696,
    "seq_passes": 9,
    "seq_fails": 6,
-   "cost_per_pass": 827.56,
+   "cost_per_pass": 822.11,
    "years_positive": 11,
    "years_total": 12,
    "best_of": 16,
    "years": [
     {
      "year": 2010,
-     "net": 1304.56
+     "net": 1338.6
     },
     {
      "year": 2011,
@@ -41341,7 +42403,7 @@
     },
     {
      "year": 2017,
-     "net": 729.72
+     "net": 1293.76
     },
     {
      "year": 2018,
@@ -41349,11 +42411,11 @@
     },
     {
      "year": 2019,
-     "net": -3204.32
+     "net": -3130.28
     },
     {
      "year": 2020,
-     "net": 5143.56
+     "net": 5437.6
     },
     {
      "year": 2021,
@@ -41375,7 +42437,7 @@
     },
     {
      "month": "2010-09",
-     "net": 233.84
+     "net": 267.88
     },
     {
      "month": "2010-10",
@@ -41683,7 +42745,7 @@
     },
     {
      "month": "2017-03",
-     "net": -442.32
+     "net": 121.72
     },
     {
      "month": "2017-04",
@@ -41799,7 +42861,7 @@
     },
     {
      "month": "2019-09",
-     "net": -410.2
+     "net": -336.16
     },
     {
      "month": "2019-10",
@@ -41831,7 +42893,7 @@
     },
     {
      "month": "2020-05",
-     "net": 459.8
+     "net": 753.84
     },
     {
      "month": "2020-06",
@@ -41912,7 +42974,7 @@
    ],
    "exits": {
     "target": 400,
-    "stop": 336,
+    "stop": 332,
     "flatten": 29,
     "roll": 5
    }
@@ -41920,9 +42982,9 @@
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 4h + daily swings \u00b7 strict fills",
-   "hash": "c92b58abe495",
+   "hash": "ce43463bdd3e",
    "period": "dev",
-   "run_utc": "2026-11-15T20:42:40+00:00",
+   "run_utc": "2026-11-15T21:56:40+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -41931,22 +42993,22 @@
     "rr": 1.0,
     "tf": "5m"
    },
-   "trades": 640,
-   "net": 18264.4,
-   "profit_factor": 1.322,
-   "win_rate": 0.5359,
+   "trades": 637,
+   "net": 19156.52,
+   "profit_factor": 1.343,
+   "win_rate": 0.5385,
    "max_drawdown": -3152.2,
    "pass_rate": 0.5259,
    "seq_passes": 6,
    "seq_fails": 5,
-   "cost_per_pass": 1225.0,
+   "cost_per_pass": 1216.83,
    "years_positive": 10,
    "years_total": 12,
    "best_of": 16,
    "years": [
     {
      "year": 2010,
-     "net": 188.8
+     "net": 222.84
     },
     {
      "year": 2011,
@@ -41974,7 +43036,7 @@
     },
     {
      "year": 2017,
-     "net": 1410.12
+     "net": 1974.16
     },
     {
      "year": 2018,
@@ -41986,7 +43048,7 @@
     },
     {
      "year": 2020,
-     "net": 4472.04
+     "net": 4766.08
     },
     {
      "year": 2021,
@@ -42008,7 +43070,7 @@
     },
     {
      "month": "2010-09",
-     "net": 347.88
+     "net": 381.92
     },
     {
      "month": "2010-10",
@@ -42316,7 +43378,7 @@
     },
     {
      "month": "2017-03",
-     "net": -348.28
+     "net": 215.76
     },
     {
      "month": "2017-04",
@@ -42464,7 +43526,7 @@
     },
     {
      "month": "2020-05",
-     "net": 459.8
+     "net": 753.84
     },
     {
      "month": "2020-06",
@@ -42545,17 +43607,209 @@
    ],
    "exits": {
     "target": 328,
-    "stop": 281,
+    "stop": 278,
     "flatten": 27,
     "roll": 4
    }
   },
   {
    "strategy": "purple_levels",
-   "label": "5m \u00b7 all four level sets \u00b7 strict fills",
-   "hash": "246991053739",
+   "label": "5m \u00b7 all four level sets",
+   "hash": "4c89a2ae4d47",
    "period": "validation",
-   "run_utc": "2026-11-15T20:42:48+00:00",
+   "run_utc": "2026-11-15T21:56:44+00:00",
+   "params": {
+    "confirm": 4,
+    "expire_candles": 4,
+    "levels": "all",
+    "rr": 1.0,
+    "tf": "5m"
+   },
+   "trades": 353,
+   "net": 6323.88,
+   "profit_factor": 1.125,
+   "win_rate": 0.5156,
+   "max_drawdown": -7452.0,
+   "pass_rate": 0.4736,
+   "seq_passes": 3,
+   "seq_fails": 6,
+   "cost_per_pass": 718.67,
+   "years_positive": 1,
+   "years_total": 3,
+   "best_of": 4,
+   "years": [
+    {
+     "year": 2022,
+     "net": -1598.44
+    },
+    {
+     "year": 2023,
+     "net": 8125.4
+    },
+    {
+     "year": 2024,
+     "net": -203.08
+    }
+   ],
+   "equity": [
+    {
+     "month": "2022-01",
+     "net": 663.84
+    },
+    {
+     "month": "2022-02",
+     "net": -214.24
+    },
+    {
+     "month": "2022-03",
+     "net": -436.36
+    },
+    {
+     "month": "2022-04",
+     "net": 2531.52
+    },
+    {
+     "month": "2022-05",
+     "net": -2882.72
+    },
+    {
+     "month": "2022-06",
+     "net": -1474.24
+    },
+    {
+     "month": "2022-07",
+     "net": -776.36
+    },
+    {
+     "month": "2022-08",
+     "net": 75.56
+    },
+    {
+     "month": "2022-09",
+     "net": -1060.4
+    },
+    {
+     "month": "2022-10",
+     "net": 1105.76
+    },
+    {
+     "month": "2022-11",
+     "net": -300.4
+    },
+    {
+     "month": "2022-12",
+     "net": 1169.6
+    },
+    {
+     "month": "2023-01",
+     "net": 1485.56
+    },
+    {
+     "month": "2023-02",
+     "net": -512.32
+    },
+    {
+     "month": "2023-03",
+     "net": 1405.56
+    },
+    {
+     "month": "2023-04",
+     "net": 1071.52
+    },
+    {
+     "month": "2023-05",
+     "net": 1343.64
+    },
+    {
+     "month": "2023-06",
+     "net": 1527.68
+    },
+    {
+     "month": "2023-07",
+     "net": -682.32
+    },
+    {
+     "month": "2023-08",
+     "net": -480.4
+    },
+    {
+     "month": "2023-09",
+     "net": 325.76
+    },
+    {
+     "month": "2023-10",
+     "net": -34.64
+    },
+    {
+     "month": "2023-11",
+     "net": 1679.8
+    },
+    {
+     "month": "2023-12",
+     "net": 995.56
+    },
+    {
+     "month": "2024-01",
+     "net": -950.4
+    },
+    {
+     "month": "2024-02",
+     "net": -668.28
+    },
+    {
+     "month": "2024-03",
+     "net": 475.56
+    },
+    {
+     "month": "2024-04",
+     "net": -62.52
+    },
+    {
+     "month": "2024-05",
+     "net": -190.4
+    },
+    {
+     "month": "2024-06",
+     "net": 191.52
+    },
+    {
+     "month": "2024-07",
+     "net": 323.44
+    },
+    {
+     "month": "2024-08",
+     "net": 199.6
+    },
+    {
+     "month": "2024-09",
+     "net": 649.6
+    },
+    {
+     "month": "2024-10",
+     "net": 409.6
+    },
+    {
+     "month": "2024-11",
+     "net": -818.28
+    },
+    {
+     "month": "2024-12",
+     "net": 237.48
+    }
+   ],
+   "exits": {
+    "target": 175,
+    "stop": 161,
+    "flatten": 16,
+    "roll": 1
+   }
+  },
+  {
+   "strategy": "purple_levels",
+   "label": "5m \u00b7 all four level sets \u00b7 strict fills",
+   "hash": "d7ca953dedf1",
+   "period": "validation",
+   "run_utc": "2026-11-15T21:56:48+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -42746,9 +44000,9 @@
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 all but previous day",
-   "hash": "83645049492b",
+   "hash": "1b1e706439fe",
    "period": "validation",
-   "run_utc": "2026-11-15T20:53:46+00:00",
+   "run_utc": "2026-11-15T21:56:52+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -42938,9 +44192,9 @@
   {
    "strategy": "purple_levels",
    "label": "5m \u00b7 all but previous day \u00b7 strict fills",
-   "hash": "2d216a6286d7",
+   "hash": "27eb6fd3b33f",
    "period": "validation",
-   "run_utc": "2026-11-15T20:53:55+00:00",
+   "run_utc": "2026-11-15T21:56:55+00:00",
    "params": {
     "confirm": 4,
     "expire_candles": 4,
@@ -43127,1278 +44381,6 @@
     "flatten": 13,
     "roll": 1
    }
-  },
-  {
-   "strategy": "pd_swing",
-   "label": "5m/1h \u00b7 P1 higher-TF trend",
-   "hash": "835d76f0a8d4",
-   "period": "dev",
-   "run_utc": "2026-11-15T21:23:31+00:00",
-   "params": {
-    "ctx": "1h",
-    "expire_candles": 4,
-    "rr": 1.0,
-    "tf": "5m",
-    "variant": "P1"
-   },
-   "trades": 11,
-   "net": 625.56,
-   "profit_factor": 1.983,
-   "win_rate": 0.6364,
-   "max_drawdown": -428.08,
-   "pass_rate": 0.0,
-   "seq_passes": 0,
-   "seq_fails": 0,
-   "cost_per_pass": null,
-   "years_positive": 5,
-   "years_total": 8,
-   "best_of": 10,
-   "years": [
-    {
-     "year": 2011,
-     "net": -154.04
-    },
-    {
-     "year": 2012,
-     "net": 121.92
-    },
-    {
-     "year": 2013,
-     "net": 95.96
-    },
-    {
-     "year": 2014,
-     "net": 625.96
-    },
-    {
-     "year": 2016,
-     "net": 301.92
-    },
-    {
-     "year": 2017,
-     "net": 35.96
-    },
-    {
-     "year": 2019,
-     "net": -118.08
-    },
-    {
-     "year": 2021,
-     "net": -284.04
-    }
-   ],
-   "equity": [
-    {
-     "month": "2011-10",
-     "net": -154.04
-    },
-    {
-     "month": "2012-10",
-     "net": 175.96
-    },
-    {
-     "month": "2012-12",
-     "net": -54.04
-    },
-    {
-     "month": "2013-10",
-     "net": 95.96
-    },
-    {
-     "month": "2014-12",
-     "net": 625.96
-    },
-    {
-     "month": "2016-01",
-     "net": 125.96
-    },
-    {
-     "month": "2016-04",
-     "net": 175.96
-    },
-    {
-     "month": "2017-11",
-     "net": 35.96
-    },
-    {
-     "month": "2019-02",
-     "net": 25.96
-    },
-    {
-     "month": "2019-06",
-     "net": -144.04
-    },
-    {
-     "month": "2021-06",
-     "net": -284.04
-    }
-   ],
-   "exits": {
-    "target": 5,
-    "stop": 4,
-    "roll": 2
-   }
-  },
-  {
-   "strategy": "pd_swing",
-   "label": "15m/4h \u00b7 P1 higher-TF trend",
-   "hash": "30bf474e74d1",
-   "period": "dev",
-   "run_utc": "2026-11-15T21:23:48+00:00",
-   "params": {
-    "ctx": "4h",
-    "expire_candles": 4,
-    "rr": 1.0,
-    "tf": "15m",
-    "variant": "P1"
-   },
-   "trades": 15,
-   "net": -1680.6,
-   "profit_factor": 0.41,
-   "win_rate": 0.4,
-   "max_drawdown": -2046.56,
-   "pass_rate": 0.0,
-   "seq_passes": 0,
-   "seq_fails": 1,
-   "cost_per_pass": null,
-   "years_positive": 3,
-   "years_total": 8,
-   "best_of": 10,
-   "years": [
-    {
-     "year": 2011,
-     "net": -144.04
-    },
-    {
-     "year": 2012,
-     "net": -1162.12
-    },
-    {
-     "year": 2014,
-     "net": -78.08
-    },
-    {
-     "year": 2016,
-     "net": 225.96
-    },
-    {
-     "year": 2017,
-     "net": -328.08
-    },
-    {
-     "year": 2018,
-     "net": 75.96
-    },
-    {
-     "year": 2020,
-     "net": -562.12
-    },
-    {
-     "year": 2021,
-     "net": 291.92
-    }
-   ],
-   "equity": [
-    {
-     "month": "2011-04",
-     "net": -144.04
-    },
-    {
-     "month": "2012-01",
-     "net": 135.96
-    },
-    {
-     "month": "2012-06",
-     "net": -704.04
-    },
-    {
-     "month": "2012-07",
-     "net": -594.04
-    },
-    {
-     "month": "2014-02",
-     "net": 155.96
-    },
-    {
-     "month": "2014-06",
-     "net": -234.04
-    },
-    {
-     "month": "2016-06",
-     "net": 225.96
-    },
-    {
-     "month": "2017-11",
-     "net": -328.08
-    },
-    {
-     "month": "2018-09",
-     "net": 75.96
-    },
-    {
-     "month": "2020-01",
-     "net": 205.96
-    },
-    {
-     "month": "2020-10",
-     "net": -264.04
-    },
-    {
-     "month": "2020-11",
-     "net": -504.04
-    },
-    {
-     "month": "2021-07",
-     "net": -74.04
-    },
-    {
-     "month": "2021-11",
-     "net": 365.96
-    }
-   ],
-   "exits": {
-    "stop": 8,
-    "target": 6,
-    "flatten": 1
-   }
-  },
-  {
-   "strategy": "pd_swing",
-   "label": "5m/1h \u00b7 P2-a HL break",
-   "hash": "cb68a49d3f2f",
-   "period": "dev",
-   "run_utc": "2026-11-15T21:24:11+00:00",
-   "params": {
-    "ctx": "1h",
-    "expire_candles": 4,
-    "rr": 1.0,
-    "tf": "5m",
-    "variant": "P2a"
-   },
-   "trades": 21,
-   "net": -884.84,
-   "profit_factor": 0.465,
-   "win_rate": 0.381,
-   "max_drawdown": -884.84,
-   "pass_rate": 0.0,
-   "seq_passes": 0,
-   "seq_fails": 0,
-   "cost_per_pass": null,
-   "years_positive": 5,
-   "years_total": 9,
-   "best_of": 10,
-   "years": [
-    {
-     "year": 2011,
-     "net": -402.12
-    },
-    {
-     "year": 2012,
-     "net": 85.96
-    },
-    {
-     "year": 2013,
-     "net": 11.92
-    },
-    {
-     "year": 2014,
-     "net": -228.08
-    },
-    {
-     "year": 2016,
-     "net": 147.88
-    },
-    {
-     "year": 2017,
-     "net": 37.88
-    },
-    {
-     "year": 2019,
-     "net": -366.16
-    },
-    {
-     "year": 2020,
-     "net": 111.92
-    },
-    {
-     "year": 2021,
-     "net": -284.04
-    }
-   ],
-   "equity": [
-    {
-     "month": "2011-04",
-     "net": -84.04
-    },
-    {
-     "month": "2011-10",
-     "net": -154.04
-    },
-    {
-     "month": "2011-12",
-     "net": -164.04
-    },
-    {
-     "month": "2012-09",
-     "net": 85.96
-    },
-    {
-     "month": "2013-10",
-     "net": 11.92
-    },
-    {
-     "month": "2014-06",
-     "net": -124.04
-    },
-    {
-     "month": "2014-10",
-     "net": -104.04
-    },
-    {
-     "month": "2016-04",
-     "net": 175.96
-    },
-    {
-     "month": "2016-08",
-     "net": -74.04
-    },
-    {
-     "month": "2016-10",
-     "net": 45.96
-    },
-    {
-     "month": "2017-08",
-     "net": 1.92
-    },
-    {
-     "month": "2017-11",
-     "net": 35.96
-    },
-    {
-     "month": "2019-01",
-     "net": -204.04
-    },
-    {
-     "month": "2019-02",
-     "net": 25.96
-    },
-    {
-     "month": "2019-06",
-     "net": -144.04
-    },
-    {
-     "month": "2019-10",
-     "net": -44.04
-    },
-    {
-     "month": "2020-01",
-     "net": -94.04
-    },
-    {
-     "month": "2020-06",
-     "net": 205.96
-    },
-    {
-     "month": "2021-06",
-     "net": -284.04
-    }
-   ],
-   "exits": {
-    "stop": 12,
-    "target": 7,
-    "roll": 2
-   }
-  },
-  {
-   "strategy": "pd_swing",
-   "label": "15m/4h \u00b7 P2-a HL break",
-   "hash": "bf6d9b80fb85",
-   "period": "dev",
-   "run_utc": "2026-11-15T21:24:27+00:00",
-   "params": {
-    "ctx": "4h",
-    "expire_candles": 4,
-    "rr": 1.0,
-    "tf": "15m",
-    "variant": "P2a"
-   },
-   "trades": 38,
-   "net": -2703.52,
-   "profit_factor": 0.621,
-   "win_rate": 0.4737,
-   "max_drawdown": -4679.28,
-   "pass_rate": 0.0,
-   "seq_passes": 0,
-   "seq_fails": 2,
-   "cost_per_pass": null,
-   "years_positive": 5,
-   "years_total": 11,
-   "best_of": 10,
-   "years": [
-    {
-     "year": 2010,
-     "net": 125.96
-    },
-    {
-     "year": 2011,
-     "net": 1713.84
-    },
-    {
-     "year": 2012,
-     "net": -1888.28
-    },
-    {
-     "year": 2014,
-     "net": -436.16
-    },
-    {
-     "year": 2015,
-     "net": -1292.12
-    },
-    {
-     "year": 2016,
-     "net": 677.88
-    },
-    {
-     "year": 2017,
-     "net": 157.88
-    },
-    {
-     "year": 2018,
-     "net": 75.96
-    },
-    {
-     "year": 2019,
-     "net": -428.08
-    },
-    {
-     "year": 2020,
-     "net": -638.28
-    },
-    {
-     "year": 2021,
-     "net": -772.12
-    }
-   ],
-   "equity": [
-    {
-     "month": "2010-10",
-     "net": 125.96
-    },
-    {
-     "month": "2011-04",
-     "net": -284.04
-    },
-    {
-     "month": "2011-06",
-     "net": 1241.92
-    },
-    {
-     "month": "2011-11",
-     "net": 755.96
-    },
-    {
-     "month": "2012-01",
-     "net": 135.96
-    },
-    {
-     "month": "2012-02",
-     "net": -344.04
-    },
-    {
-     "month": "2012-04",
-     "net": 175.96
-    },
-    {
-     "month": "2012-06",
-     "net": -1068.08
-    },
-    {
-     "month": "2012-07",
-     "net": -594.04
-    },
-    {
-     "month": "2012-09",
-     "net": -194.04
-    },
-    {
-     "month": "2014-02",
-     "net": 155.96
-    },
-    {
-     "month": "2014-05",
-     "net": 45.96
-    },
-    {
-     "month": "2014-06",
-     "net": -234.04
-    },
-    {
-     "month": "2014-11",
-     "net": -404.04
-    },
-    {
-     "month": "2015-02",
-     "net": -1154.04
-    },
-    {
-     "month": "2015-06",
-     "net": -304.04
-    },
-    {
-     "month": "2015-09",
-     "net": 165.96
-    },
-    {
-     "month": "2016-02",
-     "net": 255.96
-    },
-    {
-     "month": "2016-04",
-     "net": 195.96
-    },
-    {
-     "month": "2016-06",
-     "net": 225.96
-    },
-    {
-     "month": "2017-01",
-     "net": 245.96
-    },
-    {
-     "month": "2017-08",
-     "net": 145.96
-    },
-    {
-     "month": "2017-11",
-     "net": -234.04
-    },
-    {
-     "month": "2018-09",
-     "net": 75.96
-    },
-    {
-     "month": "2019-04",
-     "net": -184.04
-    },
-    {
-     "month": "2019-06",
-     "net": -244.04
-    },
-    {
-     "month": "2020-01",
-     "net": 205.96
-    },
-    {
-     "month": "2020-02",
-     "net": -134.04
-    },
-    {
-     "month": "2020-07",
-     "net": 75.96
-    },
-    {
-     "month": "2020-10",
-     "net": -68.08
-    },
-    {
-     "month": "2020-11",
-     "net": -718.08
-    },
-    {
-     "month": "2021-04",
-     "net": -344.04
-    },
-    {
-     "month": "2021-10",
-     "net": -254.04
-    },
-    {
-     "month": "2021-12",
-     "net": -174.04
-    }
-   ],
-   "exits": {
-    "stop": 19,
-    "target": 17,
-    "flatten": 2
-   }
-  },
-  {
-   "strategy": "pd_swing",
-   "label": "5m/1h \u00b7 P2-b LH reclaim",
-   "hash": "f4e089e13af8",
-   "period": "dev",
-   "run_utc": "2026-11-15T21:24:52+00:00",
-   "params": {
-    "ctx": "1h",
-    "expire_candles": 4,
-    "rr": 1.0,
-    "tf": "5m",
-    "variant": "P2b"
-   },
-   "trades": 27,
-   "net": -579.08,
-   "profit_factor": 0.81,
-   "win_rate": 0.4074,
-   "max_drawdown": -1994.84,
-   "pass_rate": 0.0,
-   "seq_passes": 0,
-   "seq_fails": 1,
-   "cost_per_pass": null,
-   "years_positive": 5,
-   "years_total": 11,
-   "best_of": 10,
-   "years": [
-    {
-     "year": 2010,
-     "net": 95.96
-    },
-    {
-     "year": 2011,
-     "net": 491.92
-    },
-    {
-     "year": 2012,
-     "net": -234.04
-    },
-    {
-     "year": 2013,
-     "net": -642.12
-    },
-    {
-     "year": 2014,
-     "net": 125.96
-    },
-    {
-     "year": 2015,
-     "net": -608.08
-    },
-    {
-     "year": 2016,
-     "net": 283.84
-    },
-    {
-     "year": 2017,
-     "net": -16.16
-    },
-    {
-     "year": 2018,
-     "net": -28.08
-    },
-    {
-     "year": 2019,
-     "net": -640.2
-    },
-    {
-     "year": 2020,
-     "net": 591.92
-    }
-   ],
-   "equity": [
-    {
-     "month": "2010-09",
-     "net": 95.96
-    },
-    {
-     "month": "2011-04",
-     "net": -154.04
-    },
-    {
-     "month": "2011-10",
-     "net": 645.96
-    },
-    {
-     "month": "2012-09",
-     "net": -234.04
-    },
-    {
-     "month": "2013-07",
-     "net": -354.04
-    },
-    {
-     "month": "2013-10",
-     "net": -154.04
-    },
-    {
-     "month": "2013-12",
-     "net": -134.04
-    },
-    {
-     "month": "2014-04",
-     "net": 125.96
-    },
-    {
-     "month": "2015-09",
-     "net": -214.04
-    },
-    {
-     "month": "2015-12",
-     "net": -394.04
-    },
-    {
-     "month": "2016-04",
-     "net": 175.96
-    },
-    {
-     "month": "2016-10",
-     "net": -134.04
-    },
-    {
-     "month": "2016-11",
-     "net": 315.96
-    },
-    {
-     "month": "2016-12",
-     "net": -74.04
-    },
-    {
-     "month": "2017-04",
-     "net": 65.96
-    },
-    {
-     "month": "2017-08",
-     "net": 155.96
-    },
-    {
-     "month": "2017-11",
-     "net": -114.04
-    },
-    {
-     "month": "2017-12",
-     "net": -124.04
-    },
-    {
-     "month": "2018-01",
-     "net": -84.04
-    },
-    {
-     "month": "2018-08",
-     "net": 55.96
-    },
-    {
-     "month": "2019-04",
-     "net": -268.08
-    },
-    {
-     "month": "2019-06",
-     "net": -608.08
-    },
-    {
-     "month": "2019-12",
-     "net": 235.96
-    },
-    {
-     "month": "2020-03",
-     "net": 405.96
-    },
-    {
-     "month": "2020-10",
-     "net": 185.96
-    }
-   ],
-   "exits": {
-    "stop": 15,
-    "target": 11,
-    "flatten": 1
-   }
-  },
-  {
-   "strategy": "pd_swing",
-   "label": "15m/4h \u00b7 P2-b LH reclaim",
-   "hash": "ab4926dead63",
-   "period": "dev",
-   "run_utc": "2026-11-15T21:25:09+00:00",
-   "params": {
-    "ctx": "4h",
-    "expire_candles": 4,
-    "rr": 1.0,
-    "tf": "15m",
-    "variant": "P2b"
-   },
-   "trades": 72,
-   "net": 989.12,
-   "profit_factor": 1.086,
-   "win_rate": 0.5,
-   "max_drawdown": -2104.24,
-   "pass_rate": 0.688,
-   "seq_passes": 1,
-   "seq_fails": 2,
-   "cost_per_pass": 7056.0,
-   "years_positive": 5,
-   "years_total": 12,
-   "best_of": 10,
-   "years": [
-    {
-     "year": 2010,
-     "net": -996.16
-    },
-    {
-     "year": 2011,
-     "net": -160.2
-    },
-    {
-     "year": 2012,
-     "net": 483.84
-    },
-    {
-     "year": 2013,
-     "net": 209.8
-    },
-    {
-     "year": 2014,
-     "net": -136.36
-    },
-    {
-     "year": 2015,
-     "net": 2497.68
-    },
-    {
-     "year": 2016,
-     "net": -1146.36
-    },
-    {
-     "year": 2017,
-     "net": -178.28
-    },
-    {
-     "year": 2018,
-     "net": 115.96
-    },
-    {
-     "year": 2019,
-     "net": -444.24
-    },
-    {
-     "year": 2020,
-     "net": 1601.72
-    },
-    {
-     "year": 2021,
-     "net": -858.28
-    }
-   ],
-   "equity": [
-    {
-     "month": "2010-06",
-     "net": -244.04
-    },
-    {
-     "month": "2010-09",
-     "net": -384.04
-    },
-    {
-     "month": "2010-11",
-     "net": -368.08
-    },
-    {
-     "month": "2011-04",
-     "net": -464.04
-    },
-    {
-     "month": "2011-05",
-     "net": -644.04
-    },
-    {
-     "month": "2011-06",
-     "net": 435.96
-    },
-    {
-     "month": "2011-08",
-     "net": -264.04
-    },
-    {
-     "month": "2011-12",
-     "net": 775.96
-    },
-    {
-     "month": "2012-01",
-     "net": -344.04
-    },
-    {
-     "month": "2012-09",
-     "net": -264.04
-    },
-    {
-     "month": "2012-10",
-     "net": 885.96
-    },
-    {
-     "month": "2012-12",
-     "net": 205.96
-    },
-    {
-     "month": "2013-02",
-     "net": 385.96
-    },
-    {
-     "month": "2013-03",
-     "net": 365.96
-    },
-    {
-     "month": "2013-08",
-     "net": -944.04
-    },
-    {
-     "month": "2013-10",
-     "net": 265.96
-    },
-    {
-     "month": "2013-11",
-     "net": 135.96
-    },
-    {
-     "month": "2014-01",
-     "net": -414.04
-    },
-    {
-     "month": "2014-02",
-     "net": -244.04
-    },
-    {
-     "month": "2014-03",
-     "net": 295.96
-    },
-    {
-     "month": "2014-04",
-     "net": -78.08
-    },
-    {
-     "month": "2014-06",
-     "net": -394.04
-    },
-    {
-     "month": "2014-07",
-     "net": 205.96
-    },
-    {
-     "month": "2014-10",
-     "net": -174.04
-    },
-    {
-     "month": "2014-12",
-     "net": 665.96
-    },
-    {
-     "month": "2015-02",
-     "net": 375.96
-    },
-    {
-     "month": "2015-03",
-     "net": 545.96
-    },
-    {
-     "month": "2015-05",
-     "net": 275.96
-    },
-    {
-     "month": "2015-06",
-     "net": 615.96
-    },
-    {
-     "month": "2015-08",
-     "net": -134.04
-    },
-    {
-     "month": "2015-09",
-     "net": 105.96
-    },
-    {
-     "month": "2015-11",
-     "net": 711.92
-    },
-    {
-     "month": "2016-01",
-     "net": -384.04
-    },
-    {
-     "month": "2016-02",
-     "net": 517.88
-    },
-    {
-     "month": "2016-03",
-     "net": -384.04
-    },
-    {
-     "month": "2016-05",
-     "net": -294.04
-    },
-    {
-     "month": "2016-06",
-     "net": -234.04
-    },
-    {
-     "month": "2016-08",
-     "net": -368.08
-    },
-    {
-     "month": "2017-01",
-     "net": -14.04
-    },
-    {
-     "month": "2017-03",
-     "net": 65.96
-    },
-    {
-     "month": "2017-04",
-     "net": -314.04
-    },
-    {
-     "month": "2017-07",
-     "net": 115.96
-    },
-    {
-     "month": "2017-08",
-     "net": 145.96
-    },
-    {
-     "month": "2017-09",
-     "net": -174.04
-    },
-    {
-     "month": "2017-11",
-     "net": -4.04
-    },
-    {
-     "month": "2018-09",
-     "net": 115.96
-    },
-    {
-     "month": "2019-04",
-     "net": 181.92
-    },
-    {
-     "month": "2019-06",
-     "net": -354.04
-    },
-    {
-     "month": "2019-08",
-     "net": -18.08
-    },
-    {
-     "month": "2019-10",
-     "net": -254.04
-    },
-    {
-     "month": "2020-02",
-     "net": 527.88
-    },
-    {
-     "month": "2020-04",
-     "net": 415.96
-    },
-    {
-     "month": "2020-09",
-     "net": 481.92
-    },
-    {
-     "month": "2020-10",
-     "net": 175.96
-    },
-    {
-     "month": "2021-03",
-     "net": 815.96
-    },
-    {
-     "month": "2021-05",
-     "net": -68.08
-    },
-    {
-     "month": "2021-08",
-     "net": -534.04
-    },
-    {
-     "month": "2021-10",
-     "net": -558.08
-    },
-    {
-     "month": "2021-12",
-     "net": -514.04
-    }
-   ],
-   "exits": {
-    "target": 31,
-    "stop": 30,
-    "flatten": 9,
-    "day_end": 2
-   }
-  },
-  {
-   "strategy": "pd_swing",
-   "label": "5m/1h \u00b7 P3-a manipulation candle",
-   "hash": "c11937a69f34",
-   "period": "dev",
-   "run_utc": "2026-11-15T21:25:34+00:00",
-   "params": {
-    "ctx": "1h",
-    "expire_candles": 4,
-    "rr": 1.0,
-    "tf": "5m",
-    "variant": "P3a"
-   },
-   "trades": 1,
-   "net": -164.04,
-   "profit_factor": 0.0,
-   "win_rate": 0.0,
-   "max_drawdown": -164.04,
-   "pass_rate": 0.0,
-   "seq_passes": 0,
-   "seq_fails": 0,
-   "cost_per_pass": null,
-   "years_positive": 0,
-   "years_total": 1,
-   "best_of": 10,
-   "years": [
-    {
-     "year": 2011,
-     "net": -164.04
-    }
-   ],
-   "equity": [
-    {
-     "month": "2011-12",
-     "net": -164.04
-    }
-   ],
-   "exits": {
-    "stop": 1
-   }
-  },
-  {
-   "strategy": "pd_swing",
-   "label": "15m/4h \u00b7 P3-a manipulation candle",
-   "hash": "733aca0d6507",
-   "period": "dev",
-   "run_utc": "2026-11-15T21:25:52+00:00",
-   "params": {
-    "ctx": "4h",
-    "expire_candles": 4,
-    "rr": 1.0,
-    "tf": "15m",
-    "variant": "P3a"
-   },
-   "trades": 4,
-   "net": -396.16,
-   "profit_factor": 0.491,
-   "win_rate": 0.5,
-   "max_drawdown": -704.04,
-   "pass_rate": 0.0,
-   "seq_passes": 0,
-   "seq_fails": 0,
-   "cost_per_pass": null,
-   "years_positive": 2,
-   "years_total": 4,
-   "best_of": 10,
-   "years": [
-    {
-     "year": 2010,
-     "net": 135.96
-    },
-    {
-     "year": 2012,
-     "net": -704.04
-    },
-    {
-     "year": 2017,
-     "net": 245.96
-    },
-    {
-     "year": 2021,
-     "net": -74.04
-    }
-   ],
-   "equity": [
-    {
-     "month": "2010-08",
-     "net": 135.96
-    },
-    {
-     "month": "2012-06",
-     "net": -704.04
-    },
-    {
-     "month": "2017-01",
-     "net": 245.96
-    },
-    {
-     "month": "2021-07",
-     "net": -74.04
-    }
-   ],
-   "exits": {
-    "target": 2,
-    "stop": 2
-   }
-  },
-  {
-   "strategy": "pd_swing",
-   "label": "5m/1h \u00b7 P3-b manipulation + reclaim",
-   "hash": "e8d57e5111e5",
-   "period": "dev",
-   "run_utc": "2026-11-15T21:26:16+00:00",
-   "params": {
-    "ctx": "1h",
-    "expire_candles": 4,
-    "rr": 1.0,
-    "tf": "5m",
-    "variant": "P3b"
-   },
-   "trades": 1,
-   "net": -164.04,
-   "profit_factor": 0.0,
-   "win_rate": 0.0,
-   "max_drawdown": -164.04,
-   "pass_rate": 0.0,
-   "seq_passes": 0,
-   "seq_fails": 0,
-   "cost_per_pass": null,
-   "years_positive": 0,
-   "years_total": 1,
-   "best_of": 10,
-   "years": [
-    {
-     "year": 2011,
-     "net": -164.04
-    }
-   ],
-   "equity": [
-    {
-     "month": "2011-12",
-     "net": -164.04
-    }
-   ],
-   "exits": {
-    "stop": 1
-   }
-  },
-  {
-   "strategy": "pd_swing",
-   "label": "15m/4h \u00b7 P3-b manipulation + reclaim",
-   "hash": "6ea0baeb8b94",
-   "period": "dev",
-   "run_utc": "2026-11-15T21:26:33+00:00",
-   "params": {
-    "ctx": "4h",
-    "expire_candles": 4,
-    "rr": 1.0,
-    "tf": "15m",
-    "variant": "P3b"
-   },
-   "trades": 0,
-   "net": 0.0,
-   "profit_factor": 0.0,
-   "win_rate": 0.0,
-   "max_drawdown": 0.0,
-   "pass_rate": 0.0,
-   "seq_passes": 0,
-   "seq_fails": 0,
-   "cost_per_pass": null,
-   "years_positive": 0,
-   "years_total": 0,
-   "best_of": 10,
-   "years": [],
-   "equity": [],
-   "exits": {}
   }
  ]
 }
