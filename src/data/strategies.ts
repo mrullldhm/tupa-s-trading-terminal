@@ -11,6 +11,8 @@ export interface StrategyText {
   rules: string[];
   verdict: string;
   lessons: string[];
+  /** Shown wherever the strategy is featured (overview card): a warning the numbers alone would hide. */
+  caveat?: string;
 }
 
 export const STRATEGY_TEXT: StrategyText[] = [
@@ -294,6 +296,61 @@ export const STRATEGY_TEXT: StrategyText[] = [
       "Fixed targets do not fix it. 15 and 30 ticks lose, 45 is about even, 60 and 75 make a little. The results do not improve steadily with target size (30 is the worst), so the 60-tick result looks like luck, not a pattern.",
       "The wait-one-candle and fixed-target versions were added after seeing earlier results, so the numbers are the best of 14 tries and need clean data to mean anything.",
       "Ignoring a swing high on the swing low's own candle changes almost nothing (about 35 extra trades in 12 years).",
+    ],
+  },
+  {
+    id: "purple_levels_rth",
+    slug: "fixed-levels-day-session",
+    name: "Fixed Levels, Day Session Only",
+    short: "Fixed Levels with all four level sets on 5-minute candles, trading only from 08:30 to 13:30 Chicago time.",
+    source: {
+      label: "Study of Fixed Levels' build years",
+      url: null,
+      note: "Built in November 2026 by Claude and Codex after Fixed Levels failed its check on 2022–2024. Frozen on 17 November 2026 for live paper trading.",
+    },
+    idea: "Fixed Levels made almost all of its build-period profit between 08:30 and 13:30 Chicago time, the old trading-floor hours when most of the day's volume trades. Overnight, the same level touches happen in a thin market and earn about nothing once a fill has to trade through the limit. So keep only the day-session signals.",
+    rules: [
+      "Everything is Fixed Levels with all four level sets on 5-minute candles: first test of a level (plus one retest after it breaks), a gap away within 4 candles, a limit at the gap edge, a stop 1 tick beyond the extreme since the test, a 1 : 1 target, 1 contract, flat by 3:10 PM Chicago time.",
+      "New: a signal counts only if it comes between 08:30 and 13:30 Chicago time. Its order works for 20 minutes or until 13:30, whichever is first. Levels and tests still count from the 17:00 open.",
+      "Judged on strict fills: an entry counts only when price trades 1 tick through the limit. Touch fills are shown beside it.",
+      "One frozen setting, no tuning. No changes until the review on 17 November 2027.",
+    ],
+    verdict: "Frozen for live paper trading; not a result yet. The day-session window was picked after looking at the build years, from a strategy that already failed its check on 2022–2024. That choice is why the build numbers look strong. 2022–2024 is spent for this family and the 2025–2026 final exam is too short to judge it (about 23 trades a year), so only new data after 17 November 2026 can.",
+    lessons: [
+      "On build data the day session carries the edge: under strict fills, day-session trades earn about 0.2 of their risk per trade after fees; overnight trades earn about nothing.",
+      "Even so, the cost per Combine pass on build data is about $1,000 to $1,200 (touch or strict fills), above the $500 bar. Trading more contracts does not fix it.",
+      "The edge is small and was found by looking: after correcting for the many comparisons made, the day-versus-night difference is not firmly significant.",
+      "Other strategies also do a little better in the day session, by about one fee per trade. That does not create an edge where a setup has none.",
+      "All build numbers are in-sample and selected after the fact. Treat them as the baseline the paper trades are compared with, not as proof.",
+    ],
+    caveat: "The 08:30–13:30 window was picked after seeing these build years, so these numbers flatter it. Only live paper trades after 17 November 2026 can judge it.",
+  },
+  {
+    id: "juda_swing_point",
+    slug: "juda-swing-point",
+    name: "Juda Swing Point",
+    short: "A 15-minute swing high breaks before any pullback; one candle takes the last high, then the last low; the next candle holds above it: buy (and the mirror).",
+    source: {
+      label: "Owner's own setup",
+      url: null,
+      note: "Proposed by the owner in November 2026, with a worked example from 17 November 2026.",
+    },
+    idea: "In a 15-minute uptrend, a swing high that price takes out before any pullback low forms shows buyers in control. The candle that then pokes above the last candle's high and flips down through its low runs the stops under the trend. If the next candle does not go back to that low, the stop run is over: buy.",
+    rules: [
+      "Trend (15-minute candles): 10-period average above the 20, and the 20 above the 50 (exponential moving averages of the close).",
+      "Setup (owner swing rule): the newest swing point is a swing high. A later candle touches or breaks it before any swing low forms.",
+      "Manipulation candle: from that candle on, a candle first reaches the previous candle's high and then breaks the previous candle's low. The candle that breaks the swing high counts too.",
+      "Confirmation: the next candle stays above the manipulation candle's low (no touch).",
+      "Order: a buy limit at the confirmation candle's close, or 15 ticks above the stop when the close is further away. Stop: the confirmation candle's low, or in later versions the manipulation candle's low. Target: 15 or 30 ticks above the limit.",
+      "An unfilled order is cancelled when price reaches the target first, or in later versions when the 15-minute swings make a lower high or a lower low. Also at the next setup and at 3:10 PM. 1 contract. Sells are the mirror.",
+      "No setup across a contract roll: from the swing high to the order, all candles must be on one contract.",
+    ],
+    verdict: "Fails every check. All 6 versions lose money. The best (stop under the manipulation candle, 15-tick target, cancel on a lower high or low) loses $1,186 over 12 years on 655 trades, makes money in 7 of 12 years and never passes the Combine.",
+    lessons: [
+      "A stop under the confirmation candle is too tight: the median is only 6 ticks, so normal 15-minute noise stops most trades before they make 15 ticks.",
+      "Moving the stop under the manipulation candle, the real stop-run low, lifts the win rate from about 28% to 40%. A 15-tick target needs about 43% to break even after fees.",
+      "A study before the strategy counted the setup: about 50 to 110 a year with the trend filter, both sides together. With a market entry, it reached 1R before its stop about as often as a coin flip.",
+      "The second cancel rule and the second stop were added after seeing earlier results, so every number is the best of 6 tries.",
     ],
   },
 ];

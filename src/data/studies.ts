@@ -14,6 +14,33 @@ export interface Study {
 
 export const studies: Study[] = [
   {
+    id: "juda-count",
+    name: "How often does the Juda Swing Point setup happen?",
+    date: "2026-11-18",
+    question: "On 15-minute candles, how often does a swing point break, then a manipulation candle and a holding candle follow, in the direction of the trend?",
+    answer: "About 50 to 110 setups a year, both sides together. With a market entry it reaches 1R before its stop about as often as a coin flip.",
+    data: "Build and check years, 2010-06 to 2024-12",
+    source: "studies/juda_swing_point/",
+  },
+  {
+    id: "all-strategies-improve",
+    name: "Can any tested strategy be improved?",
+    date: "2026-11-18",
+    question: "Does any strategy so far have a real edge before fees that better settings could bring out, for example by trading only the day session?",
+    answer: "Only the Fixed Levels family. The others sit at about zero or below before fees. The day session helps most strategies a little, by about one fee per trade.",
+    data: "Build years only, 2010-06 to 2021-12",
+    source: "studies/all_strategies_improve/",
+  },
+  {
+    id: "fixed-levels-improve",
+    name: "Where does Fixed Levels make its money?",
+    date: "2026-11-17",
+    question: "Fixed Levels failed its check on 2022–2024. Is its build-period edge in some hours more than others?",
+    answer: "Almost all of it comes from 08:30 to 13:30 Chicago time. Found after looking, so it became a frozen strategy for live paper trading, not a result.",
+    data: "Build years only, 2010-06 to 2021-12",
+    source: "studies/purple_levels_improve/",
+  },
+  {
     id: "pdl-swing",
     name: "Swing points through yesterday's low or high",
     date: "2026-11-17",

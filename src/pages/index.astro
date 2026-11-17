@@ -14,13 +14,16 @@ const years = yearRange();
 const series = strategies.map((s) => ({ id: s.id, name: s.name, color: s.color, dash: s.dash, points: curve(s.best) }));
 // Ideas that reached each stage = strategies with at least one exported run on that period's data.
 const reached = (period: string) => new Set(R.variants.filter((v) => v.period === period).map((v) => v.strategy)).size;
+// Live paper also counts ideas frozen for paper trading before their first forward run.
+const onPaper = () => new Set([...R.variants.filter((v) => v.period === "forward").map((v) => v.strategy),
+  ...strategies.filter((s) => s.status.state === "forward").map((s) => s.id)]).size;
 const span = (p: { start: string; end: string | null }) =>
   p.end ? `${p.start.slice(0, 4)}–${Number(p.end.slice(0, 4)) - (p.end.endsWith("-01-01") ? 1 : 0)}` : `from ${new Date(p.start).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" })}`;
 const stages = [
   { name: "Build", range: years, count: totals.strategies, note: "Tune on old data" },
   { name: "Check", range: span(R.periods.validation), count: reached("validation"), note: "One run, settings frozen" },
   { name: "Final exam", range: span(R.periods.holdout), count: reached("holdout"), note: "One run, ever" },
-  { name: "Live paper", range: span(R.periods.forward), count: reached("forward"), note: "New data only" },
+  { name: "Live paper", range: span(R.periods.forward), count: onPaper(), note: "New data only" },
 ];
 // The highlighted stage is the furthest one any idea has reached.
 const furthest = stages.reduce((k, st, i) => (st.count > 0 ? i : k), 0);
@@ -63,6 +66,7 @@ const topCheck = top.checks.find((v) => v.label === top.best.label);
       <p class="cl-why">
         Best version: {top.best.label}. {topFails.length ? `It misses ${topFails.map((g) => g.label.toLowerCase()).join(" and ")} on build data` : "It passes all five checks on build data"}{topCheck ? `, and the check on ${span(R.periods.validation)} data made money in only ${topCheck.years_positive} of ${topCheck.years_total} years` : ""}.
       </p>
+      {top.text.caveat && <p class="warnline cl-caveat"><Icon name="warn" size={14} /> {top.text.caveat}</p>}
       <a class="more" href={`/strategies/${top.slug}/`}>Read the full results <Icon name="arrow" size={14} /></a>
     </article>
   </section>

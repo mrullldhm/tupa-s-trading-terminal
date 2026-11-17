@@ -59,11 +59,13 @@ const COLORS: Record<string, string> = {
   swing_point_manipulation: "#008300",
   purple_levels: "#3987e5",
   pd_swing: "#c98500",
+  purple_levels_rth: "#199e70",
+  juda_swing_point: "#2aa1b3",
 };
 
 // The palette has eight validated hues; a ninth strategy reuses one and is drawn dashed (striped swatch), so identity
 // never rests on colour alone.
-const DASHED = new Set(["swing_point_manipulation", "purple_levels", "pd_swing"]);
+const DASHED = new Set(["swing_point_manipulation", "purple_levels", "pd_swing", "purple_levels_rth", "juda_swing_point"]);
 
 /** Inline style for a strategy swatch: solid, or striped when the strategy is drawn dashed. */
 export const swatch = (color: string, dash = false) =>

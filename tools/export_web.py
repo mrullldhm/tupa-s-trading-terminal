@@ -68,6 +68,12 @@ def _base_label(strategy: str, p: dict) -> str:
         wait = " · waits one 15m candle" if p["confirm"] else ""
         tp = "" if p["tp"] == "swing" else f" · target {p['tp']} ticks"
         return f"stop ≤{p['risk']} ticks · {swings}{wait}{tp}"
+    if strategy == "juda_swing_point":
+        stop = "manipulation" if p["stop"] == "manip" else "confirmation"
+        cancel = "lower high/low cancel" if p["cancel"] == "lhll" else "target-touch cancel"
+        return f"{stop} low stop · {cancel} · {p['tp']}-tick target"
+    if strategy == "purple_levels_rth":
+        return f"{p['tf']} · {LEVEL_FAMILIES[p['levels']]} · 08:30–13:30 Chicago"
     return ", ".join(f"{k}={v}" for k, v in p.items())
 
 
