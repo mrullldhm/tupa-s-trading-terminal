@@ -72,6 +72,10 @@ def _base_label(strategy: str, p: dict) -> str:
         stop = "manipulation" if p["stop"] == "manip" else "confirmation"
         cancel = "lower high/low cancel" if p["cancel"] == "lhll" else "target-touch cancel"
         return f"{stop} low stop · {cancel} · {p['tp']}-tick target"
+    if strategy == "ghost_box":
+        entry = "limit at the wall" if p["entry"] == "wall" else "limit at the close"
+        target = "box middle" if p["target"] == "mid" else "opposite wall"
+        return f"{entry} · target {target}"
     if strategy == "purple_levels_rth":
         return f"{p['tf']} · {LEVEL_FAMILIES[p['levels']]} · 08:30–13:30 Chicago"
     return ", ".join(f"{k}={v}" for k, v in p.items())

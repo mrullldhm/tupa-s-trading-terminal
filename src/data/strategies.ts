@@ -353,6 +353,34 @@ export const STRATEGY_TEXT: StrategyText[] = [
       "The second cancel rule and the second stop were added after seeing earlier results, so every number is the best of 6 tries.",
     ],
   },
+  {
+    id: "ghost_box",
+    slug: "ghost-box",
+    name: "Ghost Box",
+    short: "Mark the overnight high and low. The first push out after the open fails and closes back inside: fade it back into the box.",
+    source: {
+      label: "Ghost Box Checklist (2-page PDF found online)",
+      url: null,
+      note: "Written for a same-day options trade (iron condor) on the S&P 500. No backtest, no oil example. Translated to CL futures by us.",
+    },
+    idea: "The overnight range is set in thin trade. If the first push out of it after the open fails and closes back inside, the breakout traders are trapped and the range should hold for the day. The original sells options outside the range. Topstep allows only futures and we have no oil options prices, so we tested two things: does the box hold on oil, and does fading the failed push make money?",
+    rules: [
+      "Box: the high and low from 5:00 PM to 7:59 AM Chicago time. It must be at least 0.4% of price wide.",
+      "Gap: the 8:00 AM open must be within 0.5% of the previous day's 1:30 PM settlement.",
+      "Ghost wick: the first 5-minute candle from 8:00 AM that trades past a wall must close back inside the box, and must finish by 9:00 AM.",
+      "Window: 8:30 to 9:00 AM Chicago (30 to 60 minutes after the oil open, the same place as the original's 10:00 to 10:30 New York window).",
+      "Order: sell after a failed push up, buy after a failed push down. A limit at the wall (retest) or at the latest close. Stop: 1 tick past the wick. Target: the box middle or the opposite wall.",
+      "Exit early when a 5-minute candle closes past the wall on the losing side, and at 1:30 PM in all cases. 1 contract, one trade a day.",
+      "Not used: the original's news filter (inflation, Fed and jobs days) and VIX range. We have no news calendar or VIX data.",
+    ],
+    verdict: "Fails every check, and the idea behind it does not hold on oil. After a ghost wick, a 5-minute candle closes outside the box before 1:30 PM on 92% of days, more often than on days with no wick. The best of 4 versions (limit at the close, target the box middle) makes $348 over 12 years on 191 trades, a profit factor of 1.02.",
+    lessons: [
+      "On oil the failed first push is a warning, not a confirmation: the box holds on 8% of wick days against 17% of intact days with no wick.",
+      "The original's filters are set for the S&P 500. The 0.5% gap filter keeps only about a third of oil days and drops the better ones. The 0.4% width filter drops almost nothing, because oil's overnight range is usually about 1.5%.",
+      "One version passes 48% of rolling Combine attempts, but it trades about 18 times a year: the typical pass takes over 800 trading days, and each pass costs about $7,100.",
+      "An options trade cannot be copied into futures one to one: futures have no time decay, so the only bet left is that price goes back inside the box.",
+    ],
+  },
 ];
 
 export const textFor = (id: string) => {

@@ -14,6 +14,15 @@ export interface Study {
 
 export const studies: Study[] = [
   {
+    id: "ghost-box-hold",
+    name: "Does the overnight box hold after a failed first push?",
+    date: "2026-11-18",
+    question: "The Ghost Box checklist sells options outside the overnight range after the first push out fails. On oil, does price then stay inside the range until 1:30 PM Chicago?",
+    answer: "No. After a failed push, a 5-minute candle closes outside the box on 92% of days, more often than on days with no push. The failed push is a warning, not a confirmation.",
+    data: "Build years only, 2010-06 to 2021-12",
+    source: "studies/ghost_box/",
+  },
+  {
     id: "juda-count",
     name: "How often does the Juda Swing Point setup happen?",
     date: "2026-11-18",
