@@ -381,6 +381,36 @@ export const STRATEGY_TEXT: StrategyText[] = [
       "An options trade cannot be copied into futures one to one: futures have no time decay, so the only bet left is that price goes back inside the box.",
     ],
   },
+  {
+    id: "cbr",
+    slug: "cbr-1h-1m",
+    name: "CBR 1-Hour / 1-Minute Model",
+    short: "After price runs one way for 20+ minutes, wait for a lower low and a break of the last swing high on 1-minute, then buy the pullback to half the break.",
+    source: {
+      label: "Tomtrades \"1hr/1m model (CBR simplified)\" PDF (Tom Gratwicke / itstomtrades)",
+      url: null,
+      note: "Written for gold (XAUUSD) with the dollar index (DXY) as a filter. Hand-picked chart examples, no backtest. Translated to CL futures by us.",
+    },
+    idea: "When the hourly trend is up, the next hourly candle often dips first and leaves a lower wick before the trend carries on. On 1-minute charts the end of that dip shows as a 20-minute one-way run, a stop hunt below a recent low, then a sharp turn: a lower low followed by a close above the last swing high (the PDF's \"type 3 shift\"). Sellers who joined late are trapped, and price should rebalance to the middle of the run. Short is the mirror.",
+    rules: [
+      "Window: the second hour after a reference hour. The PDF uses the second hour of Asia (01:00-02:00 UTC); oil trades differently, so we tried six windows: that one, 18:00 Chicago (second hour after oil reopens), 09:00 London, 09:00 Chicago, 09:30 Chicago and the Wednesday hour after the oil inventory report.",
+      "Run: price moves one way for at least 20 minutes without a big bounce (we tried four strictness levels).",
+      "Trigger: the PDF's sweep of the first hour's low, a sweep of the last 30-minute candle's low, or no sweep at all.",
+      "Bias: none, the direction of the reference hour, an engulfing reference hour, or the hourly swing structure. We have no dollar-index data, so the DXY filter could not be used.",
+      "Shift on 1-minute, swing points by the owner's rule: swing low, swing high, a lower low, then the first close above that swing high.",
+      "Order: a limit at half of the move from the lower low to the break high, live 15 minutes. Stop at the lower low. Target: half of the 20-minute run, 1.5 times the risk, or 2 times the risk. 1 or 2 tries a day, done after a win. 1 contract.",
+    ],
+    verdict: "No version passes. We tested every combination, 1,728 versions, and none clears all five checks. The original as written (Asia hour, first-hour sweep) does not work on oil: the sweep trigger is the worst of the three. One reading stands out: 09:30 to 10:30 Chicago with no sweep. It makes a profit in 10 of 12 years with a profit factor of 1.33, but only about 45 trades a year, so a Combine pass costs about $1,760. When a fill needs price to trade 1 tick through the limit, its profit factor falls to 1.13 and the pass rate to 19%.",
+    lessons: [
+      "Every number is the best of 1,728 versions on build data. With that many tries, some versions look good by luck alone.",
+      "The 09:30 Chicago hour is the only window where most versions make money (about 4 in 5). Elsewhere fewer than 3 in 5 do, and in most windows fewer than half.",
+      "Most of the edge comes from the hour, not the pattern: without the lower-low rule the same hour still makes money, only a little less per trade.",
+      "It beat 997 of 1,000 random trades placed at the same times with the same stops and targets. That is promising, but not proof after 1,728 tries.",
+      "Its profit halved in 2016-2021 compared with 2010-2015, and its 10 best days make 55% of the profit.",
+      "More contracts do not rescue it: at 3 contracts half the Combine attempts pass, but each pass still costs about $550, and at 5 contracts the worst single trade would break the $2,000 loss limit.",
+    ],
+    caveat: "Best of 1,728 versions, in-sample. Not taken to the check years.",
+  },
 ];
 
 export const textFor = (id: string) => {

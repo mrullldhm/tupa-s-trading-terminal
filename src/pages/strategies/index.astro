@@ -37,7 +37,7 @@ const years = yearRange();
           <div><dt>Net profit</dt><dd class="num">{usdK(s.best.net)}</dd></div>
           <div><dt>Profit factor</dt><dd class="num">{s.best.profit_factor.toFixed(2)}</dd></div>
           <div><dt>Checks passed</dt><dd class="num">{gatesPassed(s.best)}/5</dd></div>
-          <div><dt>Versions tried</dt><dd class="num">{s.variants.length}</dd></div>
+          <div><dt>Versions tried</dt><dd class="num">{s.best.best_of.toLocaleString("en-US")}</dd></div>
         </dl>
         <Icon name="arrow" class="go" />
       </li>

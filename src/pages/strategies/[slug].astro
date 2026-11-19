@@ -51,7 +51,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
           {t.source.url ? <a href={t.source.url} rel="noopener noreferrer" target="_blank">{t.source.label} <Icon name="external" size={12} /></a> : t.source.label}
         </dd>
       </div>
-      <div><dt>Versions tried</dt><dd class="num">{s.variants.length}</dd></div>
+      <div><dt>Versions tried</dt><dd class="num">{s.best.best_of.toLocaleString("en-US")}</dd></div>
       <div><dt>Test data</dt><dd class="num">CL 1-minute, {years}</dd></div>
       <div><dt>Best version, net profit</dt><dd class="num">{usd(b.net)} <span class="faint">in-sample</span></dd></div>
     </dl>
@@ -96,7 +96,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
   <section class="panel" aria-labelledby="res-h">
     <div class="panel-head">
       <h2 id="res-h">Results by version</h2>
-      <p>Build data {years} · in-sample · best of {s.variants.length}</p>
+      <p>Build data {years} · in-sample · best of {s.best.best_of.toLocaleString("en-US")}</p>
     </div>
     <div class="table-wrap">
       <table data-sortable>
