@@ -14,6 +14,15 @@ export interface Study {
 
 export const studies: Study[] = [
   {
+    id: "cbr-optimize",
+    name: "Can the CBR trades be filtered or managed better?",
+    date: "2026-11-19",
+    question: "Looking at about 1,700 CBR setups at 09:30 Chicago, do losing trades share something we could skip, can losers be cut early, and can winners be told apart early so they aim higher?",
+    answer: "No. Seventeen of eighteen trade features point one way in 2010-2015 and the other way in 2016-2021. Moving the stop to break-even after 1R is clearly worse, and time stops and bigger targets do not help in both periods. The setup's small edge sits mostly in 2010-2015.",
+    data: "Build years only, 2010-06 to 2021-12",
+    source: "studies/cbr_optimize/",
+  },
+  {
     id: "cbr-screen",
     name: "Which version of the CBR model works on oil?",
     date: "2026-11-19",
