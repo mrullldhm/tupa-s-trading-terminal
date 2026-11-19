@@ -18,7 +18,7 @@ export const studies: Study[] = [
     name: "Which version of the CBR model works on oil?",
     date: "2026-11-19",
     question: "The CBR model was written for gold. Across every window, trigger, bias, run filter, target and tries-per-day combination (1,728 versions), does any version pass the Combine checks, and what drives the result?",
-    answer: "None passes. Half of all versions make money, as luck would give. The 09:30 to 10:30 Chicago hour is the exception: about 4 in 5 of its versions make money, and its best version beats random trades at the same times. It is still too slow and too thin with strict fills to pass the Combine.",
+    answer: "None passes. Half of all versions make money, as luck would give. The 09:30 to 10:30 Chicago hour is the exception: about 4 in 5 of its versions make money, and its best version beats random trades at the same times. It is still too slow and too thin with strict fills to pass the Combine, and on the check years 2022 to 2024 it about breaks even.",
     data: "Build years only, 2010-06 to 2021-12",
     source: "studies/cbr/",
   },

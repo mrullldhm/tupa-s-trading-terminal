@@ -1,8 +1,8 @@
 {
- "exported_utc": "2026-11-19T02:37:44+00:00",
- "ledger_rows": 370,
+ "exported_utc": "2026-11-19T02:42:35+00:00",
+ "ledger_rows": 371,
  "first_run_utc": "2026-11-12T16:43:13+00:00",
- "last_run_utc": "2026-11-19T02:36:28+00:00",
+ "last_run_utc": "2026-11-19T02:42:19+00:00",
  "periods": {
   "dev": {
    "start": "2010-06-01",
@@ -43,9 +43,9 @@
   {
    "id": "cbr",
    "status": {
-    "state": "dev",
+    "state": "dropped",
     "date": "2026-11-19",
-    "reason": "1,728 dev versions, none pass the screen; best RTH version PF 1.33, 1.13 with strict fills; not taken to validation"
+    "reason": "best dev version fails validation 2022-2024, PF 1.02, 1/3 years, pass rate 0.5%; holdout not run"
    }
   },
   {
@@ -52307,6 +52307,198 @@
     "stop": 334,
     "target": 212,
     "flatten": 1
+   }
+  },
+  {
+   "strategy": "cbr",
+   "label": "09:30-10:30 Chicago \u00b7 no sweep \u00b7 no bias \u00b7 2R target \u00b7 1 try a day",
+   "hash": "75668bb03148",
+   "period": "validation",
+   "run_utc": "2026-11-19T02:42:19+00:00",
+   "params": {
+    "attempts": 1,
+    "bias": "none",
+    "context": "reb",
+    "ext": "e20",
+    "shift": "t3",
+    "target": "r2",
+    "window": "rth"
+   },
+   "trades": 192,
+   "net": 494.32,
+   "profit_factor": 1.024,
+   "win_rate": 0.3438,
+   "max_drawdown": -3344.84,
+   "pass_rate": 0.0052,
+   "seq_passes": 0,
+   "seq_fails": 1,
+   "cost_per_pass": null,
+   "years_positive": 1,
+   "years_total": 3,
+   "best_of": 1,
+   "years": [
+    {
+     "year": 2022,
+     "net": -780.48
+    },
+    {
+     "year": 2023,
+     "net": 2515.28
+    },
+    {
+     "year": 2024,
+     "net": -1240.48
+    }
+   ],
+   "equity": [
+    {
+     "month": "2022-01",
+     "net": 459.8
+    },
+    {
+     "month": "2022-02",
+     "net": -910.2
+    },
+    {
+     "month": "2022-03",
+     "net": 1951.92
+    },
+    {
+     "month": "2022-04",
+     "net": -1134.24
+    },
+    {
+     "month": "2022-05",
+     "net": 1249.8
+    },
+    {
+     "month": "2022-06",
+     "net": -112.32
+    },
+    {
+     "month": "2022-07",
+     "net": 351.72
+    },
+    {
+     "month": "2022-08",
+     "net": -454.24
+    },
+    {
+     "month": "2022-09",
+     "net": -980.2
+    },
+    {
+     "month": "2022-10",
+     "net": -1070.2
+    },
+    {
+     "month": "2022-11",
+     "net": -160.2
+    },
+    {
+     "month": "2022-12",
+     "net": 27.88
+    },
+    {
+     "month": "2023-01",
+     "net": 1307.68
+    },
+    {
+     "month": "2023-02",
+     "net": 185.76
+    },
+    {
+     "month": "2023-03",
+     "net": -270.2
+    },
+    {
+     "month": "2023-04",
+     "net": -140.2
+    },
+    {
+     "month": "2023-05",
+     "net": 311.72
+    },
+    {
+     "month": "2023-06",
+     "net": -218.08
+    },
+    {
+     "month": "2023-07",
+     "net": -84.24
+    },
+    {
+     "month": "2023-08",
+     "net": 1007.68
+    },
+    {
+     "month": "2023-09",
+     "net": 249.8
+    },
+    {
+     "month": "2023-10",
+     "net": 181.92
+    },
+    {
+     "month": "2023-11",
+     "net": -330.4
+    },
+    {
+     "month": "2023-12",
+     "net": 313.84
+    },
+    {
+     "month": "2024-01",
+     "net": -188.28
+    },
+    {
+     "month": "2024-02",
+     "net": 103.84
+    },
+    {
+     "month": "2024-03",
+     "net": -346.16
+    },
+    {
+     "month": "2024-04",
+     "net": 247.88
+    },
+    {
+     "month": "2024-05",
+     "net": -416.16
+    },
+    {
+     "month": "2024-06",
+     "net": -74.24
+    },
+    {
+     "month": "2024-07",
+     "net": -608.28
+    },
+    {
+     "month": "2024-08",
+     "net": 229.8
+    },
+    {
+     "month": "2024-09",
+     "net": 563.84
+    },
+    {
+     "month": "2024-10",
+     "net": -844.24
+    },
+    {
+     "month": "2024-11",
+     "net": 129.8
+    },
+    {
+     "month": "2024-12",
+     "net": -38.28
+    }
+   ],
+   "exits": {
+    "stop": 126,
+    "target": 66
    }
   }
  ]
