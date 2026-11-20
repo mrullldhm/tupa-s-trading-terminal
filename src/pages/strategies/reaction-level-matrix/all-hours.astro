@@ -1,0 +1,82 @@
+---
+import Base from "../../../layouts/Base.astro";
+import Icon from "../../../components/Icon.astro";
+import { R } from "../../../lib/data";
+import { RLM_ALL_HOURS_RUN, RLM_PATH, RLM_TRADES_PATH } from "../../../data/rlm-trades";
+
+const version = R.variants.find((v) => v.strategy === "rlm" && v.period === "dev" && v.hash === RLM_ALL_HOURS_RUN);
+const label = version?.label ?? "1h candles · equal-weight swings · level score ≥50 · limit at the close · stop past the level · 1R target · all hours";
+const locals = Astro.locals as { allowHistoricalChart?: boolean; rlmTradeQuery?: string };
+const local = import.meta.env.DEV && locals.allowHistoricalChart === true
+  && ["localhost", "127.0.0.1", "[::1]"].includes(Astro.url.hostname);
+const loader = local ? await import("../../../lib/local-rlm-trades.mjs") : null;
+if (local) Astro.response.headers.set("Cache-Control", "no-store");
+const trades = loader ? await loader.loadRlmTrades(new URLSearchParams(locals.rlmTradeQuery)) : null;
+const SetupChart = trades ? (await import("../../../components/SetupChart.astro")).default : null;
+const groups = trades?.groups ?? [];
+const titleFor = { wins: "Winning trades", losses: "Losing trades" };
+const number = new Intl.NumberFormat("en-US");
+const jump = (id: "wins" | "losses", at: number) => {
+  const params = new URLSearchParams();
+  for (const group of groups) params.set(group.id, String(group.id === id ? at : group.number));
+  return `${RLM_TRADES_PATH}?${params}#${id}`;
+};
+---
+<Base title="Reaction Level Matrix all-hours trades" description="Inspect individual historical setups for the all-hours Reaction Level Matrix build run."
+  crumbs={[{ href: "/strategies/", label: "Strategies" }, { href: RLM_PATH, label: "Reaction Level Matrix" }, { label: "All-hours trades" }]}>
+  <header class="trade-head">
+    <h1>All-hours trade review</h1>
+    <p class="version">{label}</p>
+    {trades && (
+      <nav class="jump-links" aria-label="Trade outcomes">
+        {groups.map(({ id, total }) => <a class="btn" href={`#${id}`}>{titleFor[id]} <span class="num">{number.format(total)}</span></a>)}
+      </nav>
+    )}
+  </header>
+
+  {SetupChart && trades ? (
+    <>
+      {groups.map(({ id, total, number: at, chart }) => (
+        <SetupChart data={chart} id={id} title={titleFor[id]}>
+          <nav slot="navigation" class="trade-controls" aria-label={`${titleFor[id]} navigation`}>
+            {at > 1 ? <a class="btn" href={jump(id, at - 1)} rel="prev"><Icon name="back" size={14} /> Previous</a>
+              : <span class="btn unavailable" aria-disabled="true"><Icon name="back" size={14} /> Previous</span>}
+            <form action={`${RLM_TRADES_PATH}#${id}`} method="get" class="trade-jump">
+              {groups.filter((group) => group.id !== id).map((group) => <input type="hidden" name={group.id} value={group.number} />)}
+              <label for={`${id}-number`}>Trade</label>
+              <input id={`${id}-number`} type="number" name={id} min="1" max={total} value={at} required />
+              <span class="num">of {number.format(total)}</span>
+              <button class="btn" type="submit">Go</button>
+            </form>
+            {at < total ? <a class="btn" href={jump(id, at + 1)} rel="next">Next <Icon name="arrow" size={14} /></a>
+              : <span class="btn unavailable" aria-disabled="true">Next <Icon name="arrow" size={14} /></span>}
+          </nav>
+        </SetupChart>
+      ))}
+      <p class="trade-foot">Build run · Outcomes use net profit after fees. {trades.flat > 0 && `${trades.flat} flat trades.`} Times are shown in Malaysia time.</p>
+    </>
+  ) : (
+    <section class="panel panel-body" aria-labelledby="chart-status">
+      <h2 id="chart-status">Trade charts</h2>
+      <p>{local ? <>Run <code>npm run export:rlm-trades</code> in the web project to generate the local charts.</> : "Historical trade charts are available on the local development server."}</p>
+    </section>
+  )}
+</Base>
+<style>
+  .trade-head { display: grid; gap: 0.6rem; margin: 0 0 1.6rem; }
+  .version { color: var(--ink-2); max-width: 70ch; }
+  .jump-links { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.35rem; }
+  .jump-links span { margin-left: 0.25rem; color: var(--ink-3); }
+  .trade-controls { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; margin-bottom: 0.65rem; }
+  .trade-jump { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; color: var(--ink-2); font-size: 0.82rem; }
+  .trade-jump input[type="number"] {
+    width: 4.75rem; height: 2.3rem; padding-inline: 0.5rem; font: inherit; font-variant-numeric: tabular-nums;
+    color: var(--ink); background: var(--solid); border: 1px solid var(--line-hi); border-radius: var(--r-sm);
+  }
+  .unavailable { opacity: 0.45; cursor: default; }
+  .unavailable:hover { background: rgb(255 255 255 / 0.045); }
+  .trade-foot { color: var(--ink-3); font-size: 0.8rem; }
+  @media (max-width: 500px) {
+    .trade-jump { order: 1; flex-basis: 100%; }
+  }
+</style>

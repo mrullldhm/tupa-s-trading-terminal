@@ -256,13 +256,9 @@ Three radii plus a pill. Buttons and nav items use the tight 7px; tooltips and i
 ### Equity chart (signature)
 - 2px series lines over 6% white grid lines and a dashed zero line. Legend items are pill buttons; pressing one dims every other line to 22% opacity, thickens the chosen line to 2.6px and shows its end label. A 1px crosshair follows the pointer with a floating 10px-radius readout.
 
-### Worked example (strategy demo, chart-app frame)
-- One trade per strategy on made-up candles, shown in a chart-app frame modelled on the LuxAlgo charts look (layout only: no logo, name, font or copy). Frame: 14px radius, strong hairline, chart ground `#0b0c0f`. Top toolbar (symbol badge, timeframe chip, Indicators and Replay buttons, amber "Made-up candles" flag); chart; steps side panel on the right; status bar with the cursor's Chicago time. Below 1180px the panel drops under the chart; below 640px secondary toolbar labels hide. No decorative tool rail: every control in the frame works.
-- Toolbar buttons are real: Indicators hides or shows the indicator lines, Replay plays the steps one after another (pause to stop). Nothing in the frame pretends to work when it does not.
-- The legend sits top-left inside the chart: symbol and timeframe, O H L C and change, then one row per indicator with its value at the cursor (hover reads the candle under the pointer, never past the replay). Off-chart levels are named in the legend, not drawn.
-- **Chart-scope colour exception:** candles and volume use the trading-app up/down pair (up `#22ab94`, down `#f23645`; volume at 28%). This applies only inside price charts, where it is the universal reading; elsewhere the Meaning-Only Colour Rule stands. The last-price line is a dotted ink line with a tag in the candle's colour.
-- Trade levels use pass green (target), fail red (stop) and sky (entry, the working order dashed), each with a full-word price tag on the axis (`Target 71.64`); close tags are pushed apart, and the last-price tag hides where it would cover one. The result tag stays in ink with its sign.
-- A dark curtain with a dashed sky edge hides candles the replay has not reached. Signal conditions read as a check list (stroke check or cross plus the live value). The caption under the frame always says the candles are made up.
+### Setup chart
+- On localhost, show one recorded backtest trade per strategy on historical CL candles. Use the 14px radius, strong hairline and `#0b0c0f` chart ground. The toolbar switches timeframes, zooms, fits the trade and enters fullscreen. The candle readout shows OHLC and volume in Malaysia time and announces keyboard inspection.
+- **Chart-scope colour exception:** candles use `#22ab94` for up and `#f23645` for down. The shaded window marks the setup. The long or short position shows risk and reward zones from the actual entry to the recorded exit. Trade markers use the actual candle bounds. The Indicators menu controls the visibility of the strategy's lines and panels.
 
 ### Year bars
 - Small column chart, 3px gaps, green bars up and red bars down (85% opacity) from a 28% white baseline, 3px outer corners, tabular year labels.

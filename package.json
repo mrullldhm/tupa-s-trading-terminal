@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "export": "cd .. && .venv/bin/python web/tools/export_web.py && .venv/bin/python web/tools/export_demos.py",
+    "export": "cd .. && .venv/bin/python web/tools/export_web.py",
+    "export:charts": "cd .. && .venv/bin/python web/tools/export_setup_charts.py",
+    "export:rlm-trades": "cd .. && .venv/bin/python web/tools/export_rlm_trades.py",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -12,7 +14,8 @@
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
-    "astro": "^7.4.4"
+    "astro": "^7.4.4",
+    "lightweight-charts": "^5.2.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",

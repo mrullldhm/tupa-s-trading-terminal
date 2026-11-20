@@ -6,8 +6,8 @@ import EquityChart from "../../components/EquityChart.astro";
 import YearBars from "../../components/YearBars.astro";
 import Icon from "../../components/Icon.astro";
 import ReadingGuide from "../../components/ReadingGuide.astro";
-import StrategyDemo from "../../components/StrategyDemo.astro";
-import { demoFor } from "../../data/demos";
+import type { SetupChart } from "../../data/setup-chart";
+import { RLM_ALL_HOURS_RUN, RLM_TRADES_PATH } from "../../data/rlm-trades";
 import { R, strategies, curve, gatesPassed, yearRange, variantStyles, type Strategy, swatch } from "../../lib/data";
 import { usdK, usd, int, pct, date } from "../../lib/format";
 
@@ -20,7 +20,17 @@ export function getStaticPaths() {
 interface Props { s: Strategy; prev: Strategy | null; next: Strategy | null }
 const { s, prev, next } = Astro.props;
 const t = s.text;
-const demo = demoFor(s.id);
+const localChart = import.meta.env.DEV
+  && (Astro.locals as { allowHistoricalChart?: boolean }).allowHistoricalChart === true
+  && ["localhost", "127.0.0.1", "[::1]"].includes(Astro.url.hostname);
+let chartData: SetupChart | null = null;
+let ChartComponent: typeof import("../../components/SetupChart.astro").default | undefined;
+if (localChart) {
+  Astro.response.headers.set("Cache-Control", "no-store");
+  const { loadLocalChart } = await import("../../lib/local-chart.mjs");
+  chartData = await loadLocalChart(s.id);
+  if (chartData) ({ default: ChartComponent } = await import("../../components/SetupChart.astro"));
+}
 const years = yearRange();
 const variants = [...s.variants].sort((a, b) => gatesPassed(b) - gatesPassed(a) || b.profit_factor - a.profit_factor);
 const styleOf = variantStyles(variants);
@@ -44,6 +54,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
     </div>
     <h1>{s.name}</h1>
     <p class="short">{s.short}</p>
+    {localChart && <a class="chart-link" href="#setup-chart">Open the setup chart <Icon name="arrow" size={14} /></a>}
     <dl class="meta">
       <div>
         <dt>Source</dt>
@@ -83,15 +94,14 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
     </section>
   </div>
 
-  {demo && (
-    <section class="demo-sec" aria-labelledby="demo-h">
-      <div class="demo-head">
-        <h2 id="demo-h">One trade, step by step</h2>
-        <p>Made-up candles · real strategy code · best version: {demo.variant}</p>
+  {localChart && (ChartComponent && chartData ? <ChartComponent data={chartData} /> : (
+    <section class="panel demo-sec" id="setup-chart" aria-labelledby="setup-chart-h">
+      <div class="panel-body prose">
+        <h2 id="setup-chart-h">Setup chart</h2>
+        <p>Run <code>npm run export:charts</code> from the web project to build the local charts, then reload this page.</p>
       </div>
-      <StrategyDemo demo={demo} name={s.name} />
     </section>
-  )}
+  ))}
 
   <section class="panel" aria-labelledby="res-h">
     <div class="panel-head">
@@ -116,7 +126,9 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
         <tbody>
           {variants.map((v, i) => (
             <tr>
-              <td><span class="vname"><i class:list={[styleOf.get(v.hash)!.dash && "dash"]} style={styleOf.get(v.hash)!.dash ? `border-top-color:${styleOf.get(v.hash)!.color}` : `background:${styleOf.get(v.hash)!.color}`}></i>{v.label}</span></td>
+              <td><span class="vname"><i class:list={[styleOf.get(v.hash)!.dash && "dash"]} style={styleOf.get(v.hash)!.dash ? `border-top-color:${styleOf.get(v.hash)!.color}` : `background:${styleOf.get(v.hash)!.color}`}></i>{v.label}</span>
+                {localChart && s.id === "rlm" && v.hash === RLM_ALL_HOURS_RUN && <a class="trade-review-link" href={RLM_TRADES_PATH}>Review all trades <Icon name="arrow" size={14} /></a>}
+              </td>
               <td class="r num strong">{usdK(v.net)}</td>
               <td class="r num">{pct(v.win_rate, 0)}</td>
               <td class="r num">{usdK(v.max_drawdown)}</td>
@@ -248,10 +260,10 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
   .verdict ul { margin: 0.8rem 0 0; padding-left: 1.1rem; color: var(--ink-2); max-width: 75ch; }
   .verdict li + li { margin-top: 0.35rem; }
   .demo-sec { margin: 2.25rem 0; }
+  #setup-chart { scroll-margin-top: 4.5rem; }
+  .chart-link { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.65rem; }
   .chk-chart { border-top: 1px solid var(--line); }
   .chk-note { margin: 0; padding: 0.75rem 1rem 1rem; color: var(--ink-2); font-size: 0.85rem; max-width: 72ch; }
-  .demo-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem 1rem; margin-bottom: 0.9rem; }
-  .demo-head p { font-size: 0.8rem; color: var(--ink-3); }
   .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .split[hidden] { display: none; }
   .split .panel + .panel { margin-top: 0; }
@@ -261,6 +273,7 @@ const exits = (v: typeof b) => Object.entries(v.exits).sort((a, c) => c[1] - a[1
   .vname { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500; }
   .vname i { width: 10px; height: 3px; border-radius: 2px; }
   .vname i.dash { height: 0; border-top: 2px dashed; border-radius: 0; }
+  .trade-review-link { display: flex; align-items: center; gap: 0.3rem; width: fit-content; margin-top: 0.25rem; font-size: 0.77rem; }
   .strong { font-weight: 600; }
   .tbl { margin-top: 1rem; font-size: 0.82rem; }
   .tbl summary { cursor: pointer; color: var(--sky-ink); width: max-content; min-height: 1.75rem; display: flex; align-items: center; }

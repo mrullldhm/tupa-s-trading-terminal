@@ -1,0 +1,188 @@
+---
+import { marketClock, marketDate, timeframeLabel, type SetupChart } from "../data/setup-chart";
+import { usd } from "../lib/format";
+
+interface Props { data: SetupChart; id?: string; title?: string }
+const { data, id = "setup-chart", title = "Setup chart" } = Astro.props;
+const t = data.trade;
+const reaction = data.reaction;
+const price = (v: number) => usd(v, { sign: false, cents: true });
+const day = marketDate.format(t.signalTime * 1000);
+const time = (v: number) => {
+  const localDay = marketDate.format(v * 1000);
+  return `${localDay === day ? "" : `${localDay} `}${marketClock.format(v * 1000)}`;
+};
+const band = t.side === 1 ? "Support" : "Resistance";
+const side = t.side === 1 ? "Long" : "Short";
+const indicators = data.views.find(({ tf }) => tf === data.signalTf)?.indicators ?? [];
+const swingView = data.views.find((view) => view.swing);
+const swing = swingView?.swing;
+const retrospective = swingView?.retrospectiveSwing;
+const pct = (v: number) => (v * 100).toFixed(1).replace(/\.0$/, "") + "%";
+const exitLabels: Record<string, string> = { target: "Target exit", stop: "Stop exit", flatten: "Session cutoff", manage: "Rule-based exit", day_end: "Session end", roll: "Contract roll", time: "Time exit" };
+---
+<section class="analysis-chart" id={id} aria-labelledby={`${id}-h`} data-setup-chart={JSON.stringify(data)}>
+  <div class="analysis-head">
+    <h2 id={`${id}-h`}>{title}</h2>
+    <p>{data.symbol} · {day} · In-sample backtest</p>
+  </div>
+  <slot name="navigation" />
+  <div class="chart-frame" data-chart-frame>
+    <div class="chart-toolbar" data-chart-tools hidden>
+      <div class="symbol"><b>{data.symbol}</b><span>WTI crude oil futures</span></div>
+      <div class="timeframes" role="group" aria-label="Chart timeframe">
+        {data.views.map(({ tf }) => <button type="button" data-tf={tf} aria-pressed={tf === data.signalTf}>{tf === "1d" ? "1D" : tf}</button>)}
+      </div>
+      <div class="chart-actions" role="group" aria-label="Chart view">
+        <button type="button" data-position aria-pressed="true">{side} position</button>
+        {(reaction || swing || indicators.length > 0) && (
+          <details class="indicator-menu">
+            <summary>Indicators</summary>
+            <div class="indicator-options">
+              <button type="button" data-indicator-all>Hide all</button>
+              {reaction && <label><input type="checkbox" data-indicator="Reaction band" checked /> Reaction band</label>}
+              {swing && <label><input type="checkbox" data-indicator={swing.name} checked /><i style={`--indicator-color:${swing.color}`}></i>{swing.name}</label>}
+              {retrospective && <label><input type="checkbox" data-indicator={retrospective.name} /><i class="dashed" style={`--indicator-color:${retrospective.color}`}></i>{retrospective.name}</label>}
+              {indicators.map((line) => (
+                <label><input type="checkbox" data-indicator={line.name} checked /><i style={`--indicator-color:${line.color}`}></i>{line.name}</label>
+              ))}
+            </div>
+          </details>
+        )}
+        <button type="button" data-zoom="out" aria-label="Zoom out" title="Zoom out">−</button>
+        <button type="button" data-zoom="in" aria-label="Zoom in" title="Zoom in">+</button>
+        <button type="button" data-fit>Fit trade</button>
+        <button type="button" class="fullscreen-button" data-fullscreen aria-label="Fullscreen" aria-pressed="false" title="Enter fullscreen">
+          <svg data-enter viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5H2.5V6M10 2.5h3.5V6m0 4v3.5H10m-4 0H2.5V10" /></svg>
+          <svg data-exit viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6H6V2.5m4 0V6h3.5m0 4H10v3.5m-4 0V10H2.5" /></svg>
+        </button>
+      </div>
+    </div>
+    <div class="chart-readout num" data-chart-readout hidden aria-label="Inspected candle">
+      <span data-candle-time></span>
+      <span>O <b data-price="open"></b></span>
+      <span>H <b data-price="high"></b></span>
+      <span>L <b data-price="low"></b></span>
+      <span>C <b data-price="close"></b></span>
+      <span>Vol <b data-volume></b></span>
+      {retrospective && <span class="retrospective-label" data-retrospective-label hidden>{retrospective.name}</span>}
+    </div>
+    <p class="visually-hidden" role="status" aria-atomic="true" data-candle-announcement></p>
+    <div class="plot" data-chart-plot tabindex="0" hidden aria-label="Historical WTI candlestick chart. Use left and right arrows to inspect candles." aria-describedby={`${id}-help`}></div>
+    <noscript><p class="chart-unavailable">Enable JavaScript to interact with the historical chart.</p></noscript>
+    <div class="chart-caption" id={`${id}-help`} data-chart-caption hidden>
+      <span>Drag to pan · Scroll or pinch to zoom</span>
+      <span>USD per barrel · Malaysia time</span>
+    </div>
+    <div class="chart-notes">
+      <section aria-labelledby={`${id}-signal`}>
+        <h3 id={`${id}-signal`}>{timeframeLabel(data.signalTf)} setup <span class="num">{time(t.signalOpen)}–{time(t.signalTime)}</span></h3>
+        {reaction ? <>
+          <p>The wick traded to {price(reaction.wick)}. The candle closed {t.side === 1 ? "above" : "below"} the band at {price(t.limit)}.</p>
+          <dl>
+            <div><dt>{band} band</dt><dd>{price(reaction.bandLow)}–{price(reaction.bandHigh)}</dd></div>
+            <div><dt>Level score</dt><dd>{reaction.score.toFixed(1)} · {reaction.touches} swings · min. {reaction.minScore}</dd></div>
+            <div><dt>Close strength</dt><dd>{pct(reaction.closeStrength)} · min. {pct(reaction.minCloseStrength)}</dd></div>
+          </dl>
+        </> : <>
+          <p>{data.version}</p>
+          <dl><div><dt>Limit order</dt><dd>{price(t.limit)} · {time(t.signalTime)}</dd></div></dl>
+        </>}
+      </section>
+      <section aria-labelledby={`${id}-execution`}>
+        <h3 id={`${id}-execution`}>Backtest execution <span>{side} · {t.qty} {t.qty === 1 ? "contract" : "contracts"}</span></h3>
+        <dl>
+          <div><dt><i class="entry"></i>Entry fill</dt><dd>{price(t.entry)} · {time(t.fillTime)}</dd></div>
+          <div><dt><i class="stop"></i>{t.managedStop ? "Initial stop" : "Stop"}</dt><dd>{price(t.stop)} · {t.riskTicks} ticks</dd></div>
+          {t.target != null && (t.reason !== "target" || t.target !== t.exit) && <div><dt><i class="target"></i>Target</dt><dd>{price(t.target)}</dd></div>}
+          {t.partial && <div><dt>Partial exit · {t.partial.qty}</dt><dd>{price(t.partial.price)} · {time(t.partial.time)}</dd></div>}
+          <div><dt>{t.reason === "target" && <i class="target"></i>}{exitLabels[t.reason] ?? "Exit"}</dt><dd>{price(t.exit)} · {time(t.exitTime)}</dd></div>
+          <div><dt>Net after fees</dt><dd>{usd(t.net, { cents: true })}</dd></div>
+        </dl>
+      </section>
+    </div>
+  </div>
+  <p class="source">Databento historical data. The shaded window ends when the strategy signalled. Fills are simulated from 1-minute bars.</p>
+</section>
+<script src="../lib/setup-chart.client.ts"></script>
+<style>
+  .analysis-chart { margin: 2.25rem 0; scroll-margin-top: 4.5rem; }
+  .analysis-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem 1rem; margin-bottom: 0.9rem; }
+  .analysis-head p, .source { font-size: 0.8rem; color: var(--ink-3); }
+  .source { margin-top: 0.65rem; }
+  .chart-frame { overflow: hidden; background: #0b0c0f; border: 1px solid var(--line-hi); border-radius: var(--r-lg); }
+  .chart-toolbar:not([hidden]), .chart-readout:not([hidden]), .chart-caption:not([hidden]) { display: flex; align-items: center; flex-wrap: wrap; }
+  .chart-toolbar { gap: 0.45rem 0.75rem; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--line); }
+  .symbol { display: flex; align-items: baseline; gap: 0.45rem; font-size: 0.85rem; }
+  .symbol span { color: var(--ink-3); font-size: 0.75rem; }
+  .timeframes, .chart-actions { display: flex; gap: 0.25rem; }
+  .chart-actions { flex-wrap: wrap; margin-left: auto; }
+  button { min-height: 2rem; min-width: 2rem; padding: 0.2rem 0.48rem; background: transparent; border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--ink-2); font: inherit; font-size: 0.75rem; cursor: pointer; }
+  button:hover { background: var(--panel-hi); color: var(--ink); }
+  button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); }
+  .indicator-menu { position: relative; }
+  .indicator-menu summary {
+    display: flex; align-items: center; gap: 0.35rem; min-height: 2rem; padding: 0.2rem 0.48rem;
+    border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--ink-2); font-size: 0.75rem; cursor: pointer;
+  }
+  .indicator-menu summary::-webkit-details-marker { display: none; }
+  .indicator-menu summary::after { content: ""; width: 0.35rem; height: 0.35rem; border: solid currentColor; border-width: 0 1px 1px 0; transform: translateY(-1px) rotate(45deg); }
+  .indicator-options {
+    position: absolute; z-index: 5; inset: calc(100% + 0.35rem) auto auto 0;
+    display: grid; gap: 0.2rem; width: max-content; min-width: 10.75rem; padding: 0.45rem;
+    border: 1px solid var(--line-hi); border-radius: var(--r-md); background: var(--pop); font-size: 0.76rem;
+  }
+  .indicator-options label { display: flex; align-items: center; gap: 0.4rem; min-height: 1.8rem; padding: 0 0.25rem; cursor: pointer; }
+  .indicator-options input { accent-color: var(--sky); }
+  .indicator-options i { width: 0.55rem; height: 2px; background: var(--indicator-color); }
+  .indicator-options .dashed { background: none; border-top: 2px dashed var(--indicator-color); }
+  .fullscreen-button { display: grid; place-items: center; }
+  .fullscreen-button svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .fullscreen-button[aria-pressed="false"] [data-exit], .fullscreen-button[aria-pressed="true"] [data-enter] { display: none; }
+  .chart-readout { gap: 0.1rem 0.65rem; min-height: 2.1rem; padding: 0.45rem 0.75rem; color: var(--ink-3); font-size: 0.75rem; }
+  .chart-readout b { color: var(--ink); font-weight: 500; }
+  [data-candle-time] { color: var(--sky-ink); }
+  .retrospective-label { color: #9bcde0; }
+  .retrospective-label::before { content: ""; display: inline-block; width: 0.7rem; margin-right: 0.3rem; border-top: 2px dashed currentColor; vertical-align: middle; }
+  .plot { height: clamp(320px, 53vh, 530px); }
+  .plot[data-indicator-panes] { height: clamp(480px, 65vh, 640px); }
+  .plot:focus-visible { outline-offset: -2px; }
+  .chart-unavailable { margin: 0.75rem; }
+  .chart-caption { justify-content: space-between; gap: 0.25rem 0.75rem; padding: 0.45rem 0.75rem; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 0.72rem; }
+  .chart-notes { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); }
+  .chart-notes section { padding: 0.8rem 0.85rem 0.9rem; min-width: 0; }
+  .chart-notes section + section { border-left: 1px solid var(--line); }
+  h3 { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.2rem 0.5rem; margin-bottom: 0.4rem; font-size: 0.88rem; }
+  h3 span { font-size: 0.73rem; color: var(--ink-3); font-weight: 500; }
+  .chart-notes p { font-size: 0.78rem; color: var(--ink-2); margin-bottom: 0.35rem; }
+  dl { display: grid; gap: 0.28rem; margin: 0; font-size: 0.78rem; }
+  dl div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.1rem 0.5rem; }
+  dt { color: var(--ink-2); }
+  dd { margin: 0; font-variant-numeric: tabular-nums; }
+  dt i { display: inline-block; width: 0.5rem; height: 2px; margin-right: 0.4rem; vertical-align: middle; }
+  .entry { background: var(--sky); }
+  .stop { background: var(--neg); }
+  .target { background: var(--pos); }
+  :global(html.chart-viewport-expanded) { overflow: hidden; }
+  .chart-frame[data-expanded] { position: fixed; inset: 0; z-index: 1000; }
+  .chart-frame:is(:fullscreen, [data-expanded]) {
+    display: flex; flex-direction: column; width: 100%; height: 100dvh; border: 0; border-radius: 0;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .chart-frame:is(:fullscreen, [data-expanded]) .plot { flex: 1; height: auto; min-height: 0; }
+  .chart-frame:is(:fullscreen, [data-expanded]) .chart-notes { display: none; }
+  @media (max-width: 640px) {
+    .symbol span { display: none; }
+    .chart-notes { grid-template-columns: 1fr; }
+    .chart-notes section + section { border-left: 0; border-top: 1px solid var(--line); }
+  }
+  @media (max-width: 410px) {
+    .chart-toolbar { position: relative; gap: 0.35rem 0.4rem; }
+    .timeframes, .chart-actions { gap: 0.15rem; }
+    .chart-actions { flex-basis: 100%; margin-left: 0; }
+    .chart-actions button, .indicator-menu summary { padding-inline: 0.32rem; }
+    .fullscreen-button { position: absolute; top: 0.55rem; right: 0.75rem; }
+  }
+  @media (max-width: 365px) { .symbol { flex-basis: 100%; min-height: 2rem; align-items: center; } }
+  @media (pointer: coarse) { .fullscreen-button { min-width: 2.75rem; min-height: 2.75rem; } }
+</style>

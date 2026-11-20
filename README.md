@@ -13,6 +13,10 @@ npm run build      # -> dist/
 npm run check      # type check
 ```
 
+Run `npm run export:charts` to generate the historical setup charts from local CL bars and saved build trade logs.
+The chart files stay in `../results/` and are available only on the loopback development server.
+Use `npm run export:rlm-trades` to build the all-hours Reaction Level Matrix trade review from its saved run.
+
 ## Where things live
 | Path | What |
 |---|---|
