@@ -14,6 +14,33 @@ export interface Study {
 
 export const studies: Study[] = [
   {
+    id: "rlm-sessions",
+    name: "Does the Reaction Level Matrix work better in some hours, and by which clock?",
+    date: "2026-11-20",
+    question: "Keeping the one passing version fixed, which sessions and single hours make the money (58 windows), and does a good hour belong to the exchange's candle count (the n-th hourly candle after the 5 PM Chicago open) or to a fixed Malaysia clock hour, which moves by one candle with US daylight saving?",
+    answer: "London and the US open carry it: candles opening 02:00 to 10:00 Chicago give a profit factor of 1.52 and a 73% pass rate; Asia hours barely pay. The edge lines up with the candle count, not the Malaysia clock: the same candle behaves alike in US summer and winter, the same Malaysia hour does not. No single hour stands out from luck.",
+    data: "Build years only, 2010-06 to 2021-12",
+    source: "studies/rlm/",
+  },
+  {
+    id: "rlm-features",
+    name: "What separates winning and losing Reaction Level Matrix trades?",
+    date: "2026-11-20",
+    question: "For the one version that passed, 1,281 trades: do winners and losers differ in the level's timeframe, touches, score, age, crosses, band width, candle strength, stop size, hour, side or volatility?",
+    answer: "Not clearly. Most differences sit inside the noise. Weak signs: levels touched 10 or more times or crossed 6 or more times are weaker, and closes well away from the band beat closes just outside it. None is used as a filter: each would need new data to test.",
+    data: "Build years only, 2010-06 to 2021-12",
+    source: "studies/rlm/",
+  },
+  {
+    id: "rlm-screen",
+    name: "Which version of the Reaction Level Matrix works on oil, and is it luck?",
+    date: "2026-11-20",
+    question: "Across every signal timeframe, swing source, swing weight, band width, score, candle strength, entry, stop, target and session (13,824 versions), does any version pass the Combine checks, and is the best one better than luck after that many tries?",
+    answer: "Four close versions pass, all 1-hour candles with a limit at the close; the best has a profit factor of 1.35. It beats random trades at the same times. When the whole search is repeated on reshuffled days with no edge, a best version this good turns up about 1 time in 12: close to proof, not there. Timeframe-weighted swings do no better than equal ones.",
+    data: "Build years only, 2010-06 to 2021-12",
+    source: "studies/rlm/",
+  },
+  {
     id: "cbr-optimize",
     name: "Can the CBR trades be filtered or managed better?",
     date: "2026-11-19",

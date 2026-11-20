@@ -411,6 +411,37 @@ export const STRATEGY_TEXT: StrategyText[] = [
     ],
     caveat: "Best of 1,728 versions on build data; about break-even on the check years 2022-2024.",
   },
+  {
+    id: "rlm",
+    slug: "reaction-level-matrix",
+    name: "Reaction Level Matrix",
+    short: "Group past turning points into price levels and score them. When a candle dips into a strong level and closes firmly away from it, trade the bounce.",
+    source: {
+      label: "Reaction Level Matrix [WillyAlgoTrader] (TradingView indicator)",
+      url: "https://www.tradingview.com/script/kcyXDIFe-Reaction-Level-Matrix-WillyAlgoTrader/",
+      note: "An indicator, not a strategy: no backtest, no fees. Its \"win rate\" counts every trade that touched its first target, even one that then stopped out at break-even. Translated to CL futures by us.",
+    },
+    idea: "Prices where oil turned several times hold resting orders. The indicator groups those turning points into bands, scores each band by how often and how strongly it was touched, and fades price at the nearest strong band when a candle dips into it and closes firmly away. The original weighs a turning point by how far price moved after it. We use the owner's rule instead: the turning point's timeframe sets its strength, so a daily swing counts more than a 5-minute one.",
+    rules: [
+      "Turning points: owner swing rule on 5-minute, 15-minute, 1-hour, 4-hour and daily candles. Weight by timeframe (1 for 5-minute up to 3.5 for daily), or every swing equal as a control. One turning point counts once, even when several timeframes see it.",
+      "Levels: swings close together (0.4, 0.6 or 1.0 times the average candle range) join one band. A band loses strength with time and when price closes through it. The 3 nearest bands above and below price can signal.",
+      "Signal on 5-minute, 15-minute or 1-hour candles: the candle dips into a support band, closes above it, and closes in the top part of its range (60% or 75%). Sell at resistance is the mirror. The band's score must reach 0, 50 or 70.",
+      "Order: a limit at the signal close or at the band edge, live for one candle. Stop: past the candle's wick or past the band. Target: 1, 2 or 3 times the risk, or 3 times with a break-even stop after 1 times.",
+      "All hours, or only 08:30 to 13:30 Chicago. 1 contract. Levels reset at every contract roll.",
+    ],
+    verdict: "Four close versions of 13,824 pass every build-year check, all with 1-hour candles, equal-weight swings, score at least 50 and a limit at the close. The best (stop past the band, 1R target) makes money in 11 of 12 years with a profit factor of 1.35, still 1.30 when fills need price to trade 1 tick through, and passes 56% of the Combine attempts at about $320 a pass. It beats random trades at the same times and at other hours of the same days. But picking the best of 13,824 tries produces a result this good about 1 time in 12 even when no version has an edge, so it is close to proof but not there. A follow-up test of sessions finds the edge sits in the London and US-open hours: keeping only candles that open 02:00 to 10:00 Chicago lifts the profit factor to 1.52 (1.46 with strict fills) and the pass rate to 73%, at about $380 a pass.",
+    lessons: [
+      "Every number is the best of 13,824 versions on build data. A test that repeats the whole search on reshuffled days says a top result this good comes from luck alone about 1 time in 12.",
+      "On average there is no edge: fewer than 2 in 5 versions make money. 1-hour signals do best, 5-minute signals worst.",
+      "Weighting swings by timeframe made no measurable difference against equal weights. Equal weights need about 5 touches for a score of 50, so the two are really different filters.",
+      "The original's own exit, break-even after the first target, is the worst of the four.",
+      "The edge follows the exchange's candle count, not the clock on the wall. The 08:00 Chicago candle is 9 PM Malaysia time in US summer and 10 PM in winter, and results line up by candle, not by Malaysia hour.",
+      "Asia hours (17:00 to 01:00 Chicago) add little: profit factor 1.16, almost all of it from 2016-2021. No single hour is better than luck once all 58 windows are counted.",
+      "No single trade feature splits winners from losers. Levels touched 10 or more times, or crossed 6 or more times, are weaker; fresh levels and closes well away from the level do best.",
+      "Its stops are wide: at 5 contracts 46% of the planned losses would break the $2,000 loss limit, so it is a 1-contract strategy.",
+    ],
+    caveat: "Best of 13,882 versions on build data; luck makes a top result this good about 1 time in 12. The session window was chosen after seeing the results. Check years not run yet.",
+  },
 ];
 
 export const textFor = (id: string) => {

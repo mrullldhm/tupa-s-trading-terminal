@@ -5,6 +5,7 @@ const { state } = Astro.props;
 const map: Record<string, { cls: string; icon: "dropped" | "clock" | "check"; word: string }> = {
   dropped: { cls: "chip-neg", icon: "dropped", word: "Dropped" },
   testing: { cls: "chip-warn", icon: "clock", word: "Testing" },
+  dev: { cls: "chip-warn", icon: "clock", word: "Testing" },
   candidate: { cls: "chip-pos", icon: "check", word: "Candidate" },
 };
 const s = map[state] ?? { cls: "", icon: "clock" as const, word: state };

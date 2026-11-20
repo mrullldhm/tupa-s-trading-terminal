@@ -52,3 +52,10 @@ def test_export_has_no_prices_or_trade_rows():
         assert set(v) == allowed
         assert all(set(p) == {"month", "net"} for p in v["equity"])
         assert all(set(y) == {"year", "net"} for y in v["years"])
+
+
+def test_rlm_label_names_the_session_clock():
+    p = {"sig_tf": "1h", "weight": "flat", "score": 50, "entry": "close", "stop": "band", "exit": "r1",
+         "session": "ct:02-10"}
+    assert ex.variant_label("rlm", p).endswith("1R target · candles opening 02:00-10:00 Chicago")
+    assert ex.variant_label("rlm", {**p, "session": "all"}).endswith("· all hours")

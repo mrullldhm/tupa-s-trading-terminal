@@ -31,7 +31,7 @@ GATES = {"trades": 200, "profit_factor": 1.25, "years_positive": 0.70, "pass_rat
 
 # Versions screened in a study outside the ledger (only the leads were re-run through the CLI). "Best of N" must
 # count them all: strategy -> versions tried on dev.
-SCREENED = {"cbr": 1728}
+SCREENED = {"cbr": 1728, "rlm": 13882}  # rlm: 13,824 grid + 58 session windows
 CBR_WINDOWS = {"asia_utc": "Asia 01:00-02:00 UTC", "globex": "18:00-19:00 Chicago", "london": "09:00-10:00 London",
                "ny": "09:00-10:00 Chicago", "rth": "09:30-10:30 Chicago", "eia": "Wed 10:30-11:30 Chicago"}
 CBR_CONTEXT = {"fh": "first-hour sweep", "reb": "no sweep", "reb30": "30m sweep"}
@@ -89,9 +89,29 @@ def _base_label(strategy: str, p: dict) -> str:
         tries = "1 try a day" if p["attempts"] == 1 else "2 tries a day"
         return (f"{CBR_WINDOWS[p['window']]} · {CBR_CONTEXT[p['context']]} · {CBR_BIAS[p['bias']]} · "
                 f"{CBR_TARGET[p['target']]} · {tries}")
+    if strategy == "rlm":
+        return rlm_label(p)
     if strategy == "purple_levels_rth":
         return f"{p['tf']} · {LEVEL_FAMILIES[p['levels']]} · 08:30–13:30 Chicago"
     return ", ".join(f"{k}={v}" for k, v in p.items())
+
+
+RLM_ENTRY = {"close": "limit at the close", "band": "limit at the level"}
+RLM_STOP = {"wick": "stop past the wick", "band": "stop past the level"}
+RLM_SESSION = {"all": "all hours", "rth": "08:30-13:30 Chicago"}
+RLM_CLOCK = {"ct": "Chicago", "myt": "Malaysia", "ldn": "London"}
+RLM_EXIT = {"r1": "1R target", "r2": "2R target", "r3": "3R target", "be3": "3R target, break-even after 1R"}
+
+
+def rlm_label(p: dict) -> str:
+    weight = "timeframe-weighted swings" if p["weight"] == "tf" else "equal-weight swings"
+    session = RLM_SESSION.get(p["session"])
+    if session is None:  # "<clock>:<a>-<b>": candles opening in hours a..b on that clock
+        clock, _, span = p["session"].partition(":")
+        a, b = span.split("-")
+        session = f"candles opening {a}:00-{b}:00 {RLM_CLOCK[clock]}"
+    return (f"{p['sig_tf']} candles · {weight} · level score ≥{p['score']} · {RLM_ENTRY[p['entry']]} · "
+            f"{RLM_STOP[p['stop']]} · {RLM_EXIT[p['exit']]} · {session}")
 
 
 def status_line(strategy: str) -> dict:

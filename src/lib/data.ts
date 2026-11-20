@@ -63,12 +63,13 @@ const COLORS: Record<string, string> = {
   juda_swing_point: "#2aa1b3",
   ghost_box: "#d95926",
   cbr: "#9085e9",
+  rlm: "#d55181",
 };
 
 // The palette has eight validated hues; a ninth strategy reuses one and is drawn dashed (striped swatch), so identity
 // never rests on colour alone.
 const DASHED = new Set(["swing_point_manipulation", "purple_levels", "pd_swing", "purple_levels_rth", "juda_swing_point",
-  "ghost_box", "cbr"]);
+  "ghost_box", "cbr", "rlm"]);
 
 /** Inline style for a strategy swatch: solid, or striped when the strategy is drawn dashed. */
 export const swatch = (color: string, dash = false) =>
