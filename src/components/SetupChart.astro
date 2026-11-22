@@ -1,19 +1,22 @@
 ---
-import { marketClock, marketDate, timeframeLabel, type SetupChart } from "../data/setup-chart";
+import { marketClock, marketDate, timeframeLabel, type HistoricalChart } from "../data/setup-chart";
 import { usd } from "../lib/format";
 
-interface Props { data: SetupChart; id?: string; title?: string }
+interface Props { data: HistoricalChart; id?: string; title?: string }
 const { data, id = "setup-chart", title = "Setup chart" } = Astro.props;
-const t = data.trade;
-const reaction = data.reaction;
+const t = "trade" in data ? data.trade : null;
+const reaction = "reaction" in data ? data.reaction : null;
+const pattern = "pattern" in data ? data.pattern : null;
+const confirmed = pattern && (pattern.confirmationBar == null && pattern.confirmationMethod === "sweep"
+  ? pattern.confirmed + 60 : pattern.confirmed);
 const price = (v: number) => usd(v, { sign: false, cents: true });
-const day = marketDate.format(t.signalTime * 1000);
+const day = marketDate.format((t?.signalTime ?? pattern!.retest) * 1000);
 const time = (v: number) => {
   const localDay = marketDate.format(v * 1000);
   return `${localDay === day ? "" : `${localDay} `}${marketClock.format(v * 1000)}`;
 };
-const band = t.side === 1 ? "Support" : "Resistance";
-const side = t.side === 1 ? "Long" : "Short";
+const band = t?.side === 1 ? "Support" : "Resistance";
+const side = (t?.side ?? pattern?.side) === 1 ? "Long" : "Short";
 const indicators = data.views.find(({ tf }) => tf === data.signalTf)?.indicators ?? [];
 const swingView = data.views.find((view) => view.swing);
 const swing = swingView?.swing;
@@ -24,7 +27,7 @@ const exitLabels: Record<string, string> = { target: "Target exit", stop: "Stop 
 <section class="analysis-chart" id={id} aria-labelledby={`${id}-h`} data-setup-chart={JSON.stringify(data)}>
   <div class="analysis-head">
     <h2 id={`${id}-h`}>{title}</h2>
-    <p>{data.symbol} · {day} · In-sample backtest</p>
+    <p>{data.symbol} · {day} · {pattern ? `${side} setup · Historical census` : "In-sample backtest"}</p>
   </div>
   <slot name="navigation" />
   <div class="chart-frame" data-chart-frame>
@@ -34,7 +37,7 @@ const exitLabels: Record<string, string> = { target: "Target exit", stop: "Stop 
         {data.views.map(({ tf }) => <button type="button" data-tf={tf} aria-pressed={tf === data.signalTf}>{tf === "1d" ? "1D" : tf}</button>)}
       </div>
       <div class="chart-actions" role="group" aria-label="Chart view">
-        <button type="button" data-position aria-pressed="true">{side} position</button>
+        {t && <button type="button" data-position aria-pressed="true">{side} position</button>}
         {(reaction || swing || indicators.length > 0) && (
           <details class="indicator-menu">
             <summary>Indicators</summary>
@@ -51,7 +54,7 @@ const exitLabels: Record<string, string> = { target: "Target exit", stop: "Stop 
         )}
         <button type="button" data-zoom="out" aria-label="Zoom out" title="Zoom out">−</button>
         <button type="button" data-zoom="in" aria-label="Zoom in" title="Zoom in">+</button>
-        <button type="button" data-fit>Fit trade</button>
+        <button type="button" data-fit>{pattern ? "Fit setup" : "Fit trade"}</button>
         <button type="button" class="fullscreen-button" data-fullscreen aria-label="Fullscreen" aria-pressed="false" title="Enter fullscreen">
           <svg data-enter viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5H2.5V6M10 2.5h3.5V6m0 4v3.5H10m-4 0H2.5V10" /></svg>
           <svg data-exit viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6H6V2.5m4 0V6h3.5m0 4H10v3.5m-4 0V10H2.5" /></svg>
@@ -65,6 +68,11 @@ const exitLabels: Record<string, string> = { target: "Target exit", stop: "Stop 
       <span>L <b data-price="low"></b></span>
       <span>C <b data-price="close"></b></span>
       <span>Vol <b data-volume></b></span>
+      {pattern && <span class="pattern-key">
+        <span><i class="catalyst-key" aria-hidden="true"></i>Catalyst window</span>
+        <span><i class="retest-key" aria-hidden="true"></i>First retest</span>
+        {pattern.confirmationMethod === "sweep" && <span><i class="confirmation-key" aria-hidden="true"></i>Early confirmation</span>}
+      </span>}
       {retrospective && <span class="retrospective-label" data-retrospective-label hidden>{retrospective.name}</span>}
     </div>
     <p class="visually-hidden" role="status" aria-atomic="true" data-candle-announcement></p>
@@ -74,7 +82,7 @@ const exitLabels: Record<string, string> = { target: "Target exit", stop: "Stop 
       <span>Drag to pan · Scroll or pinch to zoom</span>
       <span>USD per barrel · Malaysia time</span>
     </div>
-    <div class="chart-notes">
+    {t && <div class="chart-notes">
       <section aria-labelledby={`${id}-signal`}>
         <h3 id={`${id}-signal`}>{timeframeLabel(data.signalTf)} setup <span class="num">{time(t.signalOpen)}–{time(t.signalTime)}</span></h3>
         {reaction ? <>
@@ -100,9 +108,39 @@ const exitLabels: Record<string, string> = { target: "Target exit", stop: "Stop 
           <div><dt>Net after fees</dt><dd>{usd(t.net, { cents: true })}</dd></div>
         </dl>
       </section>
-    </div>
+    </div>}
+    {pattern && <div class="chart-notes">
+      <section aria-labelledby={`${id}-signal`}>
+        <h3 id={`${id}-signal`}>{timeframeLabel(data.signalTf)} swing</h3>
+        <dl>
+          <div><dt>Candle 1 close</dt><dd>{price(pattern.candle1Close)} · {time(pattern.candle1)}</dd></div>
+          <div><dt>Previous {timeframeLabel(pattern.referenceTf).toLowerCase()} {side === "Long" ? "low" : "high"}</dt><dd>{price(pattern.referenceLevel)}</dd></div>
+          <div><dt>Candle 2 open</dt><dd>{time(pattern.candle2)}</dd></div>
+          {pattern.candle3Close != null && <div><dt>Candle 3 close</dt><dd>{time(pattern.candle3Close)}</dd></div>}
+        </dl>
+      </section>
+      <section aria-labelledby={`${id}-catalyst`}>
+        <h3 id={`${id}-catalyst`}>{timeframeLabel(pattern.catalystTf)} catalyst</h3>
+        <dl>
+          <div><dt>Catalyst open</dt><dd>{time(pattern.catalyst)}</dd></div>
+          <div><dt>Latest swing {side === "Long" ? "high" : "low"}</dt><dd>
+            {pattern.catalystSwingPrice != null && `${price(pattern.catalystSwingPrice)} · `}{time(pattern.catalystSwing)}
+          </dd></div>
+          <div><dt>{side === "Long" ? "High then low" : "Low then high"}</dt><dd>{time(pattern.firstTouch)} · {time(pattern.secondTouch)}</dd></div>
+          <div><dt>First retest</dt><dd>{price(pattern.level)} · {time(pattern.retest)}</dd></div>
+          {pattern.earlySweep != null && pattern.earlySweep !== (pattern.confirmationBar ?? pattern.confirmed) && (
+            <div><dt>Confirmation sweep</dt><dd>{time(pattern.earlySweep)}</dd></div>
+          )}
+          <div><dt>Setup confirmed</dt><dd>{time(confirmed!)} · {
+            pattern.confirmationMethod === "sweep" ? "Catalyst sweep"
+              : pattern.confirmationMethod === "swing-close" ? "Candle 3 close" : "Retest"
+          }</dd></div>
+        </dl>
+      </section>
+    </div>}
   </div>
-  <p class="source">Databento historical data. The shaded window ends when the strategy signalled. Fills are simulated from 1-minute bars.</p>
+  {pattern ? pattern.crossesRoll && <p class="source">This setup spans a contract roll.</p>
+    : <p class="source">Databento historical data. The shaded window ends when the strategy signalled. Fills are simulated from 1-minute bars.</p>}
 </section>
 <script src="../lib/setup-chart.client.ts"></script>
 <style>
@@ -140,6 +178,12 @@ const exitLabels: Record<string, string> = { target: "Target exit", stop: "Stop 
   .fullscreen-button svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   .fullscreen-button[aria-pressed="false"] [data-exit], .fullscreen-button[aria-pressed="true"] [data-enter] { display: none; }
   .chart-readout { gap: 0.1rem 0.65rem; min-height: 2.1rem; padding: 0.45rem 0.75rem; color: var(--ink-3); font-size: 0.75rem; }
+  .pattern-key { display: inline-flex; flex-wrap: wrap; gap: 0.25rem 0.65rem; margin-left: auto; color: var(--ink-2); }
+  .pattern-key span { display: inline-flex; gap: 0.3rem; align-items: center; }
+  .pattern-key i { display: inline-block; width: 0.45rem; height: 0.45rem; }
+  .catalyst-key { background: var(--sky-glow); border: 1px solid var(--sky); }
+  .retest-key { background: var(--sky-ink); border-radius: 50%; }
+  .confirmation-key { border: 1px solid var(--sky-ink); transform: rotate(45deg); }
   .chart-readout b { color: var(--ink); font-weight: 500; }
   [data-candle-time] { color: var(--sky-ink); }
   .retrospective-label { color: #9bcde0; }
@@ -173,6 +217,7 @@ const exitLabels: Record<string, string> = { target: "Target exit", stop: "Stop 
   .chart-frame:is(:fullscreen, [data-expanded]) .chart-notes { display: none; }
   @media (max-width: 640px) {
     .symbol span { display: none; }
+    .pattern-key { flex-basis: 100%; margin: 0.2rem 0 0; }
     .chart-notes { grid-template-columns: 1fr; }
     .chart-notes section + section { border-left: 0; border-top: 1px solid var(--line); }
   }

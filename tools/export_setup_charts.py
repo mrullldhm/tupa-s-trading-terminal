@@ -18,7 +18,10 @@ from cltester.engine import Fills, backtest
 from cltester.indicators import tf_candles
 from cltester.strategy import load
 
-WINDOWS = {"1m": (360, 180), "5m": (96, 50), "15m": (60, 30), "1h": (44, 18), "4h": (20, 16), "1d": (20, 8)}
+WINDOWS = {
+    "1m": (360, 180), "5m": (96, 50), "15m": (60, 30), "30m": (50, 25),
+    "1h": (44, 18), "4h": (20, 16), "1d": (20, 8),
+}
 SIGNAL_TF = {"cbr": "1m", "ghost_box": "5m", "ict_ea": "5m", "scribd_supertrend": "15m",
              "swing_point_failure": "1m", "swing_point_failure_reversal": "1m"}
 RLM_RUN = "d70b216ba51e"
@@ -73,8 +76,6 @@ def optional_price(price):
 def build_chart(sid, version, df, trade, strat, params, order, moved):
     tf = params.get("sig_tf") or params.get("tf") or params.get("entry_tf") or SIGNAL_TF[sid]
     windows = dict(WINDOWS)
-    if tf == "30m":
-        windows["30m"] = (50, 25)
     if sid in SWING_STRATEGIES:
         windows["1m"] = (720, 180)
     rolls = df.raw_symbol.ne(df.raw_symbol.shift()).cumsum()

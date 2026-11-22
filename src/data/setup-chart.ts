@@ -12,7 +12,7 @@ export interface SwingZigzag {
   points: [time: number, price: number][];
 }
 
-export interface SetupChart {
+interface ChartData {
   symbol: string;
   version: string;
   signalTf: string;
@@ -23,6 +23,9 @@ export interface SetupChart {
     swing?: SwingZigzag;
     retrospectiveSwing?: SwingZigzag;
   }[];
+}
+
+export interface SetupChart extends ChartData {
   trade: {
     side: 1 | -1;
     qty: number;
@@ -52,6 +55,37 @@ export interface SetupChart {
     minCloseStrength: number;
   };
 }
+
+export interface PatternChart extends ChartData {
+  pattern: {
+    side: 1 | -1;
+    candle1: number;
+    candle2: number;
+    candle3: number;
+    candle3Close: number | null;
+    confirmed: number;
+    confirmationBar?: number;
+    confirmationMethod: "sweep" | "swing-close" | "retest";
+    confirmationPrice: number | null;
+    earlySweep: number | null;
+    candle1Close: number;
+    catalystTf: string;
+    catalyst: number;
+    catalystEnd: number;
+    catalystSwing: number;
+    catalystSwingPrice?: number;
+    firstTouch: number;
+    secondTouch: number;
+    retest: number;
+    level: number;
+    referenceTf: string;
+    reference: number;
+    referenceLevel: number;
+    crossesRoll: boolean;
+  };
+}
+
+export type HistoricalChart = SetupChart | PatternChart;
 
 const TIMEFRAME_LABELS: Record<string, string> = {
   "1m": "1-minute", "5m": "5-minute", "15m": "15-minute", "30m": "30-minute",

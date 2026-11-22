@@ -2,7 +2,7 @@ import {
   CandlestickSeries, ColorType, CrosshairMode, LineSeries, LineType, TickMarkType,
   createChart, type CandlestickData, type ISeriesApi, type Logical, type Time, type UTCTimestamp,
 } from "lightweight-charts";
-import { marketClock, marketDate, type ChartIndicator, type SetupChart, type SwingZigzag } from "../data/setup-chart";
+import { marketClock, marketDate, type ChartIndicator, type HistoricalChart, type SwingZigzag } from "../data/setup-chart";
 
 const up = "#22ab94";
 const down = "#f23645";
@@ -68,9 +68,15 @@ function setupFullscreen(frame: HTMLElement, toggle: HTMLButtonElement) {
 
 const chartRoots = document.querySelectorAll<HTMLElement>("[data-setup-chart]");
 for (const [chartIndex, root] of chartRoots.entries()) {
-  const data = JSON.parse(root.dataset.setupChart!) as SetupChart;
-  const trade = data.trade;
-  const reaction = data.reaction;
+  const data = JSON.parse(root.dataset.setupChart!) as HistoricalChart;
+  const trade = "trade" in data ? data.trade : null;
+  const reaction = "reaction" in data ? data.reaction : null;
+  const pattern = "pattern" in data ? data.pattern : null;
+  const setupStart = trade?.signalOpen ?? pattern!.candle1;
+  const confirmationBar = pattern && (pattern.confirmationBar ?? (
+    pattern.confirmationMethod === "swing-close" ? pattern.confirmed - 60 : pattern.confirmed
+  ));
+  const setupEnd = trade?.exitTime ?? confirmationBar!;
   const q = <T extends HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
   const plot = q("[data-chart-plot]");
   let activeTf = "";
@@ -118,7 +124,7 @@ for (const [chartIndex, root] of chartRoots.entries()) {
   const indicatorChecks = [...root.querySelectorAll<HTMLInputElement>("[data-indicator]")];
   const indicatorAll = root.querySelector<HTMLButtonElement>("[data-indicator-all]");
   const retrospectiveLabel = root.querySelector<HTMLElement>("[data-retrospective-label]");
-  const positionButton = q<HTMLButtonElement>("[data-position]");
+  const positionButton = root.querySelector<HTMLButtonElement>("[data-position]");
   const hiddenIndicators = new Set(indicatorChecks.filter((input) => !input.checked).map((input) => input.dataset.indicator!));
   let positionVisible = true;
   let redraw = () => {};
@@ -164,7 +170,7 @@ for (const [chartIndex, root] of chartRoots.entries()) {
   series.attachPrimitive({
     attached({ requestUpdate }) { redraw = requestUpdate; },
     autoscaleInfo(start, end) {
-      if (!positionVisible || !bars.length || end < barIndex(trade.fillTime) || start > barIndex(trade.exitTime)) return null;
+      if (!trade || !positionVisible || !bars.length || end < barIndex(trade.fillTime) || start > barIndex(trade.exitTime)) return null;
       const values = [trade.entry, trade.stop, trade.target ?? trade.entry, trade.exit];
       return { priceRange: { minValue: Math.min(...values), maxValue: Math.max(...values) } };
     },
@@ -174,13 +180,15 @@ for (const [chartIndex, root] of chartRoots.entries()) {
           const band = hiddenIndicators.has("Reaction band") ? null : reaction;
           const top = band ? series.priceToCoordinate(band.bandHigh) : null;
           const bottom = band ? series.priceToCoordinate(band.bandLow) : null;
-          const left = timeX(trade.signalOpen);
-          const right = timeX(trade.signalTime);
-          const fill = timeX(trade.fillTime);
-          const exit = timeX(trade.exitTime);
-          const entryY = series.priceToCoordinate(trade.entry);
-          const stopY = series.priceToCoordinate(trade.stop);
-          const targetY = trade.target == null ? null : series.priceToCoordinate(trade.target);
+          const signalStart = trade?.signalOpen ?? pattern!.catalyst;
+          const signalEnd = trade?.signalTime ?? pattern!.catalystEnd;
+          const left = timeX(signalStart);
+          const right = trade ? timeX(signalEnd) : timeX(signalEnd, barIndex(signalEnd - 1));
+          const fill = trade && timeX(trade.fillTime);
+          const exit = trade && timeX(trade.exitTime);
+          const entryY = trade && series.priceToCoordinate(trade.entry);
+          const stopY = trade && series.priceToCoordinate(trade.stop);
+          const targetY = trade?.target == null ? null : series.priceToCoordinate(trade.target);
           target.useMediaCoordinateSpace(({ context, mediaSize }) => {
             if (left != null && right != null) {
               context.fillStyle = "rgba(91, 140, 255, 0.11)";
@@ -193,7 +201,7 @@ for (const [chartIndex, root] of chartRoots.entries()) {
               context.fillRect(0, top, mediaSize.width, 1);
               context.fillRect(0, bottom, mediaSize.width, 1);
             }
-            if (!positionVisible || fill == null || exit == null || entryY == null || stopY == null) return;
+            if (!trade || !positionVisible || fill == null || exit == null || entryY == null || stopY == null) return;
             const width = Math.max(4, exit - fill);
             context.fillStyle = "rgba(240, 97, 109, 0.24)";
             context.fillRect(fill, Math.min(entryY, stopY), width, Math.abs(entryY - stopY));
@@ -235,7 +243,57 @@ for (const [chartIndex, root] of chartRoots.entries()) {
               context.restore();
             });
           }
-          if (!positionVisible) return;
+          if (pattern) {
+            target.useMediaCoordinateSpace(({ context, mediaSize }) => {
+              const level = series.priceToCoordinate(pattern.level);
+              const retest = timeX(pattern.retest + 30);
+              if (level != null && retest != null) {
+                context.save();
+                context.strokeStyle = "#9db8ff";
+                context.fillStyle = "#9db8ff";
+                context.setLineDash([4, 4]);
+                context.beginPath();
+                context.moveTo(timeX(pattern.catalyst) ?? 0, level);
+                context.lineTo(retest, level);
+                context.stroke();
+                context.beginPath();
+                context.arc(retest, level, 4, 0, 2 * Math.PI);
+                context.fill();
+                context.restore();
+              }
+              if (pattern.confirmationPrice != null && confirmationBar != null) {
+                const x = timeX(confirmationBar + 30);
+                const y = series.priceToCoordinate(pattern.confirmationPrice);
+                if (x != null && y != null) {
+                  context.save();
+                  context.strokeStyle = "#9db8ff";
+                  context.lineWidth = 1.5;
+                  context.beginPath();
+                  context.moveTo(x, y - 5);
+                  context.lineTo(x + 5, y);
+                  context.lineTo(x, y + 5);
+                  context.lineTo(x - 5, y);
+                  context.closePath();
+                  context.stroke();
+                  context.restore();
+                }
+              }
+              if (activeTf !== data.signalTf) return;
+              context.fillStyle = ink;
+              context.font = "12px Geist Variable, system-ui, sans-serif";
+              context.textAlign = "center";
+              for (const [number, time] of [pattern.candle1, pattern.candle2, pattern.candle3].entries()) {
+                const index = barIndex(time);
+                const bar = bars[index];
+                const x = timeScale.logicalToCoordinate(index as Logical);
+                const y = bar && series.priceToCoordinate(pattern.side === 1 ? bar.low : bar.high);
+                if (x != null && y != null && x >= 0 && x <= mediaSize.width) {
+                  context.fillText(`C${number + 1}`, x, y + (pattern.side === 1 ? 16 : -10));
+                }
+              }
+            });
+          }
+          if (!trade || !positionVisible) return;
           const fillX = timeX(trade.fillTime);
           const fillY = series.priceToCoordinate(trade.entry);
           const exitX = timeX(trade.exitTime);
@@ -291,9 +349,15 @@ for (const [chartIndex, root] of chartRoots.entries()) {
     redraw();
   };
 
-  const fitTrade = () => {
-    const start = barIndex(trade.signalOpen);
-    const end = barIndex(trade.exitTime);
+  const fitSetup = () => {
+    const start = barIndex(setupStart);
+    const end = barIndex(setupEnd);
+    if (pattern) {
+      const padding = Math.max(plot.clientWidth < 500 ? 3 : 6, Math.ceil((end - start) / 8));
+      chart.priceScale("right").applyOptions({ autoScale: true });
+      timeScale.setVisibleLogicalRange({ from: Math.max(0, start - padding), to: Math.min(bars.length - 1, end + padding) });
+      return;
+    }
     const padding = Math.max(5, Math.ceil((end - start) / 8));
     let from = Math.max(0, start - padding);
     let to = Math.min(bars.length, end + padding);
@@ -327,8 +391,8 @@ for (const [chartIndex, root] of chartRoots.entries()) {
     series.setData(bars);
     showIndicators();
     for (const button of buttons) button.setAttribute("aria-pressed", String(button.dataset.tf === tf));
-    fitTrade();
-    inspect(barIndex(trade.signalTime - 1));
+    fitSetup();
+    inspect(barIndex(trade ? trade.signalTime - 1 : pattern!.retest));
   };
 
   const zoom = (factor: number) => {
@@ -351,12 +415,12 @@ for (const [chartIndex, root] of chartRoots.entries()) {
     for (const input of indicatorChecks) input.checked = show;
     updateIndicators();
   });
-  positionButton.addEventListener("click", () => {
+  positionButton?.addEventListener("click", () => {
     positionVisible = !positionVisible;
     positionButton.setAttribute("aria-pressed", String(positionVisible));
     redraw();
   });
-  q("[data-fit]").addEventListener("click", fitTrade);
+  q("[data-fit]").addEventListener("click", fitSetup);
   q('[data-zoom="in"]').addEventListener("click", () => zoom(0.75));
   q('[data-zoom="out"]').addEventListener("click", () => zoom(1.33));
   setupFullscreen(q("[data-chart-frame]"), q<HTMLButtonElement>("[data-fullscreen]"));
@@ -368,7 +432,7 @@ for (const [chartIndex, root] of chartRoots.entries()) {
   plot.addEventListener("keydown", (event) => {
     if (event.key === "+" || event.key === "=" || event.key === "-" || event.key === "Home") {
       event.preventDefault();
-      if (event.key === "Home") fitTrade();
+      if (event.key === "Home") fitSetup();
       else zoom(event.key === "-" ? 1.33 : 0.75);
       return;
     }

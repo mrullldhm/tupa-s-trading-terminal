@@ -25,7 +25,10 @@ export default defineConfig({
           const rlmTradeQuery = allowHistoricalChart
             && request.url?.startsWith("/strategies/reaction-level-matrix/all-hours/?")
             ? request.url.slice(request.url.indexOf("?") + 1) : undefined;
-          request[locals] = { ...request[locals], allowHistoricalChart, rlmTradeQuery };
+          const tupaSetupQuery = allowHistoricalChart
+            && request.url?.startsWith("/strategies/tupa-1/setups/?")
+            ? request.url.slice(request.url.indexOf("?") + 1) : undefined;
+          request[locals] = { ...request[locals], allowHistoricalChart, rlmTradeQuery, tupaSetupQuery };
           next();
         });
       },

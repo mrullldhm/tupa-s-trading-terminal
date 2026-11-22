@@ -1,6 +1,7 @@
 ---
 import Icon, { type IconName } from "./Icon.astro";
 import { strategies, swatch } from "../lib/data";
+import { TUPA_PATH } from "../data/tupa-setups";
 interface Props { current: string }
 const { current } = Astro.props;
 const items: { href: string; label: string; icon: IconName }[] = [
@@ -29,6 +30,12 @@ const active = (href: string) => (href === "/" ? current === "/" : current.start
                 </a>
               </li>
             ))}
+            <li>
+              <a href={TUPA_PATH} aria-current={active(TUPA_PATH) ? "page" : undefined}>
+                <i style={swatch("#3987e5", true)}></i>
+                <span>Tupa 1</span>
+              </a>
+            </li>
           </ul>
         )}
       </li>

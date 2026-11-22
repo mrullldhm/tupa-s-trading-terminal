@@ -3,6 +3,7 @@ import Base from "../../layouts/Base.astro";
 import Status from "../../components/Status.astro";
 import YearBars from "../../components/YearBars.astro";
 import Icon from "../../components/Icon.astro";
+import { TUPA_PATH } from "../../data/tupa-setups";
 import { strategies, gatesPassed, yearRange, swatch } from "../../lib/data";
 import { usdK } from "../../lib/format";
 const years = yearRange();
@@ -44,6 +45,10 @@ const years = yearRange();
     ))}
   </ul>
   <p class="note faint">Numbers show the best version of each idea (best of the versions tried), on build data {years}. In-sample.</p>
+  <section class="research panel panel-body" aria-labelledby="research-title">
+    <h2 id="research-title">Setup research</h2>
+    <p><a href={TUPA_PATH}>Tupa 1</a> studies ordered catalyst sweeps and retests in CL.</p>
+  </section>
 </Base>
 <style>
   .head { padding: clamp(2rem, 5vw, 3.25rem) 0 1.75rem; position: relative; }
@@ -69,6 +74,8 @@ const years = yearRange();
   .nums dd { margin: 0; font-weight: 600; font-size: 1rem; }
   .row :global(.go) { color: var(--ink-3); transition: transform 0.25s var(--ease), color 0.2s; }
   .row:hover :global(.go) { transform: translateX(3px); color: var(--ink); }
+  .research { margin-top: 1.5rem; }
+  .research p { margin-top: 0.4rem; color: var(--ink-2); }
   .note { margin-top: 1rem; font-size: 0.8rem; }
   @media (max-width: 1100px) {
     .row { grid-template-columns: minmax(0, 1fr) auto; }

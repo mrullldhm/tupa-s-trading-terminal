@@ -1,0 +1,109 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { marketDate } from "../../../data/setup-chart";
+import { TUPA_GROUPS, TUPA_PATH, TUPA_SETUPS_PATH, type TupaGroup } from "../../../data/tupa-setups";
+
+const { allowHistoricalChart, tupaSetupQuery } = Astro.locals as {
+  allowHistoricalChart?: boolean; tupaSetupQuery?: string;
+};
+const local = import.meta.env.DEV && allowHistoricalChart === true
+  && ["localhost", "127.0.0.1", "[::1]"].includes(Astro.url.hostname);
+if (local) Astro.response.headers.set("Cache-Control", "no-store");
+const loader = local ? await import("../../../lib/local-tupa-setups.mjs") : null;
+const setups = loader ? await loader.loadTupaSetups(TUPA_GROUPS, new URLSearchParams(tupaSetupQuery)) : null;
+const SetupChart = setups ? (await import("../../../components/SetupChart.astro")).default : null;
+const groups = TUPA_GROUPS.map((group) => ({
+  ...group, title: `${group.pair} · ${group.label}`, total: group.long + group.short, number: 0, chart: null,
+  legacyAnchor: group.method === "sweep" ? group.source : null,
+  ...setups?.groups.find(({ id }) => id === group.id),
+}));
+const pairs = [...new Set(groups.map(({ pair }) => pair))];
+const jump = (id: TupaGroup, at: number) => {
+  const query = new URLSearchParams();
+  for (const group of groups) if (group.total) query.set(group.id, String(group.id === id ? at : group.number));
+  return `${TUPA_SETUPS_PATH}?${query}#${id}`;
+};
+const range = setups ? `${marketDate.format(setups.first * 1000)}–${marketDate.format(setups.last * 1000)}` : "7 Jun 2010–17 Nov 2026";
+---
+<Base title="Tupa 1 setup charts" description="Review historical Tupa 1 setups grouped by timeframes and confirmation method."
+  crumbs={[{ href: "/strategies/", label: "Strategies" }, { href: TUPA_PATH, label: "Tupa 1" }, { label: "Setup charts" }]}>
+  <header class="head">
+    <h1>Tupa 1 setup charts</h1>
+    <p>{groups.reduce((total, group) => total + group.total, 0).toLocaleString("en-US")} CL setups · {range} · In-sample census</p>
+    <nav class="group-nav" aria-label="Setup groups">
+      {pairs.map((pair) => (
+        <div class="pair-links" role="group" aria-label={pair}>
+          <strong>{pair}</strong>
+          <div class="jump-links">
+            {groups.filter((group) => group.pair === pair).map(({ id, label, total }) => (
+              <a class="btn" href={`#${id}`}>{label} <span class="num">{total}</span></a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </nav>
+  </header>
+
+  {!setups && <p class="availability">
+    {local ? <>Run <code>npm run export:tupa-setups</code> in the web project to generate the local charts.</>
+      : "Historical candles are available on the local development server."}
+  </p>}
+
+  {groups.map(({ id, title, total, number: at, chart, legacyAnchor }) => <>
+    {legacyAnchor && <span id={legacyAnchor} class="legacy-anchor"></span>}
+    {SetupChart && chart
+    ? <SetupChart data={chart} id={id} title={title}>
+        <nav slot="navigation" class="setup-controls" aria-label={`${title} navigation`}>
+          {at > 1 ? <a class="btn" href={jump(id, at - 1)}>Previous</a>
+            : <button type="button" class="btn" disabled>Previous</button>}
+          <form action={`${TUPA_SETUPS_PATH}#${id}`} method="get" class="setup-jump">
+            {groups.filter((group) => group.id !== id && group.total > 0).map((group) => (
+              <input type="hidden" name={group.id} value={group.number} />
+            ))}
+            <label for={`${id}-number`}>Setup</label>
+            <input id={`${id}-number`} type="number" name={id} min="1" max={total} value={at} required />
+            <span class="num">of {total}</span>
+            <button class="btn" type="submit">Go</button>
+          </form>
+          {at < total ? <a class="btn" href={jump(id, at + 1)}>Next</a>
+            : <button type="button" class="btn" disabled>Next</button>}
+        </nav>
+      </SetupChart>
+    : <section class="panel panel-body summary" id={id} aria-labelledby={`${id}-heading`}>
+        <h2 id={`${id}-heading`}>{title}</h2>
+        <p>{total === 0 ? "No qualifying setups in the local history." : `${total} qualifying setups`}</p>
+      </section>}
+  </>)}
+</Base>
+<style>
+  .head { position: relative; padding: clamp(2rem, 5vw, 3rem) 0 0.5rem; }
+  .head::before {
+    content: ""; position: absolute; z-index: -1; inset: -3.5rem -20% auto; height: 22rem; pointer-events: none;
+    background: radial-gradient(34rem 16rem at 25% 0%, var(--sky-glow), transparent 70%);
+  }
+  .head p, .summary p, .availability { margin-top: 0.55rem; color: var(--ink-2); }
+  .jump-links, .setup-controls, .setup-jump { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+  .group-nav { display: grid; gap: 0.55rem; margin-top: 1rem; }
+  .pair-links { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); align-items: baseline; gap: 0.5rem; }
+  .pair-links strong { font-size: 0.875rem; }
+  .jump-links span { margin-left: 0.3rem; color: var(--ink-2); }
+  .setup-controls { margin-bottom: 0.65rem; }
+  .setup-jump { color: var(--ink-2); font-size: 0.875rem; }
+  .setup-jump input[type="number"] {
+    width: 4.15rem; min-height: 2.4rem; padding: 0 0.5rem; border: 1px solid var(--line-hi);
+    border-radius: var(--r-sm); background: var(--bg-sunk); color: var(--ink);
+    font: inherit; font-variant-numeric: tabular-nums;
+  }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .summary { margin-top: 1rem; scroll-margin-top: 4.5rem; }
+  .legacy-anchor { display: block; scroll-margin-top: 4.5rem; }
+  @media (max-width: 640px) {
+    .pair-links { grid-template-columns: minmax(0, 1fr); }
+    .group-nav { gap: 0.85rem; }
+  }
+  @media (max-width: 440px) {
+    .setup-jump label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .setup-controls .btn { padding-inline: 0.65rem; }
+    .setup-jump input[type="number"] { width: 3.6rem; }
+  }
+</style>

@@ -1,0 +1,74 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { TUPA_GROUPS, TUPA_SETUPS_PATH } from "../../../data/tupa-setups";
+
+const sections = [
+  { swing: "4H", catalyst: "1H", reference: "previous daily candle" },
+  { swing: "1H", catalyst: "15m", reference: "previous 4H candle" },
+];
+---
+<Base title="Tupa 1" description="Historical CL setup research for Tupa 1."
+  crumbs={[{ href: "/strategies/", label: "Strategies" }, { label: "Tupa 1" }]}>
+  <header class="head">
+    <h1>Tupa 1</h1>
+    <p>Research on catalyst retests around swing points in CL.</p>
+    <a class="btn btn-primary" href={TUPA_SETUPS_PATH}>Review setup charts</a>
+  </header>
+
+  <section class="panel panel-body" aria-labelledby="rules-title">
+    <h2 id="rules-title">Setup rules</h2>
+    <ul>
+      {sections.map(({ swing, catalyst, reference }) => (
+        <li><strong>{swing}–{catalyst}.</strong> Candle 1 on the {swing} chart closes at or below the low of the {reference} for a long, or at or above its high for a short.</li>
+      ))}
+    </ul>
+    <ol>
+      <li>
+        For a long, a catalyst inside candle 1 takes the prior candle’s high before its low. When it reaches the low, its latest confirmed swing must be a high strictly above the reference low. For a short, the catalyst takes the low before the high. When it reaches the high, its latest confirmed swing must be a low strictly below the reference high. The reference is the previous daily candle for a 4H swing or the previous 4H candle for a 1H swing.
+        If the same minute also invalidates the required paired swing, the second touch qualifies only if the open has already reached that level while the swing is still active.
+      </li>
+      <li>Under the owner’s swing-point rule, candle 2 is a swing low for a long and a swing high for a short. After candle 2 closes, price retests the catalyst high for a long or its low for a short.</li>
+      <li>
+        A retest by candle 3’s close has two ways to confirm.
+        <ul>
+          <li><strong>Swing timeframe.</strong> Wait for candle 3 to close and confirm candle 2 as the latest swing. For a long, candle 3’s low must be strictly higher than candle 2’s low. For a short, candle 3’s high must be strictly lower.</li>
+          <li><strong>Catalyst timeframe.</strong> Inside candle 3, a single 1H or 15m candle touches or breaks its preceding candle’s low first, then its high for a long. Shorts take the high first, then the low. Once the retest and sweep have both occurred inside candle 3, the setup confirms at the minute’s close if candle 2 meets the swing rule against candle 3’s range so far.</li>
+        </ul>
+        If a gap delays candle 3’s close, a retest in the minute that closes it still requires confirmation at that close. A retest after candle 3 closes qualifies while candle 2 remains the latest swing point. If the retest minute also invalidates candle 2’s paired swing, the retest qualifies only if the open reached the retest level first.
+      </li>
+    </ol>
+  </section>
+
+  <section class="panel" aria-labelledby="census-title">
+    <div class="panel-head">
+      <div><h2 id="census-title">Historical setup census</h2><p>7 June 2010–17 November 2026 · In-sample CL history</p></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Setup group</th><th scope="col" class="r">Long</th><th scope="col" class="r">Short</th><th scope="col" class="r">Total</th></tr></thead>
+        <tbody>
+          {TUPA_GROUPS.map(({ id, pair, label, long, short }) => (
+            <tr><th scope="row"><a href={`${TUPA_SETUPS_PATH}#${id}`}>{pair} · {label}</a></th>
+              <td class="r num">{long}</td><td class="r num">{short}</td><td class="r num">{long + short}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="panel-body note">One setup per catalyst, using its earliest confirmation. Entry, exit and Combine rules are still open research questions.</p>
+  </section>
+</Base>
+<style>
+  .head { position: relative; padding: clamp(2rem, 5vw, 3rem) 0 1.75rem; }
+  .head::before {
+    content: ""; position: absolute; z-index: -1; inset: -3.5rem -20% auto; height: 22rem; pointer-events: none;
+    background: radial-gradient(34rem 16rem at 25% 0%, var(--sky-glow), transparent 70%);
+  }
+  .head p { color: var(--ink-2); margin: 0.6rem 0 1rem; }
+  section + section { margin-top: 1rem; }
+  li { color: var(--ink-2); max-width: 72ch; }
+  li + li { margin-top: 0.4rem; }
+  li > ul { margin-block: 0.4rem; }
+  tbody th { text-align: left; font-weight: 500; }
+  .note { color: var(--ink-2); }
+</style>
